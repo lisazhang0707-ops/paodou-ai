@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+:root {
+  --sans: "Noto Sans SC", system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--sans);
+}
