@@ -8,18 +8,10 @@ export default function Footer() {
         </div>
 
         <div className="flex items-center gap-6">
-          <a href="#" className="text-gray-400 hover:text-gray-600 transition-colors text-sm">
-            微信
-          </a>
-          <a href="#" className="text-gray-400 hover:text-gray-600 transition-colors text-sm">
-            知乎
-          </a>
-          <a href="#" className="text-gray-400 hover:text-gray-600 transition-colors text-sm">
-            小红书
-          </a>
-          <a href="mailto:lisa@paodou.ai" className="text-gray-400 hover:text-gray-600 transition-colors text-sm">
-            邮箱
-          </a>
+          <a href="#" className="text-gray-400 hover:text-gray-600 transition-colors text-sm">微信</a>
+          <a href="#" className="text-gray-400 hover:text-gray-600 transition-colors text-sm">知乎</a>
+          <a href="#" className="text-gray-400 hover:text-gray-600 transition-colors text-sm">小红书</a>
+          <a href="mailto:lisa@paodou.ai" className="text-gray-400 hover:text-gray-600 transition-colors text-sm">邮箱</a>
         </div>
       </div>
     </footer>
