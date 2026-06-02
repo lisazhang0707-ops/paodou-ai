@@ -6,6 +6,9 @@ import Blog, { BlogPost } from "./pages/Blog"
 import Tools from "./pages/Tools"
 import RoiCalculator from "./pages/RoiCalculator"
 import CustomerSegmentation from "./pages/CustomerSegmentation"
+import DiffusionModel from "./pages/DiffusionModel"
+import BanditModel from "./pages/BanditModel"
+import ThresholdModel from "./pages/ThresholdModel"
 import About from "./pages/About"
 import Collaborate from "./pages/Collaborate"
 
@@ -21,6 +24,9 @@ export default function App() {
           <Route path="/tools" element={<Tools />} />
           <Route path="/tools/roi-calculator" element={<RoiCalculator />} />
           <Route path="/tools/customer-segmentation" element={<CustomerSegmentation />} />
+          <Route path="/tools/diffusion-model" element={<DiffusionModel />} />
+          <Route path="/tools/bandit-model" element={<BanditModel />} />
+          <Route path="/tools/threshold-model" element={<ThresholdModel />} />
           <Route path="/about" element={<About />} />
           <Route path="/collaborate" element={<Collaborate />} />
         </Routes>

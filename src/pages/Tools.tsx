@@ -9,6 +9,24 @@ const tools = [
     path: "/tools/roi-calculator",
   },
   {
+    slug: "bandit-model",
+    title: "多臂老虎机 — A/B 预算分配",
+    desc: "Thompson Sampling 自动探索最优投放渠道，平衡探索与利用",
+    path: "/tools/bandit-model",
+  },
+  {
+    slug: "diffusion-model",
+    title: "营销传播扩散模型",
+    desc: "SIR 模型模拟营销信息传播，计算 R₀、峰值时间、总触达人数",
+    path: "/tools/diffusion-model",
+  },
+  {
+    slug: "threshold-model",
+    title: "阈值决策模型",
+    desc: "找到线索评分的最优临界点，平衡触达成本与转化收益",
+    path: "/tools/threshold-model",
+  },
+  {
     slug: "customer-segmentation",
     title: "客户分层模板",
     desc: "基于 RFM 模型快速给客户打分，识别高价值客户和流失风险",
