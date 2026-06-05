@@ -50,6 +50,11 @@ const projects = [
     url: "https://lisazhang0707-ops.github.io/paodou-ai/financial-resources.html",
   },
   {
+    title: "维保运营监控看板",
+    desc: "工地负责人/站长双视角，ECharts 可视化运营监控",
+    url: "https://lisazhang0707-ops.github.io/paodou-ai/dashboard_standalone.html",
+  },
+  {
     title: "毕业指南",
     desc: "毕业生指南 & 资源整理",
     url: "https://lisazhang0707-ops.github.io/graduation-guide/",
