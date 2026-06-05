@@ -4,6 +4,7 @@ const links = [
   { to: "/", label: "首页" },
   { to: "/blog", label: "文章" },
   { to: "/tools", label: "工具" },
+  { to: "/agents", label: "智能体" },
   { to: "/about", label: "关于" },
   { to: "/collaborate", label: "合作" },
 ]

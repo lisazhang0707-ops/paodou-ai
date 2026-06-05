@@ -11,6 +11,7 @@ import BanditModel from "./pages/BanditModel"
 import ThresholdModel from "./pages/ThresholdModel"
 import About from "./pages/About"
 import Collaborate from "./pages/Collaborate"
+import Agents from "./pages/Agents"
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/tools/bandit-model" element={<BanditModel />} />
           <Route path="/tools/threshold-model" element={<ThresholdModel />} />
           <Route path="/about" element={<About />} />
+          <Route path="/agents" element={<Agents />} />
           <Route path="/collaborate" element={<Collaborate />} />
         </Routes>
       </main>
