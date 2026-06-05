@@ -1,0 +1,3247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上市公司财报分析工具</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/pptxgenjs/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: #f5f5f5; color: #1a1a1a; line-height: 1.6;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px 60px; }
+  h1 { text-align: center; font-size: 1.6rem; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #888; font-size: 0.88rem; margin-bottom: 28px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; flex-wrap: wrap; }
+  .tab {
+    flex: 1; min-width: 120px; text-align: center; padding: 12px 8px;
+    background: #fff; border: 2px solid #e0e0e0; border-radius: 8px;
+    font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.15s;
+  }
+  .tab:hover { border-color: #93c5fd; }
+  .tab.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── Upload Zone ── */
+  .upload-zone {
+    background: #fff; border: 2px dashed #cbd5e1; border-radius: 12px;
+    padding: 40px 24px; text-align: center; cursor: pointer; transition: all 0.2s;
+    margin-bottom: 20px;
+  }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: #2563eb; background: #f8faff; }
+  .upload-zone .icon { font-size: 2.5rem; margin-bottom: 8px; }
+  .upload-zone .text { font-size: 0.95rem; color: #555; }
+  .upload-zone .hint { font-size: 0.8rem; color: #aaa; margin-top: 4px; }
+  .upload-zone input[type=file] { display: none; }
+
+  /* ── File List ── */
+  .file-list { margin-bottom: 20px; }
+  .file-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: #fff; border-radius: 8px; margin-bottom: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .file-item .fname { flex: 1; font-size: 0.88rem; font-weight: 600; }
+  .file-item .fstatus { font-size: 0.78rem; color: #888; }
+  .file-item .fstatus.ok { color: #16a34a; }
+  .file-item .fstatus.err { color: #dc2626; }
+  .file-item .fyear { font-size: 0.78rem; background: #e8e8e8; padding: 2px 10px; border-radius: 10px; }
+  .file-item .btn-sm {
+    padding: 4px 12px; border: 1px solid #e0e0e0; border-radius: 4px;
+    background: #fff; font-size: 0.75rem; cursor: pointer;
+  }
+  .file-item .btn-sm:hover { background: #fee2e2; border-color: #fca5a5; }
+      .file-item .fcompany {
+        width: 100px; padding: 3px 8px; border: 1px solid #e0e0e0; border-radius: 4px;
+        font-size: 0.78rem; text-align: center;
+      }
+      .file-item .fcompany:focus { outline: none; border-color: #2563eb; }
+
+      .btn-compare {
+        padding: 10px 20px; background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff;
+        border: none; border-radius: 6px; font-size: 0.88rem; font-weight: 600;
+        cursor: pointer; transition: all 0.2s;
+      }
+      .btn-compare:hover { background: linear-gradient(135deg, #d97706, #dc2626); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+      .btn-compare:disabled { background: #aaa; cursor: not-allowed; transform: none; box-shadow: none; }
+
+      .company-group { margin-bottom: 8px; }
+      .company-group-header {
+        font-size: 0.82rem; font-weight: 700; color: #1e3a5f; padding: 4px 0;
+        border-bottom: 2px solid #e0e0e0; margin-bottom: 4px;
+      }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 10px 24px; background: #2563eb; color: #fff;
+    border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn:hover { background: #1d4ed8; }
+  .btn:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-outline {
+    padding: 10px 24px; background: #fff; color: #2563eb;
+    border: 2px solid #2563eb; border-radius: 6px; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn-outline:hover { background: #eff6ff; }
+
+  .btn-ppt {
+    padding: 12px 28px; background: linear-gradient(135deg, #d946ef, #7c3aed); color: #fff;
+    border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; margin-top: 16px;
+  }
+  .btn-ppt:hover { background: linear-gradient(135deg, #c026d3, #6d28d9); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
+  .btn-ppt:disabled { background: #aaa; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn-pdf {
+    padding: 12px 28px; background: #fff; color: #dc2626;
+    border: 2px solid #dc2626; border-radius: 6px; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; margin-top: 16px; margin-left: 12px;
+  }
+  .btn-pdf:hover { background: #fef2f2; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220,38,38,0.15); }
+  .btn-pdf:disabled { background: #f5f5f5; color: #aaa; border-color: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ── Extracted Data Table ── */
+  .extract-table-wrap { overflow-x: auto; margin: 20px 0; }
+  .extract-table {
+    width: 100%; border-collapse: collapse; background: #fff;
+    border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    font-size: 0.85rem;
+  }
+  .extract-table th {
+    background: #1e3a5f; color: #fff; padding: 10px 12px; text-align: left; font-weight: 600;
+  }
+  .extract-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; }
+  .extract-table tr:hover td { background: #fafbff; }
+  .extract-table .row-label { font-weight: 600; color: #1e3a5f; white-space: nowrap; }
+  .extract-table input[type=text] {
+    width: 140px; padding: 5px 8px; border: 1px solid #e0e0e0; border-radius: 4px;
+    font-size: 0.84rem; font-family: "SF Mono", "Consolas", monospace; text-align: right;
+  }
+  .extract-table input:focus { outline: none; border-color: #2563eb; }
+  .extract-table .extracted { background: #f0fdf4; }
+  .extract-table .manual { background: #fffbf0; }
+  .extract-table select { padding: 4px 8px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 0.82rem; }
+
+  .section-title {
+    font-size: 1rem; font-weight: 700; color: #1e3a5f; margin: 20px 0 10px;
+    padding-left: 8px; border-left: 3px solid #2563eb;
+  }
+
+  /* ── Result ── */
+  .result-section { margin-bottom: 28px; }
+  .result-section h3 { font-size: 0.95rem; color: #1e3a5f; margin-bottom: 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+  .metric-card {
+    background: #fff; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .metric-label { font-size: 0.76rem; color: #888; }
+  .metric-value { font-size: 1.2rem; font-weight: 700; margin-top: 2px; font-family: "SF Mono", "Consolas", monospace; }
+  .metric-good { color: #16a34a; }
+  .metric-warn { color: #ea580c; }
+  .metric-bad { color: #dc2626; }
+
+  .insight-box {
+    background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;
+    padding: 14px 18px; margin-bottom: 10px;
+  }
+  .insight-box.good { background: #f0fdf4; border-color: #bbf7d0; }
+  .insight-box.bad { background: #fef2f2; border-color: #fecaca; }
+  .insight-box p { font-size: 0.84rem; color: #555; line-height: 1.6; }
+
+  .score-badge {
+    display: inline-block; padding: 4px 16px; border-radius: 20px;
+    font-weight: 700; font-size: 1.1rem;
+  }
+
+  /* ── Year comparison table ── */
+  .cmp-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; margin: 16px 0; background: #fff; border-radius: 8px; overflow: hidden; }
+  .cmp-table th { background: #f1f5f9; padding: 8px 12px; text-align: left; font-weight: 600; }
+  .cmp-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; }
+  .cmp-table .trend-up { color: #16a34a; }
+  .cmp-table .trend-down { color: #dc2626; }
+
+  /* ── SEC Fetch ── */
+  .sec-fetch { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .fetch-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .fetch-row input {
+    flex: 1; min-width: 160px; padding: 10px 14px;
+    border: 2px solid #e0e0e0; border-radius: 6px; font-size: 1rem;
+    font-family: "SF Mono", "Consolas", monospace;
+  }
+  .fetch-row input:focus { outline: none; border-color: #2563eb; }
+  .fetch-status { margin-top: 12px; font-size: 0.85rem; color: #888; }
+
+  .empty-hint { text-align: center; padding: 40px; color: #999; font-size: 0.9rem; }
+  .info-bar { font-size: 0.8rem; color: #888; background: #f8fafc; padding: 10px 14px; border-radius: 6px; margin: 12px 0; }
+
+  .panel-sec .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 8px; }
+  .panel-sec .form-field { display: flex; align-items: center; gap: 8px; }
+  .panel-sec .form-field label { flex: 1; font-size: 0.85rem; color: #555; }
+  .panel-sec .form-field input { width: 160px; padding: 7px 10px; border: 1px solid #e0e0e0; border-radius: 5px; font-size: 0.88rem; font-family: "SF Mono","Consolas",monospace; text-align: right; }
+  .panel-sec .form-field input:focus { outline: none; border-color: #2563eb; }
+  .panel-sec .form-section h3 { font-size: 0.95rem; color: #1e3a5f; margin-bottom: 10px; padding-bottom: 4px; border-bottom: 2px solid #e0e0e0; }
+  .panel-sec .form-section { margin-bottom: 24px; }
+
+  @media (max-width: 600px) {
+    .tabs { flex-direction: column; }
+    .metric-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Report Display ── */
+  .report-container {
+    background: #fff; border-radius: 10px; padding: 32px 36px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-top: 20px;
+    font-size: 0.92rem; line-height: 1.8; color: #1a1a1a;
+  }
+  .report-container h1 { font-size: 1.4rem !important; text-align: left !important; color: #1e3a5f; margin: 28px 0 12px !important; padding-bottom: 6px; border-bottom: 2px solid #2563eb; }
+  .report-container h2 { font-size: 1.15rem; color: #1e3a5f; margin: 24px 0 10px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  .report-container h3 { font-size: 1rem; color: #333; margin: 18px 0 8px; }
+  .report-container p { margin: 6px 0; }
+  .report-container ul, .report-container ol { margin: 8px 0; padding-left: 24px; }
+  .report-container li { margin: 3px 0; }
+  .report-container table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.85rem; }
+  .report-container table th { background: #f1f5f9; padding: 8px 12px; text-align: left; font-weight: 600; border: 1px solid #e0e0e0; }
+  .report-container table td { padding: 8px 12px; border: 1px solid #e0e0e0; }
+  .report-container strong { color: #1e3a5f; }
+  .report-container code { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 0.85em; }
+  .report-container blockquote { border-left: 3px solid #93c5fd; padding: 8px 16px; margin: 12px 0; background: #f8faff; color: #555; }
+
+  /* ── Quantitative Dashboard ── */
+  .quant-dashboard { margin-bottom: 28px; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .quant-db-header { background: #1e3a5f; color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .quant-db-header h2 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+  .quant-db-header .unit-tag { font-size: 0.75rem; background: rgba(255,255,255,0.15); padding: 3px 12px; border-radius: 10px; }
+  .quant-db-section { background: #fff; padding: 20px 24px; border-bottom: 1px solid #e8e8e8; }
+  .quant-db-section:last-child { border-bottom: none; border-radius: 0 0 10px 10px; }
+  .quant-db-section h3 { font-size: 0.92rem; color: #1e3a5f; margin-bottom: 12px; padding-left: 8px; border-left: 3px solid #2563eb; }
+  .chart-wrap { position: relative; height: 280px; width: 100%; }
+  @media (max-width: 600px) { .chart-wrap { height: 220px; } }
+  .quant-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+  .quant-table thead th { background: #f1f5f9; padding: 8px 10px; text-align: left; font-weight: 600; color: #1e3a5f; border-bottom: 2px solid #d0d0d0; }
+  .quant-table thead th:first-child { text-align: left; }
+  .quant-table thead th:not(:first-child) { text-align: right; }
+  .quant-table tbody td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; }
+  .quant-table tbody td:first-child { font-weight: 600; color: #555; }
+  .quant-table tbody td:not(:first-child) { text-align: right; font-family: "SF Mono","Consolas",monospace; }
+  .quant-table .chg-up { color: #16a34a; }
+  .quant-table .chg-down { color: #dc2626; }
+  .quant-table .chg-flat { color: #888; }
+  .health-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .health-card { background: #f8fafc; border-radius: 8px; padding: 13px 15px; border-left: 3px solid #2563eb; }
+  .health-card.warn { border-left-color: #ea580c; background: #fffbf0; }
+  .health-card.bad { border-left-color: #dc2626; background: #fef2f2; }
+  .health-card .hl { font-size: 0.76rem; color: #888; margin-bottom: 3px; }
+  .health-card .hv { font-size: 1.1rem; font-weight: 700; color: #1a1a1a; font-family: "SF Mono","Consolas",monospace; }
+  .health-card .hs { font-size: 0.72rem; color: #888; margin-top: 2px; }
+  .score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .score-label { width: 80px; font-size: 0.82rem; font-weight: 600; color: #555; text-align: right; flex-shrink: 0; }
+  .score-bar-wrap { flex: 1; height: 18px; background: #e8e8e8; border-radius: 9px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 9px; transition: width 0.6s ease; }
+  .score-val { width: 45px; font-size: 0.82rem; font-weight: 700; text-align: center; font-family: "SF Mono","Consolas",monospace; }
+  .score-total { text-align: center; margin-top: 16px; padding: 12px; background: #f0f4ff; border-radius: 8px; }
+  .score-total .big-score { font-size: 2.2rem; font-weight: 800; color: #1e3a5f; }
+  .quant-hint { font-size: 0.75rem; color: #aaa; margin-top: 4px; text-align: center; }
+  .quant-empty { text-align: center; padding: 30px; color: #999; font-size: 0.9rem; }
+
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>上市公司财报分析工具</h1>
+  <p class="subtitle">上传 PDF 提取全文本 → DeepSeek 通读全文深度解读 → 准确数据 + 定性分析</p>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="panel-upload">上传 PDF 自动提取</div>
+    <div class="tab" data-tab="panel-sec">SEC 自动获取</div>
+    <div class="tab" data-tab="panel-manual">手动录入</div>
+    <div class="tab" data-tab="panel-result" id="tabResult">分析结果</div>
+  </div>
+
+  <!-- ═══════ Panel: Upload PDF ═══════ -->
+  <div class="panel active" id="panel-upload">
+    <div class="upload-zone" id="uploadZone">
+      <div class="icon">&#128206;</div>
+      <div class="text">拖拽 PDF 财报文件到此处，或点击选择</div>
+      <div class="hint">支持 A 股年报、美股 10-K/10-Q。可一次选择 2-3 个年度报告进行对比。</div>
+      <input type="file" id="fileInput" accept=".pdf" multiple>
+    </div>
+    <div class="file-list" id="fileList"></div>
+
+    <div id="extractArea" style="display:none;">
+      <div class="section-title">提取结果 — 请核对并修正</div>
+      <div class="info-bar" id="extractInfo"></div>
+      <div class="extract-table-wrap">
+        <table class="extract-table" id="extractTable"></table>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-outline" id="reExtractBtn">重新提取</button>
+        <button class="btn" id="uploadAnalyzeBtn">确认并开始分析</button>
+      </div>
+    </div>
+
+    <!-- DeepSeek 深度分析 -->
+    <div id="claudeAnalysis" style="display:none;margin-top:24px;">
+      <div class="section-title" style="border-left-color:#7c3aed;">DeepSeek 深度分析 — 机构版报告</div>
+
+      <!-- API 配置 -->
+      <div id="apiConfig" style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-top:12px;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <span style="font-weight:600;font-size:0.88rem;">DeepSeek API Key</span>
+          <input type="password" id="apiKeyInput" placeholder="sk-..." style="flex:1;min-width:200px;padding:8px 10px;border:1px solid #e0e0e0;border-radius:5px;font-family:monospace;font-size:0.82rem;">
+          <button class="btn-sm-cfg" id="clearApiKeyBtn" style="background:#fff;border:1px solid #e0e0e0;padding:8px 14px;border-radius:5px;cursor:pointer;">清除</button>
+        </div>
+        <div style="margin-top:4px;font-size:0.72rem;color:#999;">
+          Key 输入后自动保存至浏览器本地，不会上传到任何服务器。API 请求直连 api.deepseek.com。<br>
+          获取 Key：<a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#2563eb;">platform.deepseek.com</a> → API Keys。
+        </div>
+        <div id="apiKeyStatus" style="margin-top:4px;font-size:0.78rem;"></div>
+        <details style="margin-top:8px;" id="altApiDetails">
+          <summary style="cursor:pointer;font-size:0.78rem;color:#7c3aed;">+ 其他 API（单次使用，不覆盖已保存的 Key）</summary>
+          <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <input type="text" id="altApiEndpoint" placeholder="API Endpoint URL" style="flex:2;min-width:200px;padding:6px 8px;border:1px solid #e0e0e0;border-radius:4px;font-size:0.78rem;">
+            <input type="password" id="altApiKey" placeholder="API Key（单次有效）" style="flex:1;min-width:160px;padding:6px 8px;border:1px solid #e0e0e0;border-radius:4px;font-size:0.78rem;font-family:monospace;">
+            <input type="text" id="altApiModel" placeholder="Model（如 deepseek-chat）" style="flex:1;min-width:140px;padding:6px 8px;border:1px solid #e0e0e0;border-radius:4px;font-size:0.78rem;">
+          </div>
+          <div style="margin-top:4px;font-size:0.7rem;color:#999;">填写后本次分析将使用此配置。分析完成后自动清除，不影响已保存的 DeepSeek Key。</div>
+        </details>
+      </div>
+
+      <!-- 分析框架选择 -->
+      <div style="margin-top:14px;background:#f8faff;border:1px solid #e0e0e0;border-radius:8px;padding:12px 16px;">
+        <span style="font-weight:600;font-size:0.85rem;margin-right:10px;">分析视角</span>
+        <label style="cursor:pointer;margin-right:20px;font-size:0.85rem;">
+          <input type="radio" name="framework" value="institutional" checked onchange="switchFramework(this.value)"> 机构尽调（PE/VC）
+        </label>
+        <label style="cursor:pointer;font-size:0.85rem;">
+          <input type="radio" name="framework" value="fundmanager" onchange="switchFramework(this.value)"> 基金经理（买入决策）
+        </label>
+        <span style="display:block;margin-top:4px;font-size:0.7rem;color:#16a34a;">&#10003; 切换分析方案无需重新上传报告，已上传的文件和数据均保留。</span>
+        <span id="frameworkDesc" style="display:block;margin-top:2px;font-size:0.75rem;color:#888;">综合视角：行业→商业模式→竞争优势→财务→管理层→估值→投资决策</span>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn" id="generateReportBtn" style="background:#7c3aed;font-size:1rem;padding:12px 28px;" disabled>&#9889; 直接生成分析报告</button>
+          <button class="btn-compare" id="compareBtn" onclick="startComparisonAnalysis()" style="display:none;">&#128202; 多家对比分析</button>
+        <span style="font-size:0.82rem;color:#888;">优先方式：一键生成，结果直接展现在页面</span>
+      </div>
+
+      <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-outline" id="copyPromptBtn" style="font-size:0.82rem;">&#128203; 复制 Prompt（备用）</button>
+        <button class="btn-outline" id="savePromptBtn" style="font-size:0.82rem;">&#128190; 保存请求文件（备用）</button>
+      </div>
+
+      <!-- 生成进度 -->
+      <div id="generationStatus" style="margin-top:12px;display:none;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="genSpinner" style="width:16px;height:16px;border:2px solid #e0e0e0;border-top-color:#7c3aed;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+          <span id="genStatusText" style="font-size:0.85rem;color:#666;">正在生成分析报告…</span>
+        </div>
+      </div>
+
+      <details style="margin-top:12px;">
+        <summary style="cursor:pointer;font-size:0.85rem;color:#666;">预览 Prompt（点击展开）</summary>
+        <pre id="promptPreview" style="background:#1e1e1e;color:#d4d4d4;padding:16px;border-radius:8px;font-size:0.72rem;overflow-x:auto;max-height:400px;overflow-y:auto;margin-top:8px;white-space:pre-wrap;"></pre>
+      </details>
+    </div>
+
+    <!-- 单项指标深度分析 -->
+    <div id="metricDeepAnalysis" style="display:none;margin-top:20px;">
+      <div class="section-title" style="border-left-color:#ea580c;">单项指标深度分析</div>
+      <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-top:10px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <select id="metricSelect" style="padding:9px 12px;border:2px solid #e0e0e0;border-radius:6px;font-size:0.88rem;min-width:200px;cursor:pointer;">
+            <option value="">-- 选择分析指标 --</option>
+            <optgroup label="资产类">
+              <option value="inventory">存货 — 库存结构/跌价/周转</option>
+              <option value="receivables">应收账款 — 账龄/坏账/集中度</option>
+              <option value="fixedAssets">长期资产 — 固定资产/在建工程/折旧</option>
+              <option value="goodwill">商誉 — 减值测试/并购标的</option>
+              <option value="intangible">无形资产 — 摊销/研发资本化</option>
+            </optgroup>
+            <optgroup label="负债类">
+              <option value="borrowings">有息负债 — 短借/长借/利率/偿还</option>
+              <option value="contractLiab">合同负债 — 预收款/订单质量</option>
+              <option value="contingent">或有负债 — 担保/诉讼/承诺</option>
+            </optgroup>
+            <optgroup label="现金流">
+              <option value="operatingCF">经营现金流 — 质量/持续性/匹配度</option>
+              <option value="freeCF">自由现金流 — CAPEX/投资效率</option>
+            </optgroup>
+            <optgroup label="损益类">
+              <option value="rdExpense">研发费用 — 投入强度/资本化/产出</option>
+              <option value="sellingExpense">销售费用 — 效率/渠道/客户获取成本</option>
+              <option value="otherIncome">非经常性损益 — 政府补贴/投资收益</option>
+            </optgroup>
+            <optgroup label="关联与治理">
+              <option value="relatedParty">关联交易 — 定价公允性/依赖度</option>
+              <option value="taxation">税务分析 — 有效税率/递延税项</option>
+            </optgroup>
+          </select>
+          <button class="btn" id="metricAnalyzeBtn" style="background:#ea580c;font-size:0.9rem;padding:10px 20px;">深度分析</button>
+        </div>
+        <div id="metricGenStatus" style="margin-top:8px;display:none;">
+          <span id="metricGenText" style="font-size:0.82rem;color:#666;"></span>
+          <div style="width:16px;height:16px;border:2px solid #e0e0e0;border-top-color:#ea580c;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;margin-left:8px;vertical-align:middle;"></div>
+        </div>
+        <div style="margin-top:6px;font-size:0.72rem;color:#999;">
+          选取具体科目 → AI 通读全文提取该科目所有相关信息（报表数+附注+管理层讨论+会计政策）→ 输出专项分析报告
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;font-size:0.8rem;color:#aaa;">
+      <strong>工作流程</strong>：PDF 提取全文本 → 保存/复制 → 发送给 DeepSeek → DeepSeek 通读全文，按机构框架输出投资尽调报告（含行业分析、护城河评估、管理层评价、估值判断、投资决策）。
+    </div>
+  </div>
+
+  <!-- ═══════ Panel: SEC Auto Fetch ═══════ -->
+  <div class="panel" id="panel-sec">
+    <div class="sec-fetch">
+      <p style="font-size:0.88rem;color:#666;margin-bottom:14px;">输入美股代码，自动从 SEC EDGAR XBRL API 拉取最近 3 年结构化财务数据。</p>
+      <div class="fetch-row">
+        <input type="text" id="secTicker" placeholder="美股代码，如 AAPL、NVDA、MSFT…">
+        <button class="btn" id="secFetchBtn">获取并分析</button>
+      </div>
+      <div class="fetch-status" id="fetchStatus"></div>
+    </div>
+  </div>
+
+  <!-- ═══════ Panel: Manual Entry ═══════ -->
+  <div class="panel panel-sec" id="panel-manual">
+    <div style="background:#fff;border-radius:10px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+      <div class="form-section"><h3>公司信息</h3>
+        <div class="form-grid">
+          <div class="form-field"><label>公司名称</label><input type="text" id="mCompany" placeholder="如：科大讯飞"></div>
+          <div class="form-field"><label>年份 1（最新）</label><input type="text" id="mYear1" placeholder="2025"></div>
+          <div class="form-field"><label>年份 2</label><input type="text" id="mYear2" placeholder="2024"></div>
+          <div class="form-field"><label>年份 3</label><input type="text" id="mYear3" placeholder="2023"></div>
+        </div>
+      </div>
+      <div class="form-section"><h3>利润表（单位：亿元 / 百万美元）</h3>
+        <div class="form-grid" id="manualIncomeGrid"></div>
+      </div>
+      <div class="form-section"><h3>资产负债表</h3>
+        <div class="form-grid" id="manualBalanceGrid"></div>
+      </div>
+      <div class="form-section"><h3>现金流量表</h3>
+        <div class="form-grid" id="manualCashGrid"></div>
+      </div>
+      <div class="form-section"><h3>市场数据</h3>
+        <div class="form-grid" id="manualMarketGrid"></div>
+      </div>
+      <div style="text-align:center;margin-top:20px;">
+        <button class="btn" id="manualAnalyzeBtn" style="font-size:1rem;padding:12px 40px;">开始分析</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ Panel: Result ═══════ -->
+  <div class="panel" id="panel-result">
+    <div id="resultContent"><div class="empty-hint">请先上传 PDF、使用 SEC 获取或手动录入数据。</div></div>
+  </div>
+</div>
+
+<script>
+// ── PDF.js setup ──
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+// ── PPT Report Data (global) ──
+var pptReportData = null; // { reportText, doneFiles, companyName }
+
+// ═══════════════════════════════════════════
+// 1. TABS
+// ═══════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(function(t) {
+  t.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(function(x) { x.classList.remove('active'); });
+    t.classList.add('active');
+    var id = t.getAttribute('data-tab');
+    document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+  });
+});
+
+function switchToResult() {
+  document.querySelectorAll('.tab').forEach(function(x) { x.classList.remove('active'); });
+  document.getElementById('tabResult').classList.add('active');
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('panel-result').classList.add('active');
+  document.getElementById('panel-result').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════
+// 2. PDF TEXT EXTRACTION
+// ═══════════════════════════════════════════
+function extractTextFromPDF(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var typedarray = new Uint8Array(e.target.result);
+      pdfjsLib.getDocument({ data: typedarray }).promise.then(function(pdf) {
+        var pages = [];
+        var total = pdf.numPages;
+        var done = 0;
+        function loadPage(n) {
+          pdf.getPage(n).then(function(page) {
+            return page.getTextContent();
+          }).then(function(content) {
+            var text = content.items.map(function(item) { return item.str; }).join(' ');
+            pages.push({ num: n, text: text });
+            done++;
+            if (done >= total) resolve({ pages: pages, numPages: total });
+          }).catch(function(err) { reject(err); });
+        }
+        for (var i = 1; i <= total; i++) loadPage(i);
+        if (total === 0) resolve({ pages: [], numPages: 0 });
+      }).catch(function(err) { reject(err); });
+    };
+    reader.onerror = function(e) { reject(e); };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// ═══════════════════════════════════════════
+// 3. FINANCIAL DATA EXTRACTION
+// ═══════════════════════════════════════════
+
+// Number patterns in Chinese reports
+var CN_NUM_RE = /(-?\d[\d,]*\.?\d*)\s*(?:亿|万|元|人民币|美元)?/g;
+var CN_UNIT_MAP = { '亿': 1, '万': 0.0001, '元': 0.00000001 };
+
+// US number pattern: $1,234,567 or (1,234) or 1,234,567
+var US_NUM_RE = /\$?\s*(-?\d[\d,]*\.?\d*)\s*\)?|\((\d[\d,]*\.?\d*)\)/g;
+
+var CN_KEYWORDS = [
+  { keys: ['营业总收入', '营业收入', '收入总额'], field: 'revenue' },
+  { keys: ['营业总成本', '营业成本', '主营业务成本'], field: 'cost' },
+  { keys: ['销售费用', '市场费用'], field: 'selling' },
+  { keys: ['管理费用', '行政开支'], field: 'admin' },
+  { keys: ['研发费用', '研究开发费', '研发投入'], field: 'rd' },
+  { keys: ['财务费用', '利息支出', '利息费用'], field: 'interest' },
+  { keys: ['净利润', '归属于母公司所有者的净利润', '归母净利润', '净亏损'], field: 'netProfit' },
+  { keys: ['资产总计', '总资产', '资产总额'], field: 'totalAssets' },
+  { keys: ['流动资产合计', '流动资产'], field: 'currentAssets' },
+  { keys: ['负债合计', '总负债', '负债总额'], field: 'totalLiab' },
+  { keys: ['流动负债合计', '流动负债'], field: 'currentLiab' },
+  { keys: ['归属于母公司所有者权益合计', '所有者权益合计', '股东权益合计', '归属于母公司股东权益合计'], field: 'equity' },
+  { keys: ['存货', '库存商品'], field: 'inventory' },
+  { keys: ['应收账款', '应收款项'], field: 'receivables' },
+  { keys: ['商誉'], field: 'goodwill' },
+  { keys: ['无形资产'], field: 'intangible' },
+  { keys: ['经营活动产生的现金流量净额', '经营活动现金流量净额', '经营现金流净额'], field: 'opCF' },
+  { keys: ['购建固定资产、无形资产和其他长期资产支付的现金', '购建固定资产、无形资产和其他长期资产所支付的现金', '资本支出'], field: 'capex' },
+  { keys: ['折旧', '折旧与摊销', '固定资产折旧'], field: 'depreciation' },
+  { keys: ['基本每股收益', '每股收益'], field: 'eps' },
+];
+
+var EN_KEYWORDS = [
+  { keys: ['Revenue', 'Total revenue', 'Net sales', 'Total net sales', 'Revenues'], field: 'revenue' },
+  { keys: ['Cost of revenue', 'Cost of sales', 'Cost of goods sold', 'Total cost of revenue'], field: 'cost' },
+  { keys: ['Selling, general and administrative', 'Sales and marketing', 'Selling and marketing'], field: 'selling' },
+  { keys: ['General and administrative'], field: 'admin' },
+  { keys: ['Research and development', 'Research and development expense'], field: 'rd' },
+  { keys: ['Interest expense', 'Interest expense, net'], field: 'interest' },
+  { keys: ['Net income', 'Net earnings', 'Net loss', 'Net income (loss)'], field: 'netProfit' },
+  { keys: ['Total assets', 'Total current assets and noncurrent assets'], field: 'totalAssets' },
+  { keys: ['Current assets', 'Total current assets'], field: 'currentAssets' },
+  { keys: ['Total liabilities', 'Total current and noncurrent liabilities'], field: 'totalLiab' },
+  { keys: ['Current liabilities', 'Total current liabilities'], field: 'currentLiab' },
+  { keys: ['Total stockholders', "Total shareholders' equity", "Stockholders' equity", 'Total equity'], field: 'equity' },
+  { keys: ['Inventories', 'Inventory, net', 'Inventory'], field: 'inventory' },
+  { keys: ['Accounts receivable', 'Accounts receivable, net', 'Trade receivables'], field: 'receivables' },
+  { keys: ['Goodwill'], field: 'goodwill' },
+  { keys: ['Intangible assets, net', 'Acquired intangible assets'], field: 'intangible' },
+  { keys: ['Net cash provided by operating activities', 'Cash provided by operating activities', 'Net cash from operating activities'], field: 'opCF' },
+  { keys: ['Capital expenditures', 'Purchase of property, plant and equipment', 'Purchases of property and equipment', 'Capital expenditure'], field: 'capex' },
+  { keys: ['Depreciation and amortization', 'Depreciation, amortization', 'Depreciation expense'], field: 'depreciation' },
+  { keys: ['Basic earnings per share', 'Basic net income per share'], field: 'eps' },
+];
+
+function parseNumber(text) {
+  // Try to extract a number with Chinese units
+  var cnMatch = text.match(/(-?\d[\d,]*\.?\d*)\s*(亿|万|元|人民币)/);
+  if (cnMatch) {
+    var num = parseFloat(cnMatch[1].replace(/,/g, ''));
+    var unit = cnMatch[2];
+    if (unit === '亿' || unit === '人民币') return num;
+    if (unit === '万') return num / 10000;
+    if (unit === '元') return num / 100000000;
+    return num;
+  }
+  // Try bare number (assume 亿元 for Chinese context)
+  var bareMatch = text.match(/(-?\d[\d,]*\.?\d*)/);
+  if (bareMatch) {
+    var n = parseFloat(bareMatch[1].replace(/,/g, ''));
+    if (Math.abs(n) > 0.01 && Math.abs(n) < 100000) return n; // reasonable range for 亿
+    if (Math.abs(n) >= 100000) return n / 100000000; // probably in 元
+    return n;
+  }
+  return null;
+}
+
+function parseNumberUS(text) {
+  // $1,234 million → convert to 亿 CNY equivalent (1 million USD ≈ 0.07 亿 CNY)
+  // Actually let's keep USD in 百万 and convert later
+  // OR handle millions: "1,234" million
+  var m = text.match(/\$?\s*(-?\d[\d,]*\.?\d*)\s*(million|billion|million usd|billion usd)?/i);
+  if (!m) return null;
+  var num = parseFloat(m[1].replace(/,/g, ''));
+  if (m[2]) {
+    var unit = m[2].toLowerCase();
+    if (unit.indexOf('billion') !== -1) num *= 1000; // billion → million
+  }
+  return num; // in millions USD
+}
+
+function extractFinancialsCN(fullText) {
+  var data = {};
+  CN_KEYWORDS.forEach(function(kw) {
+    for (var i = 0; i < kw.keys.length; i++) {
+      var idx = fullText.indexOf(kw.keys[i]);
+      if (idx === -1) continue;
+      // Take text from keyword to next 200 characters
+      var snippet = fullText.substring(idx, idx + 400);
+      // Find the number closest to the keyword
+      var numMatch = snippet.match(/(-?\d[\d,]*\.?\d*)\s*(亿|万|元)/);
+      if (!numMatch) {
+        // Try bare numbers nearby
+        var context = fullText.substring(idx, idx + 600);
+        var nums = [];
+        var re = /(-?\d[\d,]*\.?\d*)/g;
+        var m;
+        while ((m = re.exec(context)) !== null) {
+          var v = parseFloat(m[1].replace(/,/g, ''));
+          if (Math.abs(v) > 0.001) nums.push(v);
+        }
+        if (nums.length > 0) {
+          // Take the most reasonable number
+          var filtered = nums.filter(function(n) { return Math.abs(n) > 0.01; });
+          data[kw.field] = filtered.length > 0 ? filtered[0] : nums[0];
+        }
+      } else {
+        var val = parseFloat(numMatch[1].replace(/,/g, ''));
+        var unit = numMatch[2];
+        if (unit === '亿' || unit === '人民币') data[kw.field] = val;
+        else if (unit === '万') data[kw.field] = val / 10000;
+        else if (unit === '元') data[kw.field] = val / 100000000;
+        else data[kw.field] = val;
+      }
+      break;
+    }
+  });
+  return data;
+}
+
+function extractFinancialsEN(fullText) {
+  var data = {};
+  EN_KEYWORDS.forEach(function(kw) {
+    for (var i = 0; i < kw.keys.length; i++) {
+      var idx = fullText.indexOf(kw.keys[i]);
+      if (idx === -1) continue;
+      var snippet = fullText.substring(idx, idx + 500);
+      // Look for numbers (possibly with $ prefix)
+      var numRe = /[\$]?\s*(-?\d[\d,]*\.?\d*)\b/g;
+      var nums = [];
+      var m;
+      while ((m = numRe.exec(snippet)) !== null) {
+        var v = parseFloat(m[1].replace(/,/g, ''));
+        if (Math.abs(v) > 0.01) nums.push(v);
+      }
+      // Also try (1,234) negative format
+      var negRe = /\((\d[\d,]*\.?\d*)\)/g;
+      while ((m = negRe.exec(snippet)) !== null) {
+        var nv = -parseFloat(m[1].replace(/,/g, ''));
+        nums.push(nv);
+      }
+      if (nums.length > 0) {
+        // Take the first substantial number after the keyword
+        var filtered = nums.filter(function(n) { return Math.abs(n) > 0.5; });
+        data[kw.field] = filtered.length > 0 ? filtered[0] : nums[0];
+      }
+      break;
+    }
+  });
+  return data;
+}
+
+function detectLanguage(fullText) {
+  var cnCount = (fullText.match(/[一-鿿]/g) || []).length;
+  return cnCount > 100 ? 'cn' : 'en';
+}
+
+// ═══════════════════════════════════════════
+// 4. UPLOAD & EXTRACT
+// ═══════════════════════════════════════════
+var uploadedFiles = []; // { file, name, year, extractedData, status }
+var ALL_FIELDS = ['revenue','cost','selling','admin','rd','interest','netProfit','totalAssets','currentAssets','totalLiab','currentLiab','equity','inventory','receivables','goodwill','intangible','opCF','capex','depreciation','eps'];
+
+var FIELD_LABELS = {
+  revenue: '营业收入', cost: '营业成本', selling: '销售费用', admin: '管理费用',
+  rd: '研发费用', interest: '利息/财务费用', netProfit: '净利润',
+  totalAssets: '总资产', currentAssets: '流动资产', totalLiab: '总负债',
+  currentLiab: '流动负债', equity: '股东权益', inventory: '存货',
+  receivables: '应收账款', goodwill: '商誉', intangible: '无形资产',
+  opCF: '经营现金流', capex: '资本支出', depreciation: '折旧摊销', eps: '每股收益'
+};
+
+var uploadZone = document.getElementById('uploadZone');
+var fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('click', function() { fileInput.click(); });
+uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', function() { uploadZone.classList.remove('drag-over'); });
+uploadZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', function() { handleFiles(fileInput.files); });
+
+function guessYear(filename, text) {
+  // Try to extract year from filename or text
+  var fnMatch = filename.match(/20(\d{2})/);
+  if (fnMatch) return '20' + fnMatch[1];
+  // Try from text: "2025 年" or "FY2025" or "December 31, 2025"
+  var txtMatch = text.match(/(?:FY|Fiscal Year|年度|年报)\s*20(\d{2})/i);
+  if (txtMatch) return '20' + txtMatch[1];
+  txtMatch = text.match(/20(\d{2})\s*(?:年|年度|Annual|December|January| fiscal)/);
+  if (txtMatch) return '20' + txtMatch[1];
+  return '----';
+}
+
+
+	function guessCompany(filename) {
+  var name = filename.replace(/\.pdf$/i, "")
+    .replace(/20\d{2}[年_\-]?/g, "")
+    .replace(/[_\-]/g, " ")
+    .replace(/年报|年度报告|财报|招股书|募集说明书|审计报告/g, "")
+    .replace(/[（(]\d{6}[）)]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (/[一-鿿]/.test(name) && name.length >= 2 && name.length <= 20) return name;
+  return "";
+}
+
+function handleFiles(files) {
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) continue;
+    // Avoid duplicates
+    if (uploadedFiles.some(function(uf) { return uf.name === f.name && uf.file.size === f.size; })) continue;
+    uploadedFiles.push({ file: f, name: f.name, year: '', company: guessCompany(f.name), extractedData: null, status: 'pending' });
+  }
+  renderFileList();
+  processQueue();
+}
+
+function renderFileList() {
+  var list = document.getElementById('fileList');
+  var html = '';
+  var companies = {};
+  uploadedFiles.forEach(function(f, i) {
+    var cn = f.company || '未分类';
+    if (!companies[cn]) companies[cn] = [];
+    companies[cn].push(i);
+  });
+  var cnames = Object.keys(companies);
+  cnames.forEach(function(cname) {
+    if (cnames.length > 1) {
+      html += '<div class="company-group-header">' + cname + '</div>';
+    }
+    companies[cname].forEach(function(i) {
+      var f = uploadedFiles[i];
+      html += '<div class="file-item">';
+      html += '<input class="fcompany" value="' + (f.company || '') + '" placeholder="公司名" data-idx="' + i + '" title="编辑公司名用于多家对比">';
+      html += '<span class="fname">' + f.name + '</span>';
+      html += '<span class="fyear">' + (f.year || '----') + '</span>';
+      if (f.status === 'done') {
+        html += '<span class="fstatus ok">已提取 (' + (f.fullText ? (f.fullText.length/1000).toFixed(0) + 'k字' : '') + ')</span>';
+      html += '<button class="btn-sm" onclick="saveText(' + i + ')" style="background:#f0fdf4;border-color:#bbf7d0;">&#128190; 保存文本</button>';
+    }
+    else if (f.status === 'error') html += '<span class="fstatus err">提取失败</span>';
+    else if (f.status === 'processing') html += '<span class="fstatus">提取中…</span>';
+    else html += '<span class="fstatus">等待中</span>';
+    html += '<button class="btn-sm" onclick="removeFile(' + i + ')">删除</button>';
+    html += '</div>';
+  });
+  });
+  list.innerHTML = html;
+
+  // Bind company input change events
+  list.querySelectorAll('.fcompany').forEach(function(inp) {
+    inp.addEventListener('change', function() {
+      var idx = parseInt(this.getAttribute('data-idx'));
+      if (!isNaN(idx) && uploadedFiles[idx]) {
+        uploadedFiles[idx].company = this.value.trim();
+        updateComparisonButton();
+      }
+    });
+  });
+
+  updateComparisonButton();
+
+  // Show save-all button
+  if (uploadedFiles.some(function(f) { return f.status === 'done' && f.fullText; })) {
+    var saveAll = document.getElementById('saveAllBtn');
+    if (!saveAll) {
+      var container = document.getElementById('extractArea');
+      if (container) {
+        var div = document.createElement('div');
+        div.id = 'saveAllContainer';
+        div.style.cssText = 'margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;';
+        div.innerHTML = '<button class="btn-outline" id="saveAllBtn" style="font-size:0.85rem;">&#128190; 保存所有提取文本到本地</button><span style="font-size:0.8rem;color:#888;">保存为 .txt 文件后，可发送给 DeepSeek 进行全文深度解读</span>';
+        container.parentNode.insertBefore(div, container.nextSibling);
+      }
+    }
+  }
+}
+
+
+function removeFile(idx) {
+  uploadedFiles.splice(idx, 1);
+  renderFileList();
+  if (uploadedFiles.length === 0 || uploadedFiles.every(function(f) { return f.status !== 'done'; })) {
+    document.getElementById('extractArea').style.display = 'none';
+    var sc = document.getElementById('saveAllContainer');
+    if (sc) sc.remove();
+  }
+  updateComparisonButton();
+}
+
+
+// ── Compute metrics from uploaded files (reads table inputs or falls back to extractedData) ──
+var activeCharts = []; // Track Chart.js instances for lifecycle management
+
+function computeMetricsFromFiles(doneFiles) {
+  var yearlyData = [];
+  var table = document.getElementById('extractTable');
+  doneFiles.forEach(function(f) {
+    var data = {};
+    if (table) {
+      var inputs = table.querySelectorAll('input[data-year="' + (f.year || f.name) + '"]');
+      inputs.forEach(function(inp) {
+        var field = inp.getAttribute('data-field');
+        var val = parseFloat(inp.value);
+        if (!isNaN(val)) data[field] = val;
+      });
+    }
+    if (Object.keys(data).length === 0 && f.extractedData) {
+      for (var k in f.extractedData) {
+        if (k !== '_lang') data[k] = f.extractedData[k];
+      }
+    }
+    if (f.extractedData && f.extractedData._lang) data._lang = f.extractedData._lang;
+    yearlyData.push({ year: f.year || f.name, data: data });
+  });
+  yearlyData.sort(function(a, b) { return (b.year || '').localeCompare(a.year || ''); });
+  var analysisResult = analyzeMultiYear(yearlyData, '');
+  return { yearlyData: yearlyData, analysisResult: analysisResult };
+}
+
+// ── Save extracted text ──
+function saveText(idx) {
+  var f = uploadedFiles[idx];
+  if (!f || !f.fullText) return;
+  var blob = new Blob([f.fullText], { type: 'text/plain;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = f.name.replace(/\.pdf$/i, '') + '_extracted.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function saveAllTexts() {
+  uploadedFiles.forEach(function(f, i) {
+    if (f.status === 'done' && f.fullText) {
+      setTimeout(function() { saveText(i); }, i * 200);
+    }
+  });
+}
+
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.id === 'saveAllBtn') {
+    saveAllTexts();
+  }
+});
+
+var processing = false;
+function processQueue() {
+  if (processing) return;
+  var pending = uploadedFiles.filter(function(f) { return f.status === 'pending'; });
+  if (pending.length === 0) {
+    // All done, render table
+    if (uploadedFiles.some(function(f) { return f.status === 'done'; })) {
+      renderExtractTable();
+    }
+    return;
+  }
+  processing = true;
+  var f = pending[0];
+  f.status = 'processing';
+  renderFileList();
+
+  extractTextFromPDF(f.file).then(function(result) {
+    var fullText = result.pages.map(function(p) { return p.text; }).join('\n');
+    var lang = detectLanguage(fullText);
+    var data;
+    if (lang === 'cn') {
+      data = extractFinancialsCN(fullText);
+      // Assume 亿元 unit for Chinese reports
+    } else {
+      data = extractFinancialsEN(fullText);
+      // Convert from millions USD to approximate 亿 for display (1M USD ≈ 0.0073亿 CNY ≈ ignore, keep in millions for US)
+    }
+    data._lang = lang;
+    f.extractedData = data;
+    f.fullText = fullText;
+    f.year = guessYear(f.name, fullText);
+    f.status = 'done';
+    processing = false;
+    renderFileList();
+    processQueue();
+  }).catch(function(err) {
+    console.error(err);
+    f.status = 'error';
+    processing = false;
+    renderFileList();
+    processQueue();
+  });
+}
+
+function renderExtractTable() {
+  var done = uploadedFiles.filter(function(f) { return f.status === 'done'; });
+  if (done.length === 0) return;
+
+  document.getElementById('extractArea').style.display = 'block';
+  var lang = done[0].extractedData._lang || 'cn';
+  var unit = lang === 'en' ? '百万美元' : '亿元';
+  document.getElementById('extractInfo').innerHTML = '<strong>单位：' + unit + '</strong> | 语言：' + (lang === 'en' ? '英文 (US-GAAP/IFRS)' : '中文 (中国会计准则)') + ' | 报告数量：' + done.length + ' 份<br><span style="color:#dc2626;font-weight:600;">&#9888; 自动提取仅供参考，数字可能不准。</span>建议先「保存文本」→ 发送给 DeepSeek 全文通读 → 由 DeepSeek 准确提取数据并做深度分析（含管理层讨论、报表附注、风险因素等）。</span>';
+
+  var fields = ALL_FIELDS.filter(function(fld) {
+    return fld !== 'eps' || done.some(function(d) { return d.extractedData[fld] !== undefined; });
+  });
+
+  var html = '<thead><tr><th>财务科目</th>';
+  done.forEach(function(d) { html += '<th>' + (d.year || d.name) + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  fields.forEach(function(fld) {
+    html += '<tr><td class="row-label">' + (FIELD_LABELS[fld] || fld) + '</td>';
+    done.forEach(function(d) {
+      var val = d.extractedData[fld];
+      var cls = (val !== undefined && val !== null) ? 'extracted' : 'manual';
+      var display = (val !== undefined && val !== null) ? val : '';
+      if (typeof display === 'number') display = display.toFixed(2);
+      html += '<td><input type="text" class="' + cls + '" data-field="' + fld + '" data-year="' + (d.year || d.name) + '" value="' + display + '" placeholder="手动填入"></td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+
+  document.getElementById('extractTable').innerHTML = html;
+
+  // Show DeepSeek analysis section
+  showDeepSeekAnalysis(done);
+}
+
+// ── DeepSeek Deep Analysis Prompt Builder ──
+var ANALYSIS_FRAMEWORK = '# 角色设定（Role）\n\n你是一位拥有20年以上经验的投资机构合伙人，同时具备：\n\n* PE投资总监\n* VC投资总监\n* 上市公司研究总监\n* 四大会计师事务所财务尽调负责人\n* 战略咨询公司高级合伙人\n\n你的分析风格融合：\n* 巴菲特价值投资体系\n* 芒格护城河理论\n* 高瓴资本研究框架\n* 红杉资本尽调框架\n* 麦肯锡战略分析框架\n* 券商研究所行业分析框架\n\n你的任务不是简单解读财报，而是回答投资机构最核心的问题："这家公司是否值得投资？"以及："如果投资，应该投多少钱、以什么估值投资、未来能获得什么回报。"\n\n# 工作目标\n\n基于用户提供的年报、季报、财务报表，输出一份机构级投资尽调报告。要求：所有结论必须有依据、必须给出量化分析、必须发现风险、必须形成投资建议、不得只复述财报、必须形成投资判断。\n\n# 分析流程\n\n第一步：行业分析\n第二步：商业模式分析\n第三步：竞争优势分析\n第四步：财务分析\n第五步：管理层分析\n第六步：风险分析\n第七步：估值分析\n第八步：投资决策\n\n# 输出格式\n\n## 一、投资摘要（Executive Summary）\n- 公司结论（一句话评价）\n- 投资评级：★★★★★/★★★★☆/★★★☆☆/★★☆☆☆/★☆☆☆☆\n- 投资逻辑（3条）\n- 核心风险（3条）\n\n## 二、行业分析\n- 行业规模（TAM/SAM/SOM）、行业增速、行业周期位置、竞争格局、行业趋势（5个）\n- 行业评分：★★★★★\n\n## 三、商业模式分析\n- 收入结构、客户分析、盈利模式、商业模式评价（规模效应/网络效应/品牌效应/平台效应）\n- 商业模式评分：★★★★★\n\n## 四、竞争优势分析（护城河分析）\n- 品牌壁垒/技术壁垒/渠道壁垒/专利壁垒/规模壁垒\n- SWOT分析\n- 竞争优势评分：★★★★★\n\n## 五、财务分析（最近5年）\n- 成长性：营收/利润/现金流 CAGR\n- 盈利能力：毛利率/净利率/ROE/ROIC\n- 经营质量：经营现金流/自由现金流/应收/存货\n- 偿债能力：资产负债率/流动比率/速动比率\n- 财务造假风险检查\n- 财务健康度评分：★★★★★\n\n## 六、管理层分析\n- 创始人背景、高管团队、激励机制\n- 管理层评分：★★★★★\n\n## 七、估值分析\n- PE/PB/PS/PEG/EV-EBITDA/DCF 交叉验证\n- 合理/乐观/悲观估值区间\n\n## 八、投资决策\n- 是否投资（建议/谨慎/暂不/放弃）\n- 投资理由（至少5条）\n- 投资风险（至少5条）\n- 持有周期建议\n\n## 九、最终评分卡\n行业空间/商业模式/竞争优势/财务质量/管理层/成长潜力/风险控制/估值水平 各 __/5，综合 __/5\n\n## 结论（10个必须回答的问题）\n1. 为什么值得投资？2. 为什么不值得投资？3. 最大增长驱动力？4. 最大风险？5. 投资成功概率？6. 投资失败概率？7. 未来3年预期收益率？8. 未来5年预期收益率？9. 最乐观情景？10. 最悲观情景？\n\n禁止模糊结论。必须形成明确投资建议。';
+
+// ── Fund Manager Analysis Framework ──
+
+// ── Multi-Company Comparison Analysis Framework ──
+var ANALYSIS_FRAMEWORK_COMPARISON = '# 角色设定（Role）\n\n你是一位管理规模超过200亿元人民币的顶级基金经理，同时具备PE投资总监、券商研究所首席分析师、四大会计师事务所审计合伙人的综合视角。\n\n你的核心任务是：对多家公司进行系统性的横向对比分析，从中选出最优投资标的。\n\n# 工作目标\n\n基于提供的多家公司年报/财报全文，输出一份机构级多公司对比分析报告。必须给出明确排名和投资建议。\n\n# 分析原则\n\n必须进行量化对比，禁止笼统定性。所有维度必须给出数据支撑的排名。\n\n# 输出格式\n\n## 一、对比总览（Executive Summary）\n- 参与对比公司列表（公司名/代码/行业/市值/最近年度营收）\n- 综合排名（第1名至第N名，含评分）\n- 最优推荐（买入/增持/持有/观察）\n- 一句话总结\n\n## 二、营收规模与成长性对比\n- 表格：公司/最近3年营收/营收CAGR/未来3年预计增速\n- 排名与分析\n\n## 三、盈利能力对比\n- 表格：公司/毛利率/净利率/ROE/ROIC/EBIT Margin（近3年均值）\n- 排名与分析\n- 盈利质量分析（经营现金流/净利润比值对比）\n\n## 四、财务健康度对比\n- 表格：公司/资产负债率/有息负债率/流动比率/速动比率/现金覆盖倍数\n- 偿债能力排名\n- 商誉风险对比（商誉/净资产）\n\n## 五、运营效率对比\n- 表格：公司/存货周转天数/应收周转天数/总资产周转率/人均营收\n- 排名与分析\n\n## 六、研发与创新能力对比\n- 表格：公司/研发投入/研发费用率/研发人员占比/专利数\n- 排名与分析\n\n## 七、估值对比\n- 表格：公司/PE/PB/PS/PEG/EV-EBITDA/FCF Yield\n- 估值分位数分析\n- 估值吸引力排名\n\n## 八、竞争优势对比\n- 各公司SWOT对比\n- 市场份额对比\n- 护城河强度排名\n\n## 九、管理层与治理对比\n- 创始人/CEO背景对比\n- 股权结构与激励对比\n- 管理层稳定性对比\n\n## 十、风险对比\n- 各公司TOP 3风险\n- 行业共同风险\n- 公司特有风险\n- 风险排序（从低到高）\n\n## 十一、情景分析\n- 乐观情景下各公司预期收益\n- 基准情景下各公司预期收益\n- 悲观情景下各公司预期收益\n\n## 十二、最终投资建议\n- 综合评分排名（表格：公司/营收成长/盈利能力/财务健康/运营效率/研发创新/估值/竞争优势/管理层/风险/综合得分）\n- 推荐标的（第1名）\n- 备选标的（第2名）\n- 不建议标的\n- 投资组合建议（如有2-3家值得配置，给出权重分配）\n- 持有周期建议\n\n## 十三、必须回答的10个问题\n1. 综合排名第一的是哪家公司？为什么？\n2. 排名最后的是哪家公司？为什么？\n3. 各公司最大的差异点是什么？\n4. 哪家公司的估值最有吸引力？\n5. 哪家公司的成长性最好？\n6. 哪家公司的风险最低？\n7. 如果只能选一家投资，选谁？\n8. 如果市场系统性下跌30%，哪家最抗跌？\n9. 未来3-5年，哪家公司的ROE提升空间最大？\n10. 最终投资组合建议是什么？\n\n禁止模糊结论，必须输出明确排名。';
+
+var ANALYSIS_FRAMEWORK_FUNDMANAGER = '# 角色设定（Role）\n\n你是一位管理规模超过100亿元人民币的顶级基金经理，同时兼具公募基金投资总监、私募基金合伙人、券商研究所首席分析师、CFA持证人、巴菲特价值投资体系研究者。\n\n你的工作目标不是解读财报。你的工作目标是判断这只股票是否值得买入。\n\n并回答：当前股价是否低估？未来1-3年上涨空间有多少？最大风险是什么？是否值得重仓配置？应配置多少仓位？\n\n# 工作原则\n\n按照基金经理真实决策逻辑分析：行业景气度 × 公司竞争力 × 盈利增长 × 估值水平 × 催化剂 === 投资价值\n\n# 输出要求\n\n必须形成明确投资结论：买入 / 增持 / 持有 / 减持 / 卖出。不得输出模糊结论。\n\n# 分析流程\n\n第一步 行业分析 → 第二步 公司分析 → 第三步 财务分析 → 第四步 盈利预测 → 第五步 估值分析 → 第六步 催化剂分析 → 第七步 风险分析 → 第八步 仓位建议 → 第九步 投资评级\n\n# 输出格式\n\n## 一、投资摘要（Investment Summary）\n- 股票名称、股票代码、所属行业、当前股价、总市值、分析日期\n- 当前评级：★★★★★ 强烈买入 / ★★★★☆ 买入 / ★★★☆☆ 持有 / ★★☆☆☆ 减持 / ★☆☆☆☆ 卖出\n- 目标价：现价、目标价、上涨空间、下跌风险、风险收益比\n- 一句话结论（50字以内）\n\n## 二、投资逻辑\n- 核心逻辑1-5条，标注最重要逻辑\n\n## 三、行业景气度分析\n- 行业规模（TAM/SAM/SOM）、行业增速（过去5年/未来3年/未来5年）、行业周期位置\n- 行业位置（龙头/第二/第三/跟随者）、行业评分：★★★★★\n\n## 四、公司竞争力分析\n- 市场份额、产品竞争力、技术壁垒、客户资源、品牌影响力、全球竞争地位\n- SWOT分析：优势/劣势/机会/威胁\n- 竞争力评分：★★★★★\n\n## 五、财务分析（最近5年，禁止单一年份）\n- 成长性：营业收入/净利润/经营现金流/EPS + CAGR\n- 盈利能力：毛利率/净利率/ROE/ROIC/EBIT Margin\n- 经营质量：现金流/自由现金流/应收账款/存货/合同负债\n- 安全性：资产负债率/有息负债/货币资金/现金覆盖倍数\n- 财务评分：★★★★★\n\n## 六、盈利预测（未来3年）\n- 表格：年份/营收/增长率/净利润/增长率/EPS\n- 说明增长来源\n\n## 七、估值分析\n- PE/PB/PS/PEG/EV-EBITDA/DCF 六种方法交叉验证\n- PE分析（当前PE/历史PE/行业PE）\n- PEG分析（PEG<1 / ≈1 / >1）\n- DCF分析（核心假设：收入增速/利润率/折现率/终值增长率）\n- 估值结论：低估/合理/偏高/严重高估\n\n## 八、催化剂分析\n- 未来12个月最重要催化剂5条\n- 分类：短期/中期/长期催化剂\n\n## 九、风险分析\n- 行业风险/竞争风险/政策风险/技术替代风险/管理层风险/海外风险/汇率风险/估值风险\n- 标注：最大风险/最可能发生风险/影响最大风险\n\n## 十、仓位建议\n- 90-100分：核心重仓 10%-15% / 80-90分：重点配置 5%-10% / 70-80分：观察仓 1%-5% / 70分以下：不配置\n\n## 十一、投资决策\n- 投资评级/目标价/上涨空间/建议仓位/持有周期\n\n## 十二、情景分析\n- 乐观情景：概率/目标价/预期收益\n- 基准情景：概率/目标价/预期收益\n- 悲观情景：概率/目标价/预期收益\n\n## 十三、最终评分卡\n行业景气度/竞争优势/成长性/盈利能力/财务质量/管理层/估值水平/催化剂/风险控制 各 __/10，综合 __/100\n\n## 最终必须回答（10个问题）\n1.现在是否值得买？2.为什么现在买？3.最大上涨逻辑？4.最大下跌风险？5.未来1年目标价？6.未来3年目标价？7.未来3年利润增长率？8.适合什么类型投资者？9.建议配置多少仓位？10.最终投资评级？\n\n# 输出风格\n\n按照高盛、摩根士丹利、中金公司、中信证券、华泰证券研究报告风格输出。数据驱动、逻辑严谨、观点鲜明、结论明确、避免空话套话、必须形成投资建议。';
+
+// ── Framework switching ──
+var currentFramework = localStorage.getItem('analysisFramework') || 'institutional';
+
+function switchFramework(type) {
+  currentFramework = type;
+  localStorage.setItem('analysisFramework', type);
+  var desc = document.getElementById('frameworkDesc');
+  if (type === 'fundmanager') {
+    desc.textContent = '基金经理视角：行业景气度×公司竞争力×盈利增长×估值水平×催化剂=投资价值，输出买入/增持/持有/减持/卖出';
+  } else {
+    desc.textContent = '综合视角：行业→商业模式→竞争优势→财务→管理层→估值→投资决策';
+  }
+  // Rebuild prompt preview
+  var doneFiles = uploadedFiles.filter(function(f) { return f.status === 'done'; });
+  if (doneFiles.length > 0) buildPrompt(doneFiles);
+}
+
+function getActiveFramework() {
+  return currentFramework === 'fundmanager' ? ANALYSIS_FRAMEWORK_FUNDMANAGER : ANALYSIS_FRAMEWORK;
+}
+
+// Init framework radio on page load
+(function() {
+  var saved = localStorage.getItem('analysisFramework') || 'institutional';
+  var radios = document.getElementsByName('framework');
+  for (var i = 0; i < radios.length; i++) {
+    if (radios[i].value === saved) radios[i].checked = true;
+  }
+  switchFramework(saved);
+})();
+
+function showDeepSeekAnalysis(doneFiles) {
+  document.getElementById('claudeAnalysis').style.display = 'block';
+  document.getElementById('metricDeepAnalysis').style.display = 'block';
+  buildPrompt(doneFiles);
+  updateApiKeyStatus();
+  setupGenerateButton(doneFiles);
+  updateComparisonButton();
+}
+
+function updateApiKeyStatus() {
+  var key = localStorage.getItem('deepseek_api_key');
+  var status = document.getElementById('apiKeyStatus');
+  var input = document.getElementById('apiKeyInput');
+  var btn = document.getElementById('generateReportBtn');
+  if (key) {
+    status.innerHTML = '<span style="color:#16a34a;">&#10003; API Key 已配置</span>';
+    input.value = key.substring(0, 8) + '...' + key.substring(key.length - 4);
+    input.placeholder = '已保存（仅显示部分）';
+    if (btn) btn.disabled = false;
+  } else {
+    status.innerHTML = '<span style="color:#ea580c;">未配置 API Key，输入后自动保存</span>';
+    input.placeholder = 'sk-...';
+    if (btn) btn.disabled = true;
+  }
+  // Auto-save on blur
+  input.onblur = function() {
+    var v = input.value.trim();
+    if (v && v.startsWith('sk-') && v.length > 20) {
+      localStorage.setItem('deepseek_api_key', v);
+      updateApiKeyStatus();
+    }
+  };
+}
+
+// API Key save/clear
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.id === 'clearApiKeyBtn') {
+    localStorage.removeItem('deepseek_api_key');
+    document.getElementById('apiKeyInput').value = '';
+    updateApiKeyStatus();
+  }
+  if (e.target && e.target.id === 'saveAllBtn') {
+    saveAllTexts();
+  }
+});
+
+// ── Single Metric Deep Analysis Prompts ──
+var METRIC_PROMPTS = {
+  inventory: {
+    title: '存货深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人，专精存货审计。请通读以下年报全文，聚焦"存货"科目，输出分析报告：\n\n1. 存货金额与构成（原材料/在产品/库存商品/发出商品各多少？近3年趋势？）\n2. 存货跌价准备（计提金额、计提比例、转回情况、与同业比较）\n3. 存货周转天数（近3年变化趋势，是否恶化？）\n4. 库龄结构（是否有长库龄积压？）\n5. 存货与营收的匹配度（存货增速 vs 营收增速）\n6. 收入确认政策与存货的关系\n7. 潜在风险点（滞销、贬值、管理层调节利润的可能信号）\n8. 最终结论：存货质量评级 ★★★★★'
+  },
+  receivables: {
+    title: '应收账款深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人，专精应收款项审计。请通读以下年报全文，聚焦"应收账款"科目，输出分析报告：\n\n1. 应收账款金额与增速（近3年趋势，与营收增速对比）\n2. 账龄结构（1年以内/1-2年/2-3年/3年以上各占比及变化）\n3. 坏账准备（计提政策、计提比例、核销情况）\n4. 客户集中度（前五大客户占比、是否有单一客户依赖）\n5. 应收账款周转天数（近3年变化，与同业比较）\n6. 应收款项融资/保理情况\n7. 关联方应收款\n8. 潜在风险（回款风险、虚增收-入信号、美化现金流的可能迹象）\n9. 最终结论：应收质量评级 ★★★★★'
+  },
+  fixedAssets: {
+    title: '长期资产深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人，专精固定资产与在建工程审计。请通读以下年报全文，聚焦"长期资产"，输出分析报告：\n\n1. 固定资产构成（房屋建筑物/机器设备/运输工具等各占比）\n2. 折旧政策（方法、年限、残值率，与同业比较是否合理）\n3. 在建工程（金额、项目清单、转固进度、是否有长期挂账项目？）\n4. 资产减值测试\n5. 固定资产周转率（近3年趋势）\n6. CAPEX与折旧的匹配关系\n7. 产能利用率分析（如有披露）\n8. 潜在风险（产能过剩、技术淘汰、在建工程迟迟不转固的可能信号）\n9. 最终结论：长期资产质量评级 ★★★★★'
+  },
+  goodwill: {
+    title: '商誉深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人，专精商誉减值测试审计。请通读以下年报全文，聚焦"商誉"科目，输出分析报告：\n\n1. 商誉金额及其占总资产/净资产比例\n2. 商誉来源（各并购标的分别产生多少商誉？）\n3. 被并购标的业绩表现（是否达成业绩承诺？未达成的是否计提减值？）\n4. 减值测试方法（折现率、增长率假设是否合理？）\n5. 历年商誉减值情况\n6. 潜在暴雷风险（哪些标的业绩恶化但尚未计提减值？）\n7. 与同行业商誉减值政策比较\n8. 最终结论：商誉暴雷风险评级 ★★★★★'
+  },
+  intangible: {
+    title: '无形资产深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人。请通读以下年报全文，聚焦"无形资产"科目，输出分析报告：\n\n1. 无形资产构成（土地使用权/专利权/软件/商标权/其他）\n2. 研发资本化政策及其与同业的比较\n3. 资本化率（近3年趋势，是否异常偏高？）\n4. 摊销政策与年限\n5. 减值测试\n6. 内部研发vs外购无形资产的比重\n7. 潜在问题（过度资本化美化利润的信号）\n8. 最终结论：无形资产质量评级 ★★★★★'
+  },
+  borrowings: {
+    title: '有息负债深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人。请通读以下年报全文，聚焦"有息负债"，输出分析报告：\n\n1. 有息负债总额与结构（短期借款/长期借款/应付债券各多少？）\n2. 利率水平（加权平均利率，与市场基准利率比较）\n3. 到期结构（1年内/1-3年/3-5年/5年以上各到期金额）\n4. 授信额度与已使用情况\n5. 资产负债率与利息覆盖倍数（近3年趋势）\n6. 抵质押情况（多少资产已被抵押？）\n7. 偿债压力测试\n8. 潜在风险（流动性危机、再融资困难、利率上升敏感度）\n9. 最终结论：偿债能力评级 ★★★★★'
+  },
+  contractLiab: {
+    title: '合同负债深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人。请通读以下年报全文，聚焦"合同负债/预收款项"，输出分析报告：\n\n1. 合同负债金额与趋势（近3年变化）\n2. 合同负债占营收比重\n3. 主要合同/客户来源\n4. 合同履约周期\n5. 未来收入的可预见性\n6. 与同业的比较（预收款占比 vs 同行）\n7. 合同负债的质量（是真实订单预收还是关联方/虚假交易？）\n8. 最终结论：合同负债质量评级 ★★★★★'
+  },
+  contingent: {
+    title: '或有负债深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人。请通读以下年报全文，聚焦"或有事项/对外担保/未决诉讼/承诺"，输出分析报告：\n\n1. 对外担保总额及占净资产比例\n2. 未决诉讼（案件性质、涉案金额、预计结果）\n3. 产品质量保证/售后服务承诺\n4. 已背书或贴现但未到期的票据\n5. 其他重大承诺事项\n6. 潜在风险量化评估\n7. 最终结论：或有负债风险评级 ★★★★★'
+  },
+  operatingCF: {
+    title: '经营现金流深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人。请通读以下年报全文，聚焦"经营活动现金流"，输出分析报告：\n\n1. 经营现金流金额与趋势（近5年）\n2. 经营现金流/净利润比值（近5年趋势，是否持续<1？）\n3. 经营现金流与净利润差异拆解（为什么利润高但没钱？）\n4. 营运资金变动分析（应收/存货/应付各贡献多少现金流？）\n5. 收现比与付现比\n6. 是否存在"纸面利润"的迹象？\n7. 与同业现金流质量比较\n8. 最终结论：现金流质量评级 ★★★★★'
+  },
+  freeCF: {
+    title: '自由现金流深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人。请通读以下年报全文，聚焦"自由现金流"，输出分析报告：\n\n1. 自由现金流(经营CF-CAPEX)近5年趋势\n2. CAPEX支出分析（扩张型还是维持型？）\n3. CAPEX/折旧比值（判断是否在维持现有产能以上投资）\n4. 自由现金流/净利润比值\n5. 自由现金流/市值（FCF Yield）\n6. 投资效率分析（每投入1元CAPEX产生多少营收增量？）\n7. 融资依赖度（FCF能否覆盖分红+偿债？）\n8. 最终结论：自由现金流质量评级 ★★★★★'
+  },
+  rdExpense: {
+    title: '研发费用深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人。请通读以下年报全文，聚焦"研发费用/研发投入"，输出分析报告：\n\n1. 研发投入金额与增速（近5年趋势）\n2. 研发费用率（占营收比，与同业比较）\n3. 研发资本化率（资本化金额/总研发投入，是否异常？）\n4. 研发人员数量与构成\n5. 专利/知识产权产出\n6. 研发项目的商业化进展\n7. 过度资本化/研发投入虚增的可能信号\n8. 最终结论：研发质量评级 ★★★★★'
+  },
+  sellingExpense: {
+    title: '销售费用深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人。请通读以下年报全文，聚焦"销售费用"，输出分析报告：\n\n1. 销售费用金额与趋势（近5年）\n2. 销售费用率（占营收比，与同业比较）\n3. 销售费用构成（职工薪酬/广告费/差旅费/佣金等各占比）\n4. 销售人效（销售人员人均营收/人均利润）\n5. 客户获取成本与客户生命周期价值\n6. 费用增长与营收增长的匹配度\n7. 销售费用异常波动分析\n8. 最终结论：销售效率评级 ★★★★★'
+  },
+  otherIncome: {
+    title: '非经常性损益深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人。请通读以下年报全文，聚焦"非经常性损益"，输出分析报告：\n\n1. 非经常性损益总额及占利润比（近5年）\n2. 构成拆解（政府补贴/资产处置/投资收益/债务重组/其他）\n3. 扣非净利润 vs 归母净利润差异分析\n4. 政府补贴的可持续性（是否依赖补贴？）\n5. 是否存在"靠非经常性损益扭亏为盈"的迹象？\n6. 投资收益来源（理财/股权/衍生品？风险如何？）\n7. 最终结论：利润质量评级 ★★★★★'
+  },
+  relatedParty: {
+    title: '关联交易深度分析',
+    prompt: '你是一位四大会计师事务所审计合伙人。请通读以下年报全文，聚焦"关联交易"，输出分析报告：\n\n1. 关联方清单及关系\n2. 关联交易总额及占营收/采购比\n3. 关联交易类型（销售/采购/担保/资金拆借/资产转让）\n4. 关联交易定价是否公允？\n5. 是否存在关联方资金占用？\n6. 大股东质押情况\n7. 潜在利益输送信号\n8. 最终结论：关联交易风险评级 ★★★★★'
+  },
+  taxation: {
+    title: '税务深度分析',
+    prompt: '你是一位四大会计师事务所税务合伙人。请通读以下年报全文，聚焦"税务"相关内容，输出分析报告：\n\n1. 有效所得税税率（近5年趋势，与法定税率比较）\n2. 递延所得税资产/负债（金额、构成、可回收性）\n3. 未确认递延所得税资产的可抵扣亏损\n4. 税收优惠（高新企业/研发加计扣除/其他优惠，可持续性？）\n5. 应交税费明细\n6. 税务风险（转让定价、历史税务稽查、税收优惠到期等）\n7. 最终结论：税务风险评级 ★★★★★'
+  }
+};
+
+// ── Metric Analysis Button ──
+function setupMetricAnalysis(doneFiles) {
+  var btn = document.getElementById('metricAnalyzeBtn');
+  btn.onclick = function() {
+    var metricKey = document.getElementById('metricSelect').value;
+    if (!metricKey) { alert('请先选择要分析的指标'); return; }
+
+    var apiConfig = getEffectiveApiConfig();
+    if (!apiConfig.key) { alert('请先配置 API Key'); return; }
+
+    var metricDef = METRIC_PROMPTS[metricKey];
+    if (!metricDef) return;
+
+    var genStatus = document.getElementById('metricGenStatus');
+    var genText = document.getElementById('metricGenText');
+    var resultContent = document.getElementById('resultContent');
+
+    genStatus.style.display = 'block';
+    genText.textContent = '正在分析 ' + metricDef.title + '…';
+    btn.disabled = true;
+
+    resultContent.innerHTML = '<div class="report-container"><div style="text-align:center;color:#888;padding:40px;">分析中，请稍候…</div></div>';
+    switchToResult();
+
+    var fullPrompt = '请严格按照以下要求，对所提供的财务报告全文进行专项深度分析。\n\n';
+    fullPrompt += '=== 分析任务 ===\n\n';
+    fullPrompt += metricDef.prompt;
+    fullPrompt += '\n\n=== 分析任务结束 ===\n\n';
+    fullPrompt += '=== 以下为财报全文 ===\n\n';
+
+    doneFiles.forEach(function(f, i) {
+      fullPrompt += '【报告 ' + (i + 1) + '】文件名: ' + f.name + ' | 年度: ' + (f.year || '未知') + '\n\n';
+      var text = f.fullText || '';
+      if (text.length > 60000) { text = text.substring(0, 60000) + '\n\n[... 全文过长，已截断前60,000字 ...]'; }
+      fullPrompt += text + '\n\n---分隔线---\n\n';
+    });
+
+    fullPrompt += '\n=== 财报全文结束 ===\n请立即开始分析。';
+
+    fetch(apiConfig.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiConfig.key
+      },
+      body: JSON.stringify({
+        model: apiConfig.model,
+        max_tokens: 6000,
+        stream: true,
+        messages: [{ role: 'user', content: fullPrompt }]
+      })
+    }).then(function(response) {
+      if (!response.ok) {
+        return response.json().then(function(err) {
+          throw new Error('API 错误 (' + response.status + '): ' + (err.error && err.error.message ? err.error.message : '未知错误'));
+        });
+      }
+      return handleStream(response);
+    }).then(function(fullText) {
+      genStatus.style.display = 'none';
+      btn.disabled = false;
+      resultContent.innerHTML = '<div class="report-container"><h2>&#128270; ' + metricDef.title + '</h2>' + markdownToHtml(fullText) + '</div>';
+      resultContent.scrollIntoView({ behavior: 'smooth' });
+    }).catch(function(err) {
+      genStatus.style.display = 'none';
+      btn.disabled = false;
+      resultContent.innerHTML = '<div class="report-container" style="color:#dc2626;"><h2>分析失败</h2><p>' + err.message + '</p></div>';
+    });
+  };
+}
+
+// ── Generate Report with DeepSeek API ──
+function setupGenerateButton(doneFiles) {
+  var btn = document.getElementById('generateReportBtn');
+  btn.onclick = function() {
+    startGeneration(doneFiles);
+  };
+  // Also setup metric analysis
+  setupMetricAnalysis(doneFiles);
+}
+
+function getFullPrompt(doneFiles) {
+  var prompt = '请严格按照以下框架，对所提供的财务报告全文进行深度分析。\n\n';
+  prompt += '=== 分析框架开始 ===\n\n';
+  prompt += getActiveFramework();
+  prompt += '\n\n=== 分析框架结束 ===\n\n';
+  // Inject pre-computed quantitative metrics
+  var quantSection = getQuantPromptSection(doneFiles);
+  if (quantSection) {
+    prompt += '\n' + quantSection + '\n';
+  }
+  prompt += '=== 以下为财报全文 ===\n\n';
+
+  doneFiles.forEach(function(f, i) {
+    prompt += '【报告 ' + (i + 1) + '】文件名: ' + f.name + ' | 推测年度: ' + (f.year || '未知') + '\n\n';
+    var text = f.fullText || '';
+    if (text.length > 100000) {
+      text = text.substring(0, 100000) + '\n\n[... 全文过长，已截断前100,000字 ...]';
+    }
+    prompt += text + '\n\n---分隔线---\n\n';
+  });
+
+  prompt += '\n=== 财报全文结束 ===\n';
+  prompt += '\n请立即开始按照上述框架进行投资尽调分析。';
+
+  return prompt;
+}
+
+function buildPrompt(doneFiles) {
+  var prompt = getFullPrompt(doneFiles);
+  document.getElementById('promptPreview').textContent = prompt;
+
+  document.getElementById('copyPromptBtn').onclick = function() {
+    navigator.clipboard.writeText(prompt).then(function() {
+      var s = document.getElementById('promptStatus');
+      s.textContent = '已复制到剪贴板！直接粘贴给 DeepSeek，即按框架输出完整投资尽调报告。';
+      s.style.color = '#16a34a';
+      setTimeout(function() { s.textContent = ''; }, 4000);
+    }).catch(function() {
+      var s = document.getElementById('promptStatus');
+      s.textContent = '复制失败，请展开下方预览，手动 Ctrl+A 全选复制。';
+      s.style.color = '#dc2626';
+    });
+  };
+
+  document.getElementById('savePromptBtn').onclick = function() {
+    var blob = new Blob([prompt], { type: 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'deepseek-analysis-request.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    var s = document.getElementById('promptStatus');
+    s.textContent = '已保存。将此文件内容发送给 DeepSeek，即按框架输出完整投资尽调报告。';
+    s.style.color = '#16a34a';
+  };
+}
+
+// ── Effective API Config (checks one-time override first) ──
+function getEffectiveApiConfig() {
+  var altEndpoint = document.getElementById('altApiEndpoint');
+  var altKey = document.getElementById('altApiKey');
+  var altModel = document.getElementById('altApiModel');
+  if (altEndpoint && altKey && altEndpoint.value.trim() && altKey.value.trim()) {
+    var config = {
+      endpoint: altEndpoint.value.trim(),
+      key: altKey.value.trim(),
+      model: altModel.value.trim() || 'deepseek-chat'
+    };
+    // Clear one-time config after reading
+    altEndpoint.value = '';
+    altKey.value = '';
+    altModel.value = '';
+    return config;
+  }
+  return {
+    endpoint: 'https://api.deepseek.com/v1/chat/completions',
+    key: localStorage.getItem('deepseek_api_key') || '',
+    model: 'deepseek-chat'
+  };
+}
+
+// ── DeepSeek API Call ──
+function startGeneration(doneFiles) {
+  var apiConfig = getEffectiveApiConfig();
+  if (!apiConfig.key) { alert('请先配置 API Key'); return; }
+
+  var genStatus = document.getElementById('generationStatus');
+  var genText = document.getElementById('genStatusText');
+  var resultContent = document.getElementById('resultContent');
+
+  genStatus.style.display = 'block';
+  genText.textContent = '正在生成分析报告…';
+  resultContent.innerHTML = '<div class="report-container"><div style="text-align:center;color:#888;padding:40px;">生成中，请稍候…预计 2-5 分钟完成完整报告。</div></div>';
+  switchToResult();
+
+  var prompt = getFullPrompt(doneFiles);
+
+  fetch(apiConfig.endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiConfig.key
+    },
+    body: JSON.stringify({
+      model: apiConfig.model,
+      max_tokens: 12000,
+      stream: true,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }).then(function(response) {
+    if (!response.ok) {
+      return response.json().then(function(err) {
+        throw new Error('API 错误 (' + response.status + '): ' + (err.error && err.error.message ? err.error.message : '未知错误'));
+      });
+    }
+    return handleStream(response);
+  }).then(function(fullText) {
+    genStatus.style.display = 'none';
+    // Store globally for PPT generation
+    pptReportData = {
+      reportText: fullText,
+      doneFiles: doneFiles,
+      companyName: extractCompanyName(fullText, doneFiles)
+    };
+    var metricsResult = computeMetricsFromFiles(doneFiles);
+    resultContent.innerHTML = '';
+    renderQuantitativeDashboard(metricsResult, resultContent);
+    resultContent.innerHTML += '<div class="report-container" id="aiReportFull">' + markdownToHtml(fullText) + '</div>';
+    // Inject PPT & PDF buttons
+    var btnBarHtml = '<div style="text-align:center;margin-top:20px;">';
+    btnBarHtml += '<button class="btn-pdf" id="downloadPDFBtn" onclick="downloadPDF()">&#128196; 下载 PDF 报告</button>';
+    btnBarHtml += '<button class="btn-ppt" id="generatePPTBtn" onclick="generatePPT()">&#128202; 生成 PPT 报告</button>';
+    btnBarHtml += '</div>';
+    resultContent.innerHTML += btnBarHtml;
+    resultContent.scrollIntoView({ behavior: 'smooth' });
+  }).catch(function(err) {
+    pptReportData = null;
+    genStatus.style.display = 'none';
+    resultContent.innerHTML = '<div class="report-container" style="color:#dc2626;"><h2>生成失败</h2><p>' + err.message + '</p><p style="font-size:0.85rem;color:#888;">可能原因：API Key 无效、余额不足、网络问题。备用方案：复制 Prompt 发送给 DeepSeek。</p></div>';
+  });
+}
+
+function handleStream(response, targetEl) {
+  var reader = response.body.getReader();
+  var decoder = new TextDecoder();
+  var fullText = '';
+  var buffer = '';
+  var resultContent = targetEl || document.getElementById('resultContent');
+
+  return new Promise(function(resolve, reject) {
+    function processStream() {
+      reader.read().then(function(result) {
+        if (result.done) {
+          resolve(fullText);
+          return;
+        }
+
+        buffer += decoder.decode(result.value, { stream: true });
+        var lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        lines.forEach(function(line) {
+          if (!line.startsWith('data: ')) return;
+          var data = line.substring(6).trim();
+          if (data === '[DONE]') return;
+          try {
+            var json = JSON.parse(data);
+            if (json.choices && json.choices[0] && json.choices[0].delta && json.choices[0].delta.content) {
+              fullText += json.choices[0].delta.content;
+            }
+          } catch(e) {}
+        });
+
+        // Update display every ~500ms
+        if (fullText.length > 0) {
+          var currentLen = fullText.length;
+          if (!handleStream._lastUpdate || currentLen - handleStream._lastUpdate > 200) {
+            handleStream._lastUpdate = currentLen;
+            resultContent.innerHTML = '<div class="report-container">' + markdownToHtml(fullText) + '<div style="text-align:center;color:#888;padding:12px;font-size:0.82rem;">&#9203; 生成中… 已生成 ' + (currentLen / 1000).toFixed(1) + 'k 字</div></div>';
+            document.getElementById('genStatusText').textContent = '正在生成… 已生成 ' + (currentLen / 1000).toFixed(1) + 'k 字';
+          }
+        }
+
+        processStream();
+      }).catch(reject);
+    }
+    handleStream._lastUpdate = 0;
+    processStream();
+  });
+}
+
+
+// ── Multi-Company Comparison Analysis ──
+function getDistinctCompanies() {
+  var companies = {};
+  uploadedFiles.forEach(function(f) {
+    if (f.status === 'done' && f.company) {
+      if (!companies[f.company]) companies[f.company] = [];
+      companies[f.company].push(f);
+    }
+  });
+  return companies;
+}
+
+function updateComparisonButton() {
+  var btn = document.getElementById('compareBtn');
+  var companies = getDistinctCompanies();
+  var companyCount = Object.keys(companies).length;
+  var allDone = uploadedFiles.length > 0 && uploadedFiles.every(function(f) { return f.status === 'done'; });
+  if (btn) {
+    btn.style.display = (companyCount >= 2 && allDone) ? '' : 'none';
+  }
+}
+
+function getComparisonPrompt(doneFiles) {
+  var companies = getDistinctCompanies();
+  var prompt = '请严格按照以下多公司对比分析框架，对所提供的多家公司财务报告全文进行深度横向对比。\n\n';
+  prompt += '=== 对比分析框架开始 ===\n\n';
+  prompt += ANALYSIS_FRAMEWORK_COMPARISON;
+  prompt += '\n\n=== 对比分析框架结束 ===\n\n';
+  prompt += '=== 以下为各公司财报全文 ===\n\n';
+  var cnames = Object.keys(companies);
+  cnames.forEach(function(cname, ci) {
+    prompt += '═══ 公司' + (ci + 1) + '：' + cname + ' ═══\n\n';
+    companies[cname].forEach(function(f, i) {
+      prompt += '【报告 ' + (i + 1) + '】文件名: ' + f.name + ' | 年度: ' + (f.year || '未知') + '\n\n';
+      var text = f.fullText || '';
+      if (text.length > 60000) { text = text.substring(0, 60000) + '\n\n[... 全文过长，已截断前60,000字 ...]'; }
+      prompt += text + '\n\n---分隔线---\n\n';
+    });
+    prompt += '\n\n';
+  });
+  prompt += '\n=== 全部财报结束 ===\n';
+  prompt += '请立即开始按照上述多公司对比分析框架进行系统性横向对比，必须给出明确排名和投资建议。';
+  return prompt;
+}
+
+function startComparisonAnalysis() {
+  var apiConfig = getEffectiveApiConfig();
+  if (!apiConfig.key) { alert('请先配置 API Key'); return; }
+  var companies = getDistinctCompanies();
+  var cnames = Object.keys(companies);
+  if (cnames.length < 2) { alert('需要至少 2 家不同公司才能进行对比分析'); return; }
+  var genStatus = document.getElementById('generationStatus');
+  var genText = document.getElementById('genStatusText');
+  var resultContent = document.getElementById('resultContent');
+  var btn = document.getElementById('compareBtn');
+  genStatus.style.display = 'block';
+  genText.textContent = '正在生成多公司对比分析报告…（涉及 ' + cnames.length + ' 家公司，需要更长时间）';
+  resultContent.innerHTML = '<div class="report-container"><div style="text-align:center;color:#888;padding:40px;">分析中，请稍候…预计 3-8 分钟完成多公司对比报告。</div></div>';
+  switchToResult();
+  if (btn) { btn.disabled = true; btn.textContent = '分析中…'; }
+  var prompt = getComparisonPrompt();
+  fetch(apiConfig.endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiConfig.key },
+    body: JSON.stringify({ model: apiConfig.model, max_tokens: 16000, stream: true,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }).then(function(response) {
+    if (!response.ok) {
+      return response.json().then(function(err) {
+        throw new Error('API 错误 (' + response.status + '): ' + (err.error && err.error.message ? err.error.message : '未知错误'));
+      });
+    }
+    return handleStream(response);
+  }).then(function(fullText) {
+    genStatus.style.display = 'none';
+    if (btn) { btn.disabled = false; btn.textContent = '多家对比分析'; }
+    pptReportData = {
+      reportText: fullText,
+      doneFiles: uploadedFiles.filter(function(f) { return f.status === 'done'; }),
+      companyName: cnames.join(' vs ') + ' 对比分析'
+    };
+    resultContent.innerHTML = '';
+    renderComparisonDashboard(companies, resultContent);
+    resultContent.innerHTML += '<div class="report-container">' + markdownToHtml(fullText) + '</div>';
+    var btnBarHtml = '<div style="text-align:center;margin-top:20px;">';
+    btnBarHtml += '<button class="btn-pdf" onclick="downloadPDF()">&#128196; 下载 PDF 报告</button>';
+    btnBarHtml += '<button class="btn-ppt" onclick="generatePPT()">&#128202; 生成 PPT 报告</button>';
+    btnBarHtml += '</div>';
+    resultContent.innerHTML += btnBarHtml;
+    resultContent.scrollIntoView({ behavior: 'smooth' });
+  }).catch(function(err) {
+    genStatus.style.display = 'none';
+    if (btn) { btn.disabled = false; btn.textContent = '多家对比分析'; }
+    resultContent.innerHTML = '<div class="report-container" style="color:#dc2626;"><h2>对比分析失败</h2><p>' + err.message + '</p><p style="font-size:0.85rem;color:#888;">可能原因：API Key 无效、余额不足、网络问题，或单次请求文本过长超出限制。</p></div>';
+  });
+}
+
+
+
+// ── Multi-Company Comparison Dashboard ──
+function renderComparisonDashboard(companies, containerEl) {
+  activeCharts.forEach(function(ch) { try { ch.destroy(); } catch(e) {} });
+  activeCharts = [];
+
+  var cnames = Object.keys(companies);
+  var allMetrics = [];
+  cnames.forEach(function(cname) {
+    var files = companies[cname];
+    var yrData = [];
+    files.forEach(function(f) {
+      var data = {};
+      if (f.extractedData) {
+        for (var k in f.extractedData) { if (k !== '_lang') data[k] = f.extractedData[k]; }
+      }
+      yrData.push({ year: f.year || f.name, data: data });
+    });
+    yrData.sort(function(a, b) { return (b.year || '').localeCompare(a.year || ''); });
+    var ar = analyzeMultiYear(yrData, cname);
+    var latest = ar.results[0];
+    var lang = (yrData.length > 0 && yrData[0].data._lang) || 'cn';
+    allMetrics.push({
+      name: cname,
+      lang: lang,
+      unit: lang === 'en' ? '百万美元' : '亿元',
+      years: yrData.length,
+      revenue: yrData.length > 0 ? (yrData[0].data.revenue || 0) : 0,
+      netProfit: yrData.length > 0 ? (yrData[0].data.netProfit || 0) : 0,
+      grossMargin: latest.metrics.grossMargin || 0,
+      netMargin: latest.metrics.netMargin || 0,
+      roe: latest.metrics.roe || 0,
+      debtRatio: latest.metrics.debtRatio || 0,
+      opcfToNp: latest.metrics.opcfToNp || 0,
+      fcf: latest.metrics.fcf || 0,
+      revCAGR: latest.metrics.revCAGR,
+      npCAGR: latest.metrics.npCAGR,
+      score: latest.score || 0
+    });
+  });
+
+  var html = '';
+  html += '<div class="quant-dashboard">';
+  html += '<div class="quant-db-header"><h2>&#128202; 多公司对比仪表盘</h2><span class="unit-tag">' + cnames.length + ' 家公司</span></div>';
+
+  // Section A: Key metrics comparison table
+  html += '<div class="quant-db-section"><h3>最新年度关键指标对比</h3>';
+  html += '<table class="quant-table"><thead><tr><th>指标</th>';
+  allMetrics.forEach(function(m) { html += '<th>' + m.name + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  var rows = [
+    { label: '数据年份', key: 'years', fmt: 'int', isPct: false },
+    { label: '营业收入', key: 'revenue', fmt: 'f1', isPct: false },
+    { label: '净利润', key: 'netProfit', fmt: 'f2', isPct: false },
+    { label: '毛利率', key: 'grossMargin', fmt: 'f1', isPct: true },
+    { label: '净利率', key: 'netMargin', fmt: 'f1', isPct: true },
+    { label: 'ROE', key: 'roe', fmt: 'f1', isPct: true },
+    { label: '资产负债率', key: 'debtRatio', fmt: 'f1', isPct: true },
+    { label: '经营现金流/净利', key: 'opcfToNp', fmt: 'f2', isPct: false },
+    { label: '自由现金流', key: 'fcf', fmt: 'f2', isPct: false },
+  ];
+
+  // Find best in each row for highlighting
+  rows.forEach(function(row) {
+    html += '<tr><td>' + row.label + '</td>';
+    var bestVal = null;
+    var higherIsBetter = ['revenue','netProfit','grossMargin','netMargin','roe','opcfToNp','fcf','revCAGR','npCAGR','score'].indexOf(row.key) >= 0;
+    allMetrics.forEach(function(m) {
+      var v = m[row.key];
+      if (v != null && !isNaN(v)) {
+        if (bestVal === null || (higherIsBetter ? v > bestVal : v < bestVal)) bestVal = v;
+      }
+    });
+    allMetrics.forEach(function(m) {
+      var v = m[row.key];
+      var disp = '--';
+      if (v != null && !isNaN(v)) {
+        if (row.fmt === 'int') disp = v;
+        else if (row.isPct) disp = v.toFixed(1) + '%';
+        else disp = v.toFixed(row.fmt === 'f2' ? 2 : 1);
+      }
+      var isBest = (v != null && bestVal != null && v === bestVal && allMetrics.length >= 2);
+      html += '<td' + (isBest ? ' style="background:#f0fdf4;font-weight:700;"' : '') + '>' + disp + '</td>';
+    });
+    html += '</tr>';
+  });
+
+  // CAGR row
+  html += '<tr style="background:#f8faff;"><td><strong>CAGR</strong></td>';
+  allMetrics.forEach(function(m) {
+    var txt = '';
+    if (m.revCAGR != null) txt += '营收:' + m.revCAGR.toFixed(1) + '%';
+    if (m.npCAGR != null) txt += (txt ? ' / ' : '') + '利润:' + m.npCAGR.toFixed(1) + '%';
+    html += '<td>' + (txt || '--') + '</td>';
+  });
+  html += '</tr>';
+
+  // Score row
+  html += '<tr style="background:#f0f4ff;"><td><strong>综合评分</strong></td>';
+  allMetrics.forEach(function(m) {
+    var sc = m.score || 0;
+    var scColor = sc >= 70 ? '#16a34a' : sc >= 45 ? '#ea580c' : '#dc2626';
+    html += '<td style="font-weight:800;color:' + scColor + ';">' + sc + '</td>';
+  });
+  html += '</tr>';
+
+  html += '</tbody></table></div>';
+
+  // Section B: Revenue comparison bar chart
+  html += '<div class="quant-db-section"><h3>营收对比</h3>';
+  html += '<div class="chart-wrap"><canvas id="chartCmpRev"></canvas></div></div>';
+
+  // Section C: Profitability comparison bar chart
+  html += '<div class="quant-db-section"><h3>盈利能力对比</h3>';
+  html += '<div class="chart-wrap"><canvas id="chartCmpProfit"></canvas></div></div>';
+
+  html += '<div class="quant-hint">数据由系统从 PDF 自动提取计算，仅供参考。详细对比分析见下方 AI 报告。</div>';
+  html += '</div>';
+
+  containerEl.innerHTML = html;
+
+  // Render charts
+  setTimeout(function() {
+    // Revenue bar chart
+    var ctx1 = document.getElementById('chartCmpRev');
+    if (ctx1 && allMetrics.length >= 1) {
+      var colors = ['#1e3a5f','#2563eb','#16a34a','#eab308','#ea580c','#7c3aed','#dc2626','#0891b2'];
+      var chart1 = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: allMetrics.map(function(m) { return m.name; }),
+          datasets: [
+            { label: '营业收入', data: allMetrics.map(function(m) { return m.revenue; }), backgroundColor: colors.slice(0, allMetrics.length), borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+            x: { ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+      activeCharts.push(chart1);
+    }
+
+    // Profitability grouped bar chart
+    var ctx2 = document.getElementById('chartCmpProfit');
+    if (ctx2 && allMetrics.length >= 1) {
+      var chart2 = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: allMetrics.map(function(m) { return m.name; }),
+          datasets: [
+            { label: '毛利率(%)', data: allMetrics.map(function(m) { return m.grossMargin; }), backgroundColor: '#1e3a5f', borderRadius: 4 },
+            { label: '净利率(%)', data: allMetrics.map(function(m) { return m.netMargin; }), backgroundColor: '#16a34a', borderRadius: 4 },
+            { label: 'ROE(%)', data: allMetrics.map(function(m) { return m.roe; }), backgroundColor: '#eab308', borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
+          scales: {
+            y: { ticks: { font: { size: 10 }, callback: function(v) { return v + '%'; } } },
+            x: { ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+      activeCharts.push(chart2);
+    }
+  }, 100);
+}
+
+// ── Quantitative Dashboard Renderer ──
+function renderQuantitativeDashboard(metricsResult, containerEl) {
+  var yr = metricsResult.yearlyData;
+  var ar = metricsResult.analysisResult;
+  var latest = ar.results[0];
+  var m = latest.metrics;
+  var lang = (yr.length > 0 && yr[0].data._lang) || 'cn';
+  var unit = lang === 'en' ? '百万美元' : '亿元';
+  var pct = '%';
+
+  // Destroy old Chart instances
+  activeCharts.forEach(function(ch) { try { ch.destroy(); } catch(e) {} });
+  activeCharts = [];
+
+  var html = '';
+  html += '<div class="quant-dashboard">';
+  html += '<div class="quant-db-header"><h2>&#128202; 定量分析仪表盘</h2><span class="unit-tag">单位：' + unit + '</span></div>';
+
+  // ── Section A: Key Metrics Table ──
+  html += '<div class="quant-db-section"><h3>关键财务指标</h3>';
+  if (yr.length === 0) {
+    html += '<div class="quant-empty">暂无数据</div>';
+  } else {
+    html += '<table class="quant-table"><thead><tr><th>指标</th>';
+    yr.forEach(function(y) { html += '<th>' + y.year + '</th>'; });
+    if (yr.length >= 2) html += '<th>趋势</th>';
+    html += '</tr></thead><tbody>';
+
+    // Row helper
+    function addRow(label, vals, fmt, isPct) {
+      html += '<tr><td>' + label + '</td>';
+      vals.forEach(function(v) {
+        var d = (v != null && !isNaN(v)) ? (isPct ? v.toFixed(1) + '%' : (fmt === 'f2' ? v.toFixed(2) : v.toFixed(1))) : '--';
+        html += '<td>' + d + '</td>';
+      });
+      if (yr.length >= 2) {
+        var first = vals[vals.length - 1], last = vals[0];
+        if (first != null && last != null && !isNaN(first) && !isNaN(last) && first !== 0) {
+          var chg = ((last - first) / Math.abs(first) * 100);
+          var cls = chg > 0 ? 'chg-up' : chg < 0 ? 'chg-down' : 'chg-flat';
+          var arrow = chg > 0 ? '&#9650;' : chg < 0 ? '&#9660;' : '&#9654;';
+          html += '<td class="' + cls + '">' + arrow + ' ' + Math.abs(chg).toFixed(1) + '%</td>';
+        } else { html += '<td class="chg-flat">--</td>'; }
+      }
+      html += '</tr>';
+    }
+
+    // Extract raw values from yearlyData
+    var revs = yr.map(function(y) { return y.data.revenue; });
+    var nps = yr.map(function(y) { return y.data.netProfit; });
+    var gms = ar.results.map(function(r) { return r.metrics.grossMargin; }).reverse();
+    var nms = ar.results.map(function(r) { return r.metrics.netMargin; }).reverse();
+    var roes = ar.results.map(function(r) { return r.metrics.roe; }).reverse();
+    var fcfs = ar.results.map(function(r) { return r.metrics.fcf; }).reverse();
+
+    addRow('营业收入(' + unit + ')', revs, 'f1', false);
+    addRow('净利润(' + unit + ')', nps, 'f2', false);
+    addRow('毛利率', gms, 'f1', true);
+    addRow('净利率', nms, 'f1', true);
+    addRow('ROE', roes, 'f1', true);
+    addRow('自由现金流(' + unit + ')', fcfs, 'f2', false);
+
+    // CAGR row
+    if (yr.length >= 2) {
+      html += '<tr style="background:#f8faff;"><td><strong>CAGR</strong></td>';
+      yr.forEach(function(y, i) { html += '<td>' + (i === 0 ? '营收/利润' : '') + '</td>'; });
+      var cagrRev = (m.revCAGR != null) ? m.revCAGR.toFixed(1) + '%' : '--';
+      var cagrNp = (m.npCAGR != null) ? m.npCAGR.toFixed(1) + '%' : '--';
+      html += '<td>营收: ' + cagrRev + ' / 利润: ' + cagrNp + '</td></tr>';
+    }
+
+    html += '</tbody></table>';
+  }
+  html += '</div>';
+
+  // ── Section B: Revenue & Profit Bar Chart ──
+  html += '<div class="quant-db-section"><h3>营收与利润</h3>';
+  if (yr.length >= 1) {
+    html += '<div class="chart-wrap"><canvas id="chartRevProfit"></canvas></div>';
+  } else {
+    html += '<div class="quant-empty">暂无数据</div>';
+  }
+  html += '</div>';
+
+  // ── Section C: Profitability Trend Line Chart ──
+  html += '<div class="quant-db-section"><h3>盈利能力趋势</h3>';
+  if (yr.length >= 2) {
+    html += '<div class="chart-wrap"><canvas id="chartProfitTrend"></canvas></div>';
+  } else {
+    html += '<div class="quant-empty">需要至少 2 年数据以显示趋势图</div>';
+  }
+  html += '</div>';
+
+  // ── Section D: Financial Health Cards ──
+  html += '<div class="quant-db-section"><h3>财务健康指标</h3><div class="health-grid">';
+  function hc(label, val, unit, cls) {
+    var v = (val != null && !isNaN(val)) ? val.toFixed(2) + (unit || '') : '--';
+    html += '<div class="health-card' + (cls ? ' ' + cls : '') + '"><div class="hl">' + label + '</div><div class="hv">' + v + '</div></div>';
+  }
+  hc('毛利率', m.grossMargin, '%', m.grossMargin > 35 ? '' : m.grossMargin > 20 ? 'warn' : 'bad');
+  hc('净利率', m.netMargin, '%', m.netMargin > 15 ? '' : m.netMargin > 5 ? 'warn' : 'bad');
+  hc('ROE', m.roe, '%', m.roe > 15 ? '' : m.roe > 8 ? 'warn' : 'bad');
+  hc('流动比率', m.currentRatio, '', m.currentRatio > 2 ? '' : m.currentRatio > 1 ? 'warn' : 'bad');
+  hc('资产负债率', m.debtRatio, '%', m.debtRatio < 40 ? '' : m.debtRatio < 70 ? 'warn' : 'bad');
+  hc('经营现金流/净利', m.opcfToNp, 'x', m.opcfToNp > 1 ? '' : m.opcfToNp > 0.5 ? 'warn' : 'bad');
+  hc('自由现金流', m.fcf, '', m.fcf > 0 ? '' : 'bad');
+  hc('研发占比', m.rdRatio, '%', m.rdRatio > 5 ? '' : m.rdRatio > 1 ? 'warn' : 'bad');
+  hc('商誉/总资产', m.goodwillRatio, '%', m.goodwillRatio < 20 ? '' : m.goodwillRatio < 40 ? 'warn' : 'bad');
+  html += '</div></div>';
+
+  // ── Section E: Score Summary ──
+  html += '<div class="quant-db-section"><h3>综合评分</h3>';
+  var score = latest.score || 0;
+  var scoreColor = score >= 70 ? '#16a34a' : score >= 45 ? '#ea580c' : '#dc2626';
+  var scoreLabel = score >= 70 ? '健康' : score >= 45 ? '一般' : '警惕';
+  html += '<div class="score-total"><div class="big-score" style="color:' + scoreColor + ';">' + score + '</div><div style="font-size:0.9rem;color:' + scoreColor + ';font-weight:600;">' + scoreLabel + '</div></div>';
+
+  // Sub-scores as bars
+  var subScores = [
+    { label: '盈利能力', v: Math.min(100, (m.grossMargin||0)*2 + (m.netMargin||0)*3 + (m.roe||0)*1.5) },
+    { label: '成长性', v: m.revGrowth != null ? Math.min(100, Math.max(0, (m.revGrowth||0)*3 + 50)) : 50 },
+    { label: '偿债能力', v: Math.min(100, Math.max(0, 100 - (m.debtRatio||0)*1.2)) },
+    { label: '现金流质量', v: Math.min(100, Math.max(0, (m.opcfToNp||0)*50)) },
+    { label: '运营效率', v: Math.min(100, Math.max(0, (m.assetTurnover||0)*60)) },
+    { label: '研发创新', v: Math.min(100, (m.rdRatio||0)*13) }
+  ];
+  subScores.forEach(function(s) {
+    var sv = Math.round(Math.min(100, Math.max(0, s.v)));
+    var sc = sv >= 70 ? '#16a34a' : sv >= 45 ? '#ea580c' : '#dc2626';
+    html += '<div class="score-row"><span class="score-label">' + s.label + '</span><div class="score-bar-wrap"><div class="score-bar-fill" style="width:' + sv + '%;background:' + sc + ';"></div></div><span class="score-val">' + sv + '</span></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="quant-hint">数据由系统从 PDF 自动提取计算，仅供参考。详细分析见下方 AI 报告。</div>';
+  html += '</div>'; // close quant-dashboard
+
+  containerEl.innerHTML = html;
+
+  // ── Render Chart.js charts (after DOM is in place) ──
+  setTimeout(function() {
+    // Bar chart: Revenue & Net Profit
+    if (yr.length >= 1) {
+      var ctx1 = document.getElementById('chartRevProfit');
+      if (ctx1) {
+        var labels = yr.map(function(y) { return y.year; }).reverse();
+        var revData = yr.map(function(y) { return y.data.revenue || 0; }).reverse();
+        var npData = yr.map(function(y) { return Math.abs(y.data.netProfit) > 0.001 ? (y.data.netProfit || 0) : 0; }).reverse();
+
+        var chart1 = new Chart(ctx1, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              { label: '营业收入(' + unit + ')', data: revData, backgroundColor: '#1e3a5f', borderRadius: 4 },
+              { label: '净利润(' + unit + ')', data: npData, backgroundColor: '#16a34a', borderRadius: 4 }
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+            scales: {
+              y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+              x: { ticks: { font: { size: 10 } } }
+            }
+          }
+        });
+        activeCharts.push(chart1);
+      }
+    }
+
+    // Line chart: Profitability Trends
+    if (yr.length >= 2) {
+      var ctx2 = document.getElementById('chartProfitTrend');
+      if (ctx2) {
+        var labels2 = ar.results.map(function(r) { return r.year; }).reverse();
+        var gmData = ar.results.map(function(r) { return r.metrics.grossMargin || 0; }).reverse();
+        var nmData = ar.results.map(function(r) { return r.metrics.netMargin || 0; }).reverse();
+        var roeData = ar.results.map(function(r) { return r.metrics.roe || 0; }).reverse();
+
+        var chart2 = new Chart(ctx2, {
+          type: 'line',
+          data: {
+            labels: labels2,
+            datasets: [
+              { label: '毛利率(%)', data: gmData, borderColor: '#1e3a5f', backgroundColor: 'rgba(30,58,95,0.08)', fill: false, tension: 0.3, pointRadius: 4, borderWidth: 2.5 },
+              { label: '净利率(%)', data: nmData, borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.08)', fill: false, tension: 0.3, pointRadius: 4, borderWidth: 2.5 },
+              { label: 'ROE(%)', data: roeData, borderColor: '#eab308', backgroundColor: 'rgba(234,179,8,0.08)', fill: false, tension: 0.3, pointRadius: 4, borderWidth: 2.5 }
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+            scales: {
+              y: { ticks: { font: { size: 10 }, callback: function(v) { return v + '%'; } } },
+              x: { ticks: { font: { size: 10 } } }
+            }
+          }
+        });
+        activeCharts.push(chart2);
+      }
+    }
+  }, 100);
+}
+
+// ── Build quantitative summary for prompt injection ──
+function getQuantPromptSection(doneFiles) {
+  var metricsResult = computeMetricsFromFiles(doneFiles);
+  var yr = metricsResult.yearlyData;
+  var ar = metricsResult.analysisResult;
+  if (yr.length === 0) return '';
+
+  var lang = (yr[0].data._lang) || 'cn';
+  var unit = lang === 'en' ? '百万美元' : '亿元';
+
+  var section = '\n## 预计算财务指标（系统自动提取，供分析参考）\n\n';
+  section += '| 指标 |';
+  yr.forEach(function(y) { section += ' ' + y.year + ' |'; });
+  section += '\n';
+  section += '|------|';
+  yr.forEach(function() { section += '------|'; });
+  section += '\n';
+
+  var revs = yr.map(function(y) { return y.data.revenue; }).reverse();
+  var nps = yr.map(function(y) { return y.data.netProfit; }).reverse();
+  var gms = ar.results.map(function(r) { return r.metrics.grossMargin; }).reverse();
+  var nms = ar.results.map(function(r) { return r.metrics.netMargin; }).reverse();
+  var roes = ar.results.map(function(r) { return r.metrics.roe; }).reverse();
+  var fcfs = ar.results.map(function(r) { return r.metrics.fcf; }).reverse();
+
+  function fmtRow(label, vals, isPct, decimals) {
+    var row = '| ' + label + ' |';
+    vals.forEach(function(v) {
+      if (v != null && !isNaN(v)) {
+        row += ' ' + v.toFixed(decimals || 1) + (isPct ? '%' : '') + ' |';
+      } else {
+        row += ' -- |';
+      }
+    });
+    return row + '\n';
+  }
+
+  section += fmtRow('营业收入(' + unit + ')', revs, false, 1);
+  section += fmtRow('净利润(' + unit + ')', nps, false, 2);
+  section += fmtRow('毛利率', gms, true, 1);
+  section += fmtRow('净利率', nms, true, 1);
+  section += fmtRow('ROE', roes, true, 1);
+  section += fmtRow('自由现金流(' + unit + ')', fcfs, false, 2);
+  section += fmtRow('经营现金流/净利', ar.results.map(function(r) { return r.metrics.opcfToNp; }).reverse(), false, 2);
+  section += fmtRow('资产负债率', ar.results.map(function(r) { return r.metrics.debtRatio; }).reverse(), true, 1);
+
+  // CAGR
+  var latest = ar.results[0].metrics;
+  if (latest.revCAGR != null || latest.npCAGR != null) {
+    section += '| **CAGR** |';
+    yr.forEach(function() { section += ' |'; });
+    var cText = '';
+    if (latest.revCAGR != null) cText += '营收CAGR: ' + latest.revCAGR.toFixed(1) + '%';
+    if (latest.npCAGR != null) cText += (cText ? ' / ' : '') + '利润CAGR: ' + latest.npCAGR.toFixed(1) + '%';
+    section += ' ' + cText + ' |\n';
+  }
+
+  section += '\n> &#9888; 以上为系统自动提取的参考数据，可能存在误差。请通读全文，从财报原文中核实并提取准确的财务数据。如果系统数据与原文不符，以原文为准。\n\n';
+  return section;
+}
+
+// ── Simple Markdown to HTML ──
+function markdownToHtml(md) {
+  if (!md) return '';
+  var html = md;
+
+  // Code blocks first
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(_, lang, code) {
+    return '<pre style="background:#1e1e1e;color:#d4d4d4;padding:14px;border-radius:6px;overflow-x:auto;font-size:0.82rem;"><code>' + escapeHtml(code) + '</code></pre>';
+  });
+
+  // Headers
+  html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  // Bold & italic
+  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Horizontal rules
+  html = html.replace(/^---+$/gm, '<hr style="border:none;border-top:1px solid #e0e0e0;margin:20px 0;">');
+
+  // Blockquotes
+  html = html.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+
+  // Tables (simple: | a | b |)
+  html = html.replace(/^\|(.+)\|$/gm, function(line) {
+    var cells = line.split('|').filter(function(c) { return c.trim(); });
+    if (cells.length === 0) return line;
+    if (line.match(/^[\|\s\-:]+$/)) return ''; // skip separator rows
+    var isHeader = line.match(/^\|[\s\-:]+\|$/);
+    var tag = isHeader ? 'th' : 'td';
+    return '<tr>' + cells.map(function(c) { return '<' + tag + '>' + c.trim() + '</' + tag + '>'; }).join('') + '</tr>';
+  });
+  // Wrap consecutive <tr> in <table>
+  html = html.replace(/((?:\s*<tr>.*?<\/tr>\s*)+)/g, '<table>$1</table>');
+
+  // Unordered lists
+  html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/((?:\s*<li>.*?<\/li>\s*)+)/g, '<ul>$1</ul>');
+
+  // Ordered lists
+  html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+  // Paragraphs (double newlines)
+  var parts = html.split(/\n\n+/);
+  html = parts.map(function(p) {
+    p = p.trim();
+    if (!p) return '';
+    if (p.match(/^<(h[1-4]|table|ul|ol|pre|blockquote|hr|div)/)) return p;
+    return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
+  }).join('\n');
+
+  // Star ratings
+  html = html.replace(/★/g, '<span style="color:#eab308;">&#9733;</span>');
+  html = html.replace(/☆/g, '<span style="color:#d4d4d4;">&#9734;</span>');
+
+  return html;
+}
+
+// ═══════════════════════════════════════════
+// 9. PPT REPORT GENERATION (PptxGenJS + DeepSeek)
+// ═══════════════════════════════════════════
+
+var PPT_COLORS = {
+  darkBlue: '1e3a5f', gold: 'eab308', red: 'dc2626', green: '16a34a',
+  white: 'ffffff', lightGray: 'f1f5f9', purple: '7c3aed', textDark: '1a1a1a',
+  textGray: '666666'
+};
+
+function extractCompanyName(reportText, doneFiles) {
+  function isValid(name) {
+    if (!name || name.length < 2 || name.length > 30) return false;
+    // Reject names with markdown/formatting artifacts
+    if (/[#\*\|>\[\]\(\)\{\}]/.test(name)) return false;
+    // Must contain at least one CJK character
+    if (!/[一-鿿]/.test(name)) return false;
+    return true;
+  }
+
+  // Try report title: "# 拓斯达(300607)投资尽调报告"
+  var m = reportText.match(/^#\s*(.+?)[（(]\d{6}[）)]/m);
+  if (m && isValid(m[1].trim())) return m[1].trim();
+
+  // Try "**公司名称：XXX**" or "公司名称：XXX"
+  m = reportText.match(/公司名称[：:]\s*[\*]*([^\*\n]+?)[\*]*(?:\n|$)/);
+  if (m && isValid(m[1].trim())) return m[1].trim();
+
+  // Try "# XXX投资尽调报告" or "# XXX 投资尽调报告"
+  m = reportText.match(/^#\s*(.+?)(?:投资尽调|投资分析|尽调报告|深度分析)/m);
+  if (m && isValid(m[1].trim())) return m[1].trim().replace(/[（(]\d{6}[）)]/g, '').trim();
+
+  // Try the first bold text near the top: "**拓斯达**" or "**广东拓斯达科技股份有限公司**"
+  var topSection = reportText.substring(0, 2000);
+  m = topSection.match(/\*\*([^*\n]{2,20}(?:公司|股份|集团|科技|智能|控股|有限)(?:公司)?)\*\*/);
+  if (m && isValid(m[1].trim())) return m[1].trim();
+
+  // Try "# 拓斯达" style h1 (any content after # at line start, within first 500 chars)
+  m = reportText.substring(0, 500).match(/^#\s+(\S.{1,25})$/m);
+  if (m && isValid(m[1].trim()) && !/[投资尽调|分析|报告|框架]/.test(m[1])) return m[1].trim();
+
+  // Fallback to filename
+  if (doneFiles && doneFiles.length > 0) {
+    var name = doneFiles[0].name.replace(/\.pdf$/i, '')
+      .replace(/20\d{2}[年_\-]?/g, '')
+      .replace(/[_\-]/g, ' ')
+      .replace(/年报|年度报告|财报/g, '')
+      .trim();
+    if (isValid(name)) return name;
+  }
+  return '目标公司';
+}
+
+function truncateText(text, maxLen) {
+  if (!text) return '';
+  return text.length > maxLen ? text.substring(0, maxLen) + '...' : text;
+}
+
+// ── Build extraction prompt for DeepSeek ──
+function buildExtractionPrompt(reportText, doneFiles) {
+  var rawDataDesc = '';
+  if (doneFiles && doneFiles.length > 0) {
+    rawDataDesc = '\n\n【辅助参考 — PDF自动提取的原始数据（可能不准，优先使用报告中的数据）】\n';
+    doneFiles.forEach(function(f) {
+      rawDataDesc += '\n年份 ' + (f.year || '未知') + ': ';
+      var d = f.extractedData || {};
+      rawDataDesc += '营收=' + (d.revenue || '?') + '亿, 净利润=' + (d.netProfit || '?') + '亿, ';
+      rawDataDesc += '总资产=' + (d.totalAssets || '?') + '亿, 净资产=' + (d.equity || '?') + '亿';
+    });
+  }
+
+  return '你是一位专业的数据提取分析师。请从以下投资尽调报告中提取关键数据，以JSON格式输出。\n\n' +
+    '=== 报告全文 ===\n' + reportText.substring(0, 30000) + '\n=== 报告结束 ===' + rawDataDesc + '\n\n' +
+    '请严格按照以下JSON schema输出（不要输出任何其他文字，只输出JSON）：\n' +
+    '{\n' +
+    '  "companyName": "准确的公司全称或简称",\n' +
+    '  "rating": {"stars": 5, "text": "★★★★★"},\n' +
+    '  "conclusion": "一句话投资结论（50字以内）",\n' +
+    '  "investmentLogics": ["逻辑1", "逻辑2", "逻辑3"],\n' +
+    '  "keyRisks": ["风险1", "风险2", "风险3"],\n' +
+    '  "financialData": {\n' +
+    '    "years": ["2023", "2024", "2025"],\n' +
+    '    "revenue": [45.5, 38.2, 22.3],\n' +
+    '    "netProfit": [0.88, -2.4, 0.3],\n' +
+    '    "grossMargin": [18.5, 14.2, 15.8],\n' +
+    '    "netMargin": [2.3, -6.3, 1.4],\n' +
+    '    "roe": [3.5, -10.2, 1.2],\n' +
+    '    "totalAssets": [68.3, 72.5, 70.1],\n' +
+    '    "equity": [24.1, 21.2, 22.5]\n' +
+    '  },\n' +
+    '  "scores": {\n' +
+    '    "行业空间": 4.0, "商业模式": 2.5, "竞争优势": 3.0,\n' +
+    '    "财务质量": 2.0, "管理层": 3.5, "成长潜力": 3.5,\n' +
+    '    "风险控制": 2.5, "估值水平": 3.5, "综合": 3.0\n' +
+    '  },\n' +
+    '  "decision": {\n' +
+    '    "text": "建议投资/谨慎投资/暂不投资/放弃投资",\n' +
+    '    "reasons": ["理由1", "理由2", "理由3", "理由4", "理由5"],\n' +
+    '    "risks": ["风险1", "风险2", "风险3", "风险4", "风险5"]\n' +
+    '  },\n' +
+    '  "expectedReturns": {"threeYear": 30, "fiveYear": 80}\n' +
+    '}\n\n' +
+    '重要规则：\n' +
+    '1. 财务数据单位必须是"亿元"，百分比数值如18.5表示18.5%\n' +
+    '2. scores中每个维度0-5分，综合评分是加权平均\n' +
+    '3. stars是评级星数1-5，text用★☆表示\n' +
+    '4. 如果报告中没有明确数据，根据上下文合理推算，不要留空\n' +
+    '5. 投资理由和风险各提取5条，每条简洁控制在30字以内\n' +
+    '6. expectedReturns是百分比数值，如30表示30%\n' +
+    '7. 只输出JSON，不要有任何其他说明文字';
+}
+
+// ── Build PPT from structured data ──
+function buildPPTFromData(data, btn) {
+  var pres = new PptxGenJS();
+  pres.layout = 'LAYOUT_WIDE';
+  pres.author = 'Financial Analyzer';
+  pres.title = (data.companyName || '目标公司') + ' 投资尽调报告';
+
+  addCoverSlideV2(pres, data);
+  addSummarySlideV2(pres, data);
+  addFinancialDataSlideV2(pres, data);
+  addRevenueChartSlideV2(pres, data);
+  addProfitabilityChartSlideV2(pres, data);
+  addScorecardSlideV2(pres, data);
+  addDecisionSlideV2(pres, data);
+
+  pres.writeFile({ fileName: (data.companyName || '目标公司') + '_投资尽调报告.pptx' }).then(function() {
+    if (btn) { btn.disabled = false; btn.textContent = '生成 PPT 报告'; btn.style.opacity = '1'; }
+  }).catch(function(err) {
+    console.error('PPT write error:', err);
+    alert('PPT 文件生成失败: ' + err.message);
+    if (btn) { btn.disabled = false; btn.textContent = '生成 PPT 报告'; btn.style.opacity = '1'; }
+  });
+}
+
+// ── Slide 1: Cover ──
+function addCoverSlideV2(pres, data) {
+  var slide = pres.addSlide();
+  slide.background = { fill: PPT_COLORS.darkBlue };
+  var rating = (data.rating && data.rating.text) || '★★★☆☆';
+  var company = data.companyName || '目标公司';
+  slide.addText(company + '\n投资尽调报告', {
+    x: 0.8, y: 1.3, w: 8.4, h: 1.6,
+    fontSize: 32, color: PPT_COLORS.white, bold: true, align: 'center',
+    fontFace: 'Microsoft YaHei', lineSpacing: 48
+  });
+  slide.addText(rating, {
+    x: 0.5, y: 3.2, w: 9, h: 0.7,
+    fontSize: 28, color: PPT_COLORS.gold, align: 'center', fontFace: 'Microsoft YaHei'
+  });
+  var label = rating.length >= 4 ? (rating[0] + '星评级') : '';
+  if (data.rating && data.rating.stars) {
+    var labels = ['', '不建议投资', '谨慎关注', '观察级', '推荐级', '强烈推荐'];
+    label = labels[data.rating.stars] || '';
+  }
+  slide.addText(label, {
+    x: 0.5, y: 3.9, w: 9, h: 0.5,
+    fontSize: 16, color: 'cccccc', align: 'center', fontFace: 'Microsoft YaHei'
+  });
+  var today = new Date();
+  slide.addText(today.getFullYear() + '年' + (today.getMonth() + 1) + '月' + today.getDate() + '日', {
+    x: 0.5, y: 4.8, w: 9, h: 0.5,
+    fontSize: 13, color: '8899aa', align: 'center', fontFace: 'Microsoft YaHei'
+  });
+  slide.addText('本报告由 AI 生成 · 仅供研究参考 · 不构成投资建议', {
+    x: 0.5, y: 6.8, w: 9, h: 0.4,
+    fontSize: 9, color: '667788', align: 'center', fontFace: 'Microsoft YaHei'
+  });
+}
+
+// ── Slide 2: Investment Summary ──
+function addSummarySlideV2(pres, data) {
+  var slide = pres.addSlide();
+  var company = data.companyName || '目标公司';
+  slide.addText(company + ' — 投资摘要', {
+    x: 0.6, y: 0.3, w: 8.8, h: 0.6,
+    fontSize: 22, color: PPT_COLORS.darkBlue, bold: true, fontFace: 'Microsoft YaHei'
+  });
+  // Left: Conclusion + Rating
+  var rating = (data.rating && data.rating.text) || '★★★☆☆';
+  slide.addShape(pres.ShapeType.rect, { x: 0.5, y: 1.1, w: 4.3, h: 1.5, fill: { color: 'f0f4ff' }, rectRadius: 0.1 });
+  slide.addText('投资评级：' + rating, {
+    x: 0.7, y: 1.2, w: 3.9, h: 0.4,
+    fontSize: 16, color: PPT_COLORS.gold, bold: true, fontFace: 'Microsoft YaHei'
+  });
+  slide.addText(data.conclusion || '详见完整报告', {
+    x: 0.7, y: 1.65, w: 3.9, h: 0.8,
+    fontSize: 12, color: PPT_COLORS.textDark, fontFace: 'Microsoft YaHei', valign: 'top'
+  });
+  // Right: Key financial snapshot
+  var fd = data.financialData || {};
+  var lastIdx = (fd.years && fd.years.length > 0) ? fd.years.length - 1 : 0;
+  var snapItems = [
+    { label: '最新营收', value: fd.revenue ? (fd.revenue[lastIdx] || 0).toFixed(1) + ' 亿' : '--' },
+    { label: '最新净利润', value: fd.netProfit ? (fd.netProfit[lastIdx] || 0).toFixed(2) + ' 亿' : '--' },
+    { label: '毛利率', value: fd.grossMargin ? (fd.grossMargin[lastIdx] || 0).toFixed(1) + '%' : '--' },
+    { label: 'ROE', value: fd.roe ? (fd.roe[lastIdx] || 0).toFixed(1) + '%' : '--' }
+  ];
+  slide.addShape(pres.ShapeType.rect, { x: 5.2, y: 1.1, w: 4.3, h: 1.5, fill: { color: 'f5f5f5' }, rectRadius: 0.1 });
+  snapItems.forEach(function(item, i) {
+    var col = i % 2;
+    var row = Math.floor(i / 2);
+    slide.addText(item.label, {
+      x: 5.4 + col * 2.1, y: 1.2 + row * 0.65, w: 1.5, h: 0.3,
+      fontSize: 9, color: PPT_COLORS.textGray, fontFace: 'Microsoft YaHei'
+    });
+    slide.addText(item.value, {
+      x: 5.4 + col * 2.1, y: 1.42 + row * 0.65, w: 1.9, h: 0.35,
+      fontSize: 14, color: PPT_COLORS.darkBlue, bold: true, fontFace: 'Microsoft YaHei'
+    });
+  });
+  // Investment logics
+  slide.addText('投资逻辑', {
+    x: 0.5, y: 2.9, w: 4.3, h: 0.35,
+    fontSize: 14, color: PPT_COLORS.green, bold: true, fontFace: 'Microsoft YaHei'
+  });
+  var logics = data.investmentLogics || [];
+  for (var i = 0; i < 3; i++) {
+    var txt = i < logics.length ? (i + 1) + '. ' + truncateText(logics[i], 100) : '';
+    slide.addText(txt, {
+      x: 0.5, y: 3.3 + i * 0.7, w: 4.3, h: 0.6,
+      fontSize: 11, color: PPT_COLORS.textDark, fontFace: 'Microsoft YaHei', valign: 'top'
+    });
+  }
+  // Key risks
+  slide.addText('核心风险', {
+    x: 5.2, y: 2.9, w: 4.3, h: 0.35,
+    fontSize: 14, color: PPT_COLORS.red, bold: true, fontFace: 'Microsoft YaHei'
+  });
+  var risks = data.keyRisks || [];
+  for (var i = 0; i < 3; i++) {
+    var txt = i < risks.length ? (i + 1) + '. ' + truncateText(risks[i], 100) : '';
+    slide.addText(txt, {
+      x: 5.2, y: 3.3 + i * 0.7, w: 4.3, h: 0.6,
+      fontSize: 11, color: PPT_COLORS.textDark, fontFace: 'Microsoft YaHei', valign: 'top'
+    });
+  }
+}
+
+// ── Slide 3: Financial Data Table ──
+function addFinancialDataSlideV2(pres, data) {
+  var slide = pres.addSlide();
+  var company = data.companyName || '目标公司';
+  var fd = data.financialData || {};
+  var years = fd.years || [];
+  slide.addText(company + ' — 财务数据总览', {
+    x: 0.5, y: 0.2, w: 9, h: 0.6,
+    fontSize: 20, color: PPT_COLORS.darkBlue, bold: true, fontFace: 'Microsoft YaHei'
+  });
+  slide.addText('单位：亿元（除百分比外）', {
+    x: 0.5, y: 0.7, w: 9, h: 0.3,
+    fontSize: 9, color: PPT_COLORS.textGray, fontFace: 'Microsoft YaHei'
+  });
+
+  if (years.length === 0) {
+    slide.addText('暂无财务数据', { x: 1, y: 2, w: 8, h: 1, fontSize: 16, color: PPT_COLORS.textGray, align: 'center', fontFace: 'Microsoft YaHei' });
+    return;
+  }
+
+  var rows = [];
+  var header = [{ text: '指标', options: { bold: true, color: PPT_COLORS.white, fill: { color: PPT_COLORS.darkBlue }, fontSize: 10, fontFace: 'Microsoft YaHei', align: 'center' } }];
+  years.forEach(function(y) {
+    header.push({ text: y, options: { bold: true, color: PPT_COLORS.white, fill: { color: PPT_COLORS.darkBlue }, fontSize: 10, fontFace: 'Microsoft YaHei', align: 'center' } });
+  });
+  rows.push(header);
+
+  var metrics = [
+    { name: '营业收入（亿元）', vals: fd.revenue, fmt: 'f1' },
+    { name: '净利润（亿元）', vals: fd.netProfit, fmt: 'f2' },
+    { name: '毛利率', vals: fd.grossMargin, fmt: 'pct' },
+    { name: '净利率', vals: fd.netMargin, fmt: 'pct' },
+    { name: 'ROE', vals: fd.roe, fmt: 'pct' },
+    { name: '总资产（亿元）', vals: fd.totalAssets, fmt: 'f1' },
+    { name: '净资产（亿元）', vals: fd.equity, fmt: 'f1' }
+  ];
+
+  metrics.forEach(function(metric, idx) {
+    var row = [{ text: metric.name, options: { bold: true, fontSize: 10, fontFace: 'Microsoft YaHei', fill: { color: idx % 2 === 0 ? 'f8fafc' : PPT_COLORS.white } } }];
+    (metric.vals || []).forEach(function(v) {
+      var disp = '--';
+      if (v !== null && v !== undefined && !isNaN(v)) {
+        if (metric.fmt === 'pct') disp = v.toFixed(1) + '%';
+        else if (metric.fmt === 'f2') disp = v.toFixed(2);
+        else disp = v.toFixed(1);
+      }
+      row.push({ text: disp, options: { fontSize: 10, fontFace: 'Microsoft YaHei', align: 'center', fill: { color: idx % 2 === 0 ? 'f8fafc' : PPT_COLORS.white } } });
+    });
+    rows.push(row);
+  });
+
+  var colW = [2.5];
+  years.forEach(function() { colW.push(7.5 / years.length); });
+  slide.addTable(rows, {
+    x: 0.3, y: 1.1, w: 9.4, colW: colW,
+    border: { type: 'solid', pt: 0.5, color: 'd0d0d0' },
+    rowH: 0.4
+  });
+
+  slide.addText('数据由 AI 从分析报告中提取，已核对关键科目', {
+    x: 0.5, y: 6.6, w: 9, h: 0.4,
+    fontSize: 8, color: PPT_COLORS.textGray, fontFace: 'Microsoft YaHei'
+  });
+}
+
+// ── Slide 4: Revenue & Profit Chart ──
+function addRevenueChartSlideV2(pres, data) {
+  var slide = pres.addSlide();
+  var company = data.companyName || '目标公司';
+  var fd = data.financialData || {};
+  slide.addText(company + ' — 营收与利润趋势', {
+    x: 0.5, y: 0.15, w: 9, h: 0.55,
+    fontSize: 20, color: PPT_COLORS.darkBlue, bold: true, fontFace: 'Microsoft YaHei'
+  });
+
+  var years = fd.years || [];
+  var revenue = fd.revenue || [];
+  var netProfit = fd.netProfit || [];
+  var validIdx = [];
+  years.forEach(function(y, i) { if (revenue[i] != null || netProfit[i] != null) validIdx.push(i); });
+
+  if (validIdx.length === 0) {
+    slide.addText('暂无财务数据生成图表', {
+      x: 1, y: 2.5, w: 8, h: 1,
+      fontSize: 16, color: PPT_COLORS.textGray, align: 'center', fontFace: 'Microsoft YaHei'
+    });
+    return;
+  }
+
+  var labels = validIdx.map(function(i) { return years[i]; });
+  var revVals = validIdx.map(function(i) { return revenue[i] || 0; });
+  var npVals = validIdx.map(function(i) { return Math.abs(netProfit[i]) > 0.001 ? netProfit[i] : 0; });
+
+  slide.addChart(pres.charts.BAR, [
+    { name: '营业收入(亿元)', labels: labels, values: revVals },
+    { name: '净利润(亿元)', labels: labels, values: npVals }
+  ], {
+    x: 0.5, y: 0.9, w: 9, h: 4.6,
+    showTitle: false,
+    catAxisLabelFontSize: 10, valAxisLabelFontSize: 9,
+    barDir: 'col', barGrouping: 'clustered',
+    chartColors: [PPT_COLORS.darkBlue, PPT_COLORS.green],
+    showLegend: true, legendPos: 'b', legendFontSize: 10
+  });
+}
+
+// ── Slide 5: Profitability Chart ──
+function addProfitabilityChartSlideV2(pres, data) {
+  var slide = pres.addSlide();
+  var company = data.companyName || '目标公司';
+  var fd = data.financialData || {};
+  slide.addText(company + ' — 盈利能力趋势', {
+    x: 0.5, y: 0.15, w: 9, h: 0.55,
+    fontSize: 20, color: PPT_COLORS.darkBlue, bold: true, fontFace: 'Microsoft YaHei'
+  });
+
+  var years = fd.years || [];
+  var gm = fd.grossMargin || [];
+  var nm = fd.netMargin || [];
+  var roe = fd.roe || [];
+  var validIdx = [];
+  years.forEach(function(y, i) { if (gm[i] != null || nm[i] != null || roe[i] != null) validIdx.push(i); });
+
+  if (validIdx.length < 2) {
+    slide.addText('暂无足够数据生成趋势图（需要至少 2 年数据）', {
+      x: 1, y: 2.5, w: 8, h: 1,
+      fontSize: 16, color: PPT_COLORS.textGray, align: 'center', fontFace: 'Microsoft YaHei'
+    });
+    return;
+  }
+
+  var labels = validIdx.map(function(i) { return years[i]; });
+  slide.addChart(pres.charts.LINE, [
+    { name: '毛利率(%)', labels: labels, values: validIdx.map(function(i) { return gm[i] || 0; }) },
+    { name: '净利率(%)', labels: labels, values: validIdx.map(function(i) { return nm[i] || 0; }) },
+    { name: 'ROE(%)', labels: labels, values: validIdx.map(function(i) { return roe[i] || 0; }) }
+  ], {
+    x: 0.5, y: 0.9, w: 9, h: 4.6,
+    showTitle: false,
+    lineSize: 2.5,
+    catAxisLabelFontSize: 10, valAxisLabelFontSize: 9,
+    chartColors: [PPT_COLORS.darkBlue, PPT_COLORS.green, PPT_COLORS.gold],
+    showLegend: true, legendPos: 'b', legendFontSize: 10,
+    showMarkers: true, markerSize: 6
+  });
+}
+
+// ── Slide 6: Scorecard ──
+function addScorecardSlideV2(pres, data) {
+  var slide = pres.addSlide();
+  var company = data.companyName || '目标公司';
+  slide.addText(company + ' — 综合评分卡', {
+    x: 0.5, y: 0.15, w: 9, h: 0.55,
+    fontSize: 20, color: PPT_COLORS.darkBlue, bold: true, fontFace: 'Microsoft YaHei'
+  });
+
+  var scores = data.scores || {};
+  var dims = ['行业空间','商业模式','竞争优势','财务质量','管理层','成长潜力','风险控制','估值水平'];
+  var dimLabels = ['行业空间','商业模式','竞争优势','财务质量','管理层','成长潜力','风险控制','估值水平'];
+
+  var tableRows = [];
+  tableRows.push([
+    { text: '评估维度', options: { bold: true, color: PPT_COLORS.white, fill: { color: PPT_COLORS.darkBlue }, fontSize: 10, fontFace: 'Microsoft YaHei', align: 'center' } },
+    { text: '评分', options: { bold: true, color: PPT_COLORS.white, fill: { color: PPT_COLORS.darkBlue }, fontSize: 10, fontFace: 'Microsoft YaHei', align: 'center' } },
+    { text: '星级', options: { bold: true, color: PPT_COLORS.white, fill: { color: PPT_COLORS.darkBlue }, fontSize: 10, fontFace: 'Microsoft YaHei', align: 'center' } }
+  ]);
+
+  var radarValues = [];
+  dims.forEach(function(dim, idx) {
+    var score = scores[dim];
+    var display = (score != null) ? score.toFixed(1) : '--';
+    var bar = '';
+    if (score != null) {
+      var filled = Math.round(score);
+      bar = '';
+      for (var j = 0; j < 5; j++) bar += j < filled ? '★' : '☆';
+      radarValues.push(score);
+    } else {
+      bar = '--';
+      radarValues.push(0);
+    }
+    tableRows.push([
+      { text: dim, options: { fontSize: 10, fontFace: 'Microsoft YaHei', fill: { color: idx % 2 === 0 ? 'f8fafc' : PPT_COLORS.white } } },
+      { text: display, options: { fontSize: 11, fontFace: 'Microsoft YaHei', align: 'center', bold: true, fill: { color: idx % 2 === 0 ? 'f8fafc' : PPT_COLORS.white }, color: PPT_COLORS.purple } },
+      { text: bar, options: { fontSize: 9, fontFace: 'Microsoft YaHei', align: 'center', fill: { color: idx % 2 === 0 ? 'f8fafc' : PPT_COLORS.white }, color: PPT_COLORS.gold } }
+    ]);
+  });
+
+  var compScore = scores['综合'];
+  if (compScore != null) {
+    tableRows.push([
+      { text: '综合评分', options: { bold: true, fontSize: 11, fontFace: 'Microsoft YaHei', fill: { color: 'e8e8e8' }, color: PPT_COLORS.purple } },
+      { text: compScore.toFixed(1) + ' / 5', options: { bold: true, fontSize: 12, fontFace: 'Microsoft YaHei', align: 'center', fill: { color: 'e8e8e8' }, color: PPT_COLORS.purple } },
+      { text: '', options: { fill: { color: 'e8e8e8' } } }
+    ]);
+  }
+
+  slide.addTable(tableRows, {
+    x: 0.3, y: 0.9, w: 5.0,
+    colW: [1.5, 1.0, 2.5],
+    border: { type: 'solid', pt: 0.5, color: 'd0d0d0' },
+    rowH: 0.35
+  });
+
+  if (radarValues.filter(function(v) { return v > 0; }).length >= 3) {
+    slide.addChart(pres.charts.RADAR, [{
+      name: '评分',
+      labels: dimLabels,
+      values: radarValues
+    }], {
+      x: 5.5, y: 0.7, w: 4.3, h: 4.8,
+      showTitle: false,
+      radarStyle: 'filled',
+      chartColors: [PPT_COLORS.purple],
+      catAxisLabelFontSize: 9,
+      valAxisMinVal: 0, valAxisMaxVal: 5,
+      showLegend: false
+    });
+  }
+}
+
+// ── Slide 7: Investment Decision ──
+function addDecisionSlideV2(pres, data) {
+  var slide = pres.addSlide();
+  var company = data.companyName || '目标公司';
+  slide.addText(company + ' — 投资决策', {
+    x: 0.5, y: 0.15, w: 9, h: 0.55,
+    fontSize: 20, color: PPT_COLORS.darkBlue, bold: true, fontFace: 'Microsoft YaHei'
+  });
+
+  var dec = data.decision || {};
+  var decisionText = dec.text || '详见完整报告';
+
+  var decColor = PPT_COLORS.green;
+  if (decisionText.indexOf('谨慎') !== -1 || decisionText.indexOf('暂不') !== -1) decColor = PPT_COLORS.gold;
+  if (decisionText.indexOf('放弃') !== -1) decColor = PPT_COLORS.red;
+
+  slide.addShape(pres.ShapeType.rect, {
+    x: 0.5, y: 0.8, w: 9, h: 0.6,
+    fill: { color: decColor === PPT_COLORS.green ? 'e8f5e9' : decColor === PPT_COLORS.gold ? 'fff8e1' : 'ffebee' },
+    rectRadius: 0.08
+  });
+  slide.addText('投资建议：' + decisionText, {
+    x: 0.7, y: 0.85, w: 8.6, h: 0.5,
+    fontSize: 16, color: decColor, bold: true, fontFace: 'Microsoft YaHei'
+  });
+
+  // Reasons (left, 5 items)
+  slide.addText('投资理由', {
+    x: 0.5, y: 1.6, w: 4.3, h: 0.35,
+    fontSize: 13, color: PPT_COLORS.green, bold: true, fontFace: 'Microsoft YaHei'
+  });
+  var reasons = dec.reasons || [];
+  for (var i = 0; i < 5; i++) {
+    var txt = i < reasons.length ? (i + 1) + '. ' + truncateText(reasons[i], 90) : '';
+    var clr = i < reasons.length ? PPT_COLORS.textDark : PPT_COLORS.textGray;
+    slide.addText(txt, {
+      x: 0.5, y: 2.0 + i * 0.55, w: 4.3, h: 0.5,
+      fontSize: 10, color: clr, fontFace: 'Microsoft YaHei', valign: 'top'
+    });
+  }
+
+  // Risks (right, 5 items)
+  slide.addText('投资风险', {
+    x: 5.2, y: 1.6, w: 4.3, h: 0.35,
+    fontSize: 13, color: PPT_COLORS.red, bold: true, fontFace: 'Microsoft YaHei'
+  });
+  var risks = dec.risks || [];
+  for (var i = 0; i < 5; i++) {
+    var txt = i < risks.length ? (i + 1) + '. ' + truncateText(risks[i], 90) : '';
+    var clr = i < risks.length ? PPT_COLORS.textDark : PPT_COLORS.textGray;
+    slide.addText(txt, {
+      x: 5.2, y: 2.0 + i * 0.55, w: 4.3, h: 0.5,
+      fontSize: 10, color: clr, fontFace: 'Microsoft YaHei', valign: 'top'
+    });
+  }
+
+  // Expected returns
+  var er = data.expectedReturns || {};
+  var retText = '预期收益率：';
+  if (er.threeYear != null) retText += '3 年约 ' + er.threeYear + '%';
+  else retText += '3 年 --';
+  retText += '    |    ';
+  if (er.fiveYear != null) retText += '5 年约 ' + er.fiveYear + '%';
+  else retText += '5 年 --';
+
+  slide.addShape(pres.ShapeType.rect, {
+    x: 0.5, y: 5.2, w: 9, h: 0.7,
+    fill: { color: 'f0f4ff' }, rectRadius: 0.08
+  });
+  slide.addText(retText, {
+    x: 0.7, y: 5.3, w: 8.6, h: 0.5,
+    fontSize: 14, color: PPT_COLORS.darkBlue, bold: true, align: 'center', fontFace: 'Microsoft YaHei'
+  });
+
+  slide.addText('本报告由 AI 生成 · 仅供研究参考 · 不构成投资建议', {
+    x: 0.5, y: 6.8, w: 9, h: 0.4,
+    fontSize: 8, color: PPT_COLORS.textGray, align: 'center', fontFace: 'Microsoft YaHei'
+  });
+}
+
+// ── Main: Generate PPT (uses DeepSeek API for data extraction) ──
+function generatePPT() {
+  if (!pptReportData || !pptReportData.reportText) {
+    alert('请先生成分析报告。');
+    return;
+  }
+
+  var btn = document.getElementById('generatePPTBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'AI 提取数据中…';
+    btn.style.opacity = '0.7';
+  }
+
+  var apiKey = localStorage.getItem('deepseek_api_key');
+  if (!apiKey) {
+    alert('请先配置 DeepSeek API Key');
+    if (btn) { btn.disabled = false; btn.textContent = '生成 PPT 报告'; btn.style.opacity = '1'; }
+    return;
+  }
+
+  var prompt = buildExtractionPrompt(pptReportData.reportText, pptReportData.doneFiles);
+
+  fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      max_tokens: 4000,
+      stream: false,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }).then(function(r) {
+    if (!r.ok) throw new Error('API 请求失败 (' + r.status + ')');
+    return r.json();
+  }).then(function(resp) {
+    var content = resp.choices && resp.choices[0] && resp.choices[0].message && resp.choices[0].message.content;
+    if (!content) throw new Error('API 返回为空');
+    // Extract JSON from response
+    var jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('无法从 AI 返回中提取 JSON');
+    var pptData = JSON.parse(jsonMatch[0]);
+    // Merge company name from our extractor if AI didn't provide one
+    if (!pptData.companyName || pptData.companyName === '未知') {
+      pptData.companyName = extractCompanyName(pptReportData.reportText, pptReportData.doneFiles);
+    }
+    if (btn) { btn.textContent = '正在生成 PPT 文件…'; }
+    buildPPTFromData(pptData, btn);
+  }).catch(function(err) {
+    console.error('PPT data extraction error:', err);
+    alert('PPT 数据提取失败: ' + err.message + '\n\n请确认 API Key 有效且余额充足。');
+    if (btn) { btn.disabled = false; btn.textContent = '生成 PPT 报告'; btn.style.opacity = '1'; }
+  });
+}
+
+// ── Download PDF Report (via browser print) ──
+function downloadPDF() {
+  var reportEl = document.querySelector('.report-container');
+  if (!reportEl) {
+    alert('请先生成分析报告。');
+    return;
+  }
+
+  var btn = document.getElementById('downloadPDFBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '正在生成 PDF…';
+    btn.style.opacity = '0.7';
+  }
+
+  var companyName = (pptReportData && pptReportData.companyName) || '目标公司';
+  var safeName = companyName.replace(/[#\*\|\?\<\>:/\\"]/g, '').trim() || '目标公司';
+
+  // Open a clean print window with just the report content
+  var printWin = window.open('', '_blank', 'width=900,height=700');
+  if (!printWin) {
+    alert('请允许弹出窗口以生成 PDF。');
+    if (btn) { btn.disabled = false; btn.textContent = '下载 PDF 报告'; btn.style.opacity = '1'; }
+    return;
+  }
+
+  var styles = document.querySelector('style').innerHTML;
+  var reportHTML = reportEl.innerHTML;
+
+  printWin.document.write(
+    '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + safeName + '</title>' +
+    '<style>' +
+    'body { font-family: "Microsoft YaHei","SimSun",sans-serif; color:#1a1a1a; line-height:1.8; font-size:13px; padding:20px; max-width:800px; margin:0 auto; }' +
+    'h1 { font-size:1.3rem; color:#1e3a5f; border-bottom:2px solid #2563eb; padding-bottom:4px; } ' +
+    'h2 { font-size:1.1rem; color:#1e3a5f; border-left:3px solid #2563eb; padding-left:8px; } ' +
+    'h3 { font-size:1rem; color:#333; } ' +
+    'table { width:100%; border-collapse:collapse; margin:10px 0; font-size:0.85rem; } ' +
+    'th { background:#f1f5f9; padding:8px 12px; text-align:left; font-weight:600; border:1px solid #e0e0e0; } ' +
+    'td { padding:8px 12px; border:1px solid #e0e0e0; } ' +
+    'strong { color:#1e3a5f; } ' +
+    'blockquote { border-left:3px solid #93c5fd; padding:8px 16px; margin:10px 0; background:#f8faff; color:#555; } ' +
+    'code { background:#f0f0f0; padding:1px 5px; border-radius:3px; } ' +
+    'pre { background:#1e1e1e; color:#d4d4d4; padding:14px; border-radius:6px; overflow-x:auto; font-size:0.82rem; } ' +
+    'li { margin:3px 0; } ' +
+    'hr { border:none; border-top:1px solid #e0e0e0; margin:16px 0; } ' +
+    '@media print { body { print-color-adjust:exact; -webkit-print-color-adjust:exact; } }' +
+    '</style></head><body>' +
+    '<h2>' + safeName + ' 投资尽调报告</h2>' +
+    reportHTML +
+    '</body></html>'
+  );
+  printWin.document.close();
+
+  // Reset button state once print window is ready
+  setTimeout(function() {
+    if (btn) { btn.disabled = false; btn.textContent = '下载 PDF 报告'; btn.style.opacity = '1'; }
+    printWin.print();
+  }, 500);
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Re-extract button
+document.getElementById('reExtractBtn').addEventListener('click', function() {
+  uploadedFiles.forEach(function(f) {
+    if (f.status === 'done') { f.status = 'pending'; f.extractedData = null; }
+    if (f.status === 'error') { f.status = 'pending'; }
+  });
+  document.getElementById('extractArea').style.display = 'none';
+  renderFileList();
+  processQueue();
+});
+
+// ═══════════════════════════════════════════
+// 5. ANALYSIS ENGINE
+// ═══════════════════════════════════════════
+function analyzeMultiYear(yearlyData, companyName) {
+  // yearlyData: [{ year, data }]
+  var results = [];
+  yearlyData.forEach(function(yd) {
+    var d = yd.data;
+    var rev = d.revenue || 0;
+    var cost = d.cost || 0;
+    var np = d.netProfit || 0;
+    var ta = d.totalAssets || 0;
+    var ca = d.currentAssets || 0;
+    var tl = d.totalLiab || 0;
+    var cl = d.currentLiab || 0;
+    var eq = d.equity || 0;
+    var inv = d.inventory || 0;
+    var recv = d.receivables || 0;
+    var gw = (d.goodwill || 0) + (d.intangible || 0);
+    var opcf = d.opCF || 0;
+    var capex = Math.abs(d.capex || 0);
+    var dep = d.depreciation || 0;
+    var selling = d.selling || 0;
+    var admin = d.admin || 0;
+    var rd = d.rd || 0;
+    var interest = d.interest || 0;
+    var price = d.price || 0;
+    var shares = d.shares || 0;
+
+    var grossProfit = rev - cost;
+    var grossMargin = rev > 0 ? (grossProfit / rev * 100) : 0;
+    var netMargin = rev > 0 ? (np / rev * 100) : 0;
+    var opIncome = grossProfit - selling - admin - rd;
+    var opMargin = rev > 0 ? (opIncome / rev * 100) : 0;
+    var roe = eq > 0 ? (np / eq * 100) : 0;
+    var roa = ta > 0 ? (np / ta * 100) : 0;
+    var currentRatio = cl > 0 ? (ca / cl) : 0;
+    var quickRatio = cl > 0 ? ((ca - inv) / cl) : 0;
+    var debtRatio = ta > 0 ? (tl / ta * 100) : 0;
+    var interestCover = interest !== 0 ? (opIncome / Math.abs(interest)) : 0;
+    var assetTurnover = ta > 0 ? (rev / ta) : 0;
+    var invTurnover = inv > 0 ? (cost / inv) : 0;
+    var recvTurnover = recv > 0 ? (rev / recv) : 0;
+    var fcf = opcf - capex;
+    var opcfToNp = np !== 0 ? (opcf / Math.abs(np)) : 0;
+    var ebitda = Math.abs(opIncome) + dep;
+    var rdRatio = rev > 0 ? (rd / rev * 100) : 0;
+    var goodwillRatio = ta > 0 ? (gw / ta * 100) : 0;
+    var marketCap = price * shares;
+    var pe = np > 0 ? (marketCap / np) : 0;
+    var pb = eq > 0 ? (marketCap / eq) : 0;
+    var ps = rev > 0 ? (marketCap / rev) : 0;
+
+    results.push({
+      year: yd.year,
+      metrics: {
+        grossMargin: grossMargin, netMargin: netMargin, opMargin: opMargin,
+        roe: roe, roa: roa,
+        currentRatio: currentRatio, quickRatio: quickRatio,
+        debtRatio: debtRatio, interestCover: interestCover,
+        assetTurnover: assetTurnover, invTurnover: invTurnover, recvTurnover: recvTurnover,
+        fcf: fcf, opcfToNp: opcfToNp, ebitda: ebitda,
+        rdRatio: rdRatio, goodwillRatio: goodwillRatio,
+        pe: pe, pb: pb, ps: ps, marketCap: marketCap
+      }
+    });
+  });
+
+  // Calculate growth between years
+  for (var i = 0; i < results.length - 1; i++) {
+    var cur = yearlyData[i].data;
+    var prev = yearlyData[i + 1].data;
+    var curR = results[i].metrics;
+    curR.revGrowth = prev.revenue > 0 ? ((cur.revenue - prev.revenue) / prev.revenue * 100) : 0;
+    curR.npGrowth = prev.netProfit > 0 ? ((cur.netProfit - prev.netProfit) / prev.netProfit * 100) : 0;
+  }
+
+
+  // CAGR computation (compound annual growth rate)
+  if (yearlyData.length >= 2) {
+    var firstYr = yearlyData[yearlyData.length - 1];
+    var lastYr = yearlyData[0];
+    var periods = yearlyData.length - 1;
+    if (firstYr.data.revenue > 0 && lastYr.data.revenue > 0 && periods > 0) {
+      results[0].metrics.revCAGR = (Math.pow(lastYr.data.revenue / firstYr.data.revenue, 1 / periods) - 1) * 100;
+    }
+    if (firstYr.data.netProfit !== 0 && lastYr.data.netProfit !== 0 && firstYr.data.netProfit * lastYr.data.netProfit > 0 && periods > 0) {
+      results[0].metrics.npCAGR = (Math.pow(lastYr.data.netProfit / firstYr.data.netProfit, 1 / periods) - 1) * 100;
+    }
+  }
+
+  // Score latest year
+  var latest = results[0];
+  var m = latest.metrics;
+  var score = 0, maxScore = 0;
+  var insights = [];
+
+  function rate(condition, weight, msg) {
+    maxScore += weight;
+    if (condition === 'good') { score += weight; insights.push({ type: 'good', msg: msg.good }); }
+    else if (condition === 'warn') { score += weight * 0.5; insights.push({ type: 'warn', msg: msg.warn }); }
+    else { insights.push({ type: 'bad', msg: msg.bad }); }
+  }
+
+  rate(m.grossMargin > 40 ? 'good' : m.grossMargin > 20 ? 'warn' : 'bad', 10, {
+    good: '毛利率 ' + m.grossMargin.toFixed(1) + '%——盈利能力强，产品或服务有定价权',
+    warn: '毛利率 ' + m.grossMargin.toFixed(1) + '%——处于中等水平，关注行业竞争格局',
+    bad: '毛利率 ' + m.grossMargin.toFixed(1) + '%——偏低，竞争激烈或成本控制弱'
+  });
+  rate(m.netMargin > 15 ? 'good' : m.netMargin > 5 ? 'warn' : 'bad', 10, {
+    good: '净利率 ' + m.netMargin.toFixed(1) + '%——利润转化效率高',
+    warn: '净利率 ' + m.netMargin.toFixed(1) + '%——尚可，需关注费用控制',
+    bad: '净利率 ' + m.netMargin.toFixed(1) + '%——偏低，盈利质量需审视'
+  });
+  if (m.revGrowth !== undefined) {
+    rate(m.revGrowth > 15 ? 'good' : m.revGrowth > 0 ? 'warn' : 'bad', 10, {
+      good: '营收增长率 ' + m.revGrowth.toFixed(1) + '%——高速增长',
+      warn: '营收增长率 ' + m.revGrowth.toFixed(1) + '%——增速放缓',
+      bad: '营收增长率 ' + m.revGrowth.toFixed(1) + '%——收入萎缩'
+    });
+  }
+  if (m.npGrowth !== undefined) {
+    rate(m.npGrowth > 15 ? 'good' : m.npGrowth > 0 ? 'warn' : 'bad', 8, {
+      good: '净利润增长率 ' + m.npGrowth.toFixed(1) + '%——利润增长健康',
+      warn: '净利润增长率 ' + m.npGrowth.toFixed(1) + '%——利润增速不理想',
+      bad: '净利润增长率 ' + m.npGrowth.toFixed(1) + '%——利润下滑'
+    });
+  }
+  rate(m.roe > 15 ? 'good' : m.roe > 8 ? 'warn' : 'bad', 10, {
+    good: 'ROE ' + m.roe.toFixed(1) + '%——股东回报优秀',
+    warn: 'ROE ' + m.roe.toFixed(1) + '%——股东回报一般',
+    bad: 'ROE ' + m.roe.toFixed(1) + '%——股东回报偏低'
+  });
+  rate(m.currentRatio > 2 ? 'good' : m.currentRatio > 1 ? 'warn' : 'bad', 8, {
+    good: '流动比率 ' + m.currentRatio.toFixed(2) + '——短期偿债能力充足',
+    warn: '流动比率 ' + m.currentRatio.toFixed(2) + '——流动性需关注',
+    bad: '流动比率 ' + m.currentRatio.toFixed(2) + '——存在短期偿债风险'
+  });
+  rate(m.debtRatio < 40 ? 'good' : m.debtRatio < 70 ? 'warn' : 'bad', 8, {
+    good: '资产负债率 ' + m.debtRatio.toFixed(1) + '%——财务结构稳健',
+    warn: '资产负债率 ' + m.debtRatio.toFixed(1) + '%——杠杆水平中等',
+    bad: '资产负债率 ' + m.debtRatio.toFixed(1) + '%——高杠杆，财务风险较大'
+  });
+  rate(m.opcfToNp > 1 ? 'good' : m.opcfToNp > 0.5 ? 'warn' : 'bad', 12, {
+    good: '经营现金流/净利润 = ' + m.opcfToNp.toFixed(2) + '——利润有真金白银支撑',
+    warn: '经营现金流/净利润 = ' + m.opcfToNp.toFixed(2) + '——利润质量需关注',
+    bad: '经营现金流/净利润 = ' + m.opcfToNp.toFixed(2) + '——账面利润缺乏现金流支撑，警惕'
+  });
+  rate(m.fcf > 0 ? 'good' : 'bad', 10, {
+    good: '自由现金流 ' + m.fcf.toFixed(2) + '——为正，公司有真金白银',
+    warn: '',
+    bad: '自由现金流 ' + m.fcf.toFixed(2) + '——为负，依赖外部融资或举债'
+  });
+  rate(m.rdRatio > 5 ? 'good' : m.rdRatio > 1 ? 'warn' : 'bad', 6, {
+    good: '研发投入占比 ' + m.rdRatio.toFixed(1) + '%——重视技术投入',
+    warn: '研发投入占比 ' + m.rdRatio.toFixed(1) + '%——研发力度一般',
+    bad: '研发投入占比 ' + m.rdRatio.toFixed(1) + '%——研发投入偏低'
+  });
+  rate(m.goodwillRatio < 20 ? 'good' : m.goodwillRatio < 40 ? 'warn' : 'bad', 8, {
+    good: '商誉及无形资产占比 ' + m.goodwillRatio.toFixed(1) + '%——并购风险可控',
+    warn: '商誉及无形资产占比 ' + m.goodwillRatio.toFixed(1) + '%——存在商誉减值风险',
+    bad: '商誉及无形资产占比 ' + m.goodwillRatio.toFixed(1) + '%——高商誉，警惕减值暴雷'
+  });
+
+  latest.score = Math.round(score / maxScore * 100);
+  latest.insights = insights;
+
+  return { results: results, companyName: companyName };
+}
+
+function renderMultiYearResult(analysisResult) {
+  var html = '';
+  var r = analysisResult.results;
+
+  // Header
+  html += '<div style="text-align:center;margin-bottom:24px;">';
+  if (analysisResult.companyName) html += '<h2 style="font-size:1.3rem;">' + analysisResult.companyName + '</h2>';
+  var sc = r[0].score;
+  var scColor = sc >= 70 ? '#16a34a' : sc >= 45 ? '#ea580c' : '#dc2626';
+  var scLabel = sc >= 70 ? '健康' : sc >= 45 ? '一般' : '警惕';
+  html += '<span class="score-badge" style="background:' + scColor + '15;color:' + scColor + ';">综合评分：' + sc + ' 分 · ' + scLabel + '</span>';
+  html += '</div>';
+
+  // Year-over-year comparison table
+  if (r.length >= 2) {
+    html += '<div class="result-section"><h3>多年趋势对比</h3>';
+    html += '<table class="cmp-table"><thead><tr><th>指标</th>';
+    r.forEach(function(rd) { html += '<th>' + rd.year + '</th>'; });
+    html += '<th>趋势</th></tr></thead><tbody>';
+
+    var compareFields = [
+      { label: '毛利率', key: 'grossMargin', unit: '%', higher: true },
+      { label: '净利率', key: 'netMargin', unit: '%', higher: true },
+      { label: 'ROE', key: 'roe', unit: '%', higher: true },
+      { label: '营收增长率', key: 'revGrowth', unit: '%', higher: true },
+      { label: '流动比率', key: 'currentRatio', unit: '', higher: true },
+      { label: '资产负债率', key: 'debtRatio', unit: '%', higher: false },
+      { label: '自由现金流', key: 'fcf', unit: '', higher: true },
+      { label: '经营现金流/净利', key: 'opcfToNp', unit: 'x', higher: true },
+      { label: '研发占比', key: 'rdRatio', unit: '%', higher: true },
+      { label: '商誉/总资产', key: 'goodwillRatio', unit: '%', higher: false },
+    ];
+
+    compareFields.forEach(function(cf) {
+      html += '<tr><td style="font-weight:600;">' + cf.label + '</td>';
+      var vals = [];
+      r.forEach(function(rd) {
+        var v = rd.metrics[cf.key];
+        if (v === undefined || v === null || isNaN(v)) v = null;
+        vals.push(v);
+        html += '<td>' + (v !== null ? v.toFixed(2) + cf.unit : '--') + '</td>';
+      });
+      // Trend: compare first and last
+      var first = vals[vals.length - 1];
+      var last = vals[0];
+      if (first !== null && last !== null && first !== 0) {
+        var chg = ((last - first) / Math.abs(first) * 100);
+        var isGood = cf.higher ? chg > 0 : chg < 0;
+        var cls = chg === 0 ? '' : (isGood ? 'trend-up' : 'trend-down');
+        var arrow = chg > 0 ? '&#8593;' : chg < 0 ? '&#8595;' : '&#8594;';
+        html += '<td class="' + cls + '">' + arrow + ' ' + Math.abs(chg).toFixed(1) + '%</td>';
+      } else {
+        html += '<td>--</td>';
+      }
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  // Latest year metrics
+  var latest = r[0];
+  var m = latest.metrics;
+  html += '<div class="result-section"><h3>' + r[0].year + ' 盈利能力</h3><div class="metric-grid">';
+  html += mc('毛利率', m.grossMargin, '%', m.grossMargin > 35 ? 'good' : m.grossMargin > 20 ? 'warn' : 'bad');
+  html += mc('净利率', m.netMargin, '%', m.netMargin > 15 ? 'good' : m.netMargin > 5 ? 'warn' : 'bad');
+  html += mc('营业利润率', m.opMargin, '%', '');
+  html += mc('ROE', m.roe, '%', m.roe > 15 ? 'good' : m.roe > 8 ? 'warn' : 'bad');
+  html += mc('ROA', m.roa, '%', '');
+  html += mc('EBITDA', m.ebitda, '', '');
+  html += '</div></div>';
+
+  html += '<div class="result-section"><h3>偿债与流动性</h3><div class="metric-grid">';
+  html += mc('流动比率', m.currentRatio, '', m.currentRatio > 2 ? 'good' : m.currentRatio > 1 ? 'warn' : 'bad');
+  html += mc('速动比率', m.quickRatio, '', '');
+  html += mc('资产负债率', m.debtRatio, '%', m.debtRatio < 40 ? 'good' : m.debtRatio < 70 ? 'warn' : 'bad');
+  html += mc('利息覆盖倍数', m.interestCover, 'x', '');
+  html += '</div></div>';
+
+  html += '<div class="result-section"><h3>运营效率</h3><div class="metric-grid">';
+  html += mc('存货周转率', m.invTurnover, '次', '');
+  html += mc('应收周转率', m.recvTurnover, '次', '');
+  html += mc('总资产周转率', m.assetTurnover, '次', '');
+  html += mc('商誉/总资产', m.goodwillRatio, '%', m.goodwillRatio < 20 ? 'good' : m.goodwillRatio < 40 ? 'warn' : 'bad');
+  html += mc('研发占比', m.rdRatio, '%', m.rdRatio > 5 ? 'good' : m.rdRatio > 1 ? 'warn' : 'bad');
+  html += '</div></div>';
+
+  html += '<div class="result-section"><h3>现金流质量</h3><div class="metric-grid">';
+  html += mc('自由现金流', m.fcf, '', m.fcf > 0 ? 'good' : 'bad');
+  html += mc('经营现金流/净利', m.opcfToNp, 'x', m.opcfToNp > 1 ? 'good' : m.opcfToNp > 0.5 ? 'warn' : 'bad');
+  html += '</div></div>';
+
+  if (m.marketCap > 0) {
+    html += '<div class="result-section"><h3>估值</h3><div class="metric-grid">';
+    html += mc('市值', m.marketCap, '', '');
+    html += mc('市盈率 P/E', m.pe > 0 ? m.pe : null, m.pe > 0 ? 'x' : '', m.pe > 0 && m.pe < 15 ? 'good' : m.pe < 30 ? 'warn' : 'bad');
+    html += mc('市净率 P/B', m.pb > 0 ? m.pb : null, m.pb > 0 ? 'x' : '', '');
+    html += mc('市销率 P/S', m.ps > 0 ? m.ps : null, m.ps > 0 ? 'x' : '', '');
+    html += '</div></div>';
+  }
+
+  html += '<div class="result-section"><h3>分析洞察</h3>';
+  latest.insights.forEach(function(ins) {
+    var cls = ins.type === 'good' ? 'good' : ins.type === 'bad' ? 'bad' : '';
+    html += '<div class="insight-box ' + cls + '"><p>' + ins.msg + '</p></div>';
+  });
+  html += '</div>';
+
+  document.getElementById('resultContent').innerHTML = html;
+  switchToResult();
+}
+
+function mc(label, val, unit, cls) {
+  var display = (val === null || val === undefined || isNaN(val)) ? '--' : val.toFixed(2);
+  return '<div class="metric-card"><div class="metric-label">' + label + '</div><div class="metric-value metric-' + (cls || '') + '">' + display + (unit || '') + '</div></div>';
+}
+
+// ═══════════════════════════════════════════
+// 6. Upload Analyze Button
+// ═══════════════════════════════════════════
+document.getElementById('uploadAnalyzeBtn').addEventListener('click', function() {
+  var done = uploadedFiles.filter(function(f) { return f.status === 'done'; });
+  if (done.length === 0) return;
+
+  // Read from table inputs
+  var yearlyData = [];
+  done.forEach(function(d) {
+    var data = {};
+    var table = document.getElementById('extractTable');
+    if (table) {
+      var inputs = table.querySelectorAll('input[data-year="' + (d.year || d.name) + '"]');
+      inputs.forEach(function(inp) {
+        var field = inp.getAttribute('data-field');
+        var val = parseFloat(inp.value);
+        data[field] = isNaN(val) ? 0 : val;
+      });
+    }
+    yearlyData.push({ year: d.year || d.name, data: data });
+  });
+
+  // Sort by year descending
+  yearlyData.sort(function(a, b) { return (b.year || '').localeCompare(a.year || ''); });
+
+  var result = analyzeMultiYear(yearlyData, '');
+  renderMultiYearResult(result);
+});
+
+// ═══════════════════════════════════════════
+// 7. SEC Auto Fetch (Multi-Year)
+// ═══════════════════════════════════════════
+document.getElementById('secFetchBtn').addEventListener('click', function() {
+  var ticker = document.getElementById('secTicker').value.trim().toUpperCase();
+  if (!ticker) { alert('请输入美股代码'); return; }
+  var status = document.getElementById('fetchStatus');
+  status.textContent = '正在获取 SEC 数据…';
+  var btn = document.getElementById('secFetchBtn');
+  btn.disabled = true;
+
+  fetch('https://www.sec.gov/files/company_tickers.json', {
+    headers: { 'User-Agent': 'FinancialAnalyzer/1.0' }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var cik = null, company = null;
+    for (var k in data) {
+      if (data[k].ticker === ticker) { cik = String(data[k].cik_str).padStart(10, '0'); company = data[k].title; break; }
+    }
+    if (!cik) throw new Error('未找到 ticker: ' + ticker);
+    status.textContent = '已找到 ' + company + '，正在获取 XBRL 数据…';
+    return fetch('https://data.sec.gov/api/xbrl/companyfacts/CIK' + cik + '.json', {
+      headers: { 'User-Agent': 'FinancialAnalyzer/1.0' }
+    }).then(function(r) { return r.json(); }).then(function(xbrl) {
+      return { cik: cik, company: company, xbrl: xbrl };
+    });
+  })
+  .then(function(res) {
+    var facts = res.xbrl.facts || {};
+    var usGaap = facts['us-gaap'] || {};
+    var ifrs = facts['ifrs-full'] || {};
+    var gaap = Object.keys(usGaap).length > 0 ? usGaap : ifrs;
+
+    function getAnnualVals(concept) {
+      var entries = gaap[concept] && gaap[concept].units && gaap[concept].units['USD'];
+      if (!entries) return {};
+      var annual = entries.filter(function(e) { return e.form === '10-K' || e.form === '20-F' || e.fp === 'FY'; });
+      var years = {};
+      annual.forEach(function(e) {
+        if (!years[e.fy] || e.filed > (years['_filed_' + e.fy] || '')) {
+          years[e.fy] = e.val;
+          years['_filed_' + e.fy] = e.filed;
+        }
+      });
+      return years;
+    }
+
+    function toYi(v) { return v ? v / 1e8 : 0; }
+
+    var concepts = {
+      'revenue': ['RevenueFromContractWithCustomerExcludingAssessedTax', 'Revenues'],
+      'cost': ['CostOfRevenue', 'CostOfGoodsAndServicesSold'],
+      'selling': ['SellingAndMarketingExpense'],
+      'admin': ['GeneralAndAdministrativeExpense'],
+      'rd': ['ResearchAndDevelopmentExpense'],
+      'interest': ['InterestExpense'],
+      'netProfit': ['NetIncomeLoss'],
+      'totalAssets': ['Assets'],
+      'currentAssets': ['AssetsCurrent'],
+      'totalLiab': ['Liabilities'],
+      'currentLiab': ['LiabilitiesCurrent'],
+      'equity': ['StockholdersEquity', 'EquityAttributableToParent'],
+      'inventory': ['InventoryNet'],
+      'receivables': ['AccountsReceivableNetCurrent'],
+      'goodwill': ['Goodwill'],
+      'intangible': ['IntangibleAssetsNetExcludingGoodwill'],
+      'opCF': ['NetCashProvidedByUsedInOperatingActivities'],
+      'capex': ['PaymentsToAcquirePropertyPlantAndEquipment'],
+      'depreciation': ['DepreciationDepletionAndAmortization'],
+    };
+
+    var yearlyRaw = {};
+    Object.keys(concepts).forEach(function(field) {
+      var candidates = concepts[field];
+      for (var i = 0; i < candidates.length; i++) {
+        var vals = getAnnualVals(candidates[i]);
+        if (Object.keys(vals).filter(function(k) { return !k.startsWith('_'); }).length > 0) {
+          Object.keys(vals).forEach(function(y) {
+            if (y.startsWith('_')) return;
+            if (!yearlyRaw[y]) yearlyRaw[y] = {};
+            yearlyRaw[y][field] = (yearlyRaw[y][field] || 0) + (typeof vals[y] === 'number' ? vals[y] : 0);
+          });
+          break;
+        }
+      }
+    });
+
+    // Take last 3 years
+    var years = Object.keys(yearlyRaw).filter(function(y) { return y >= 2000; }).sort().reverse().slice(0, 3);
+    if (years.length === 0) throw new Error('未找到有效年度数据');
+
+    var yearlyData = years.map(function(y) {
+      var raw = yearlyRaw[y];
+      var data = {
+        revenue: toYi(raw.revenue),
+        cost: toYi(raw.cost),
+        selling: toYi(raw.selling),
+        admin: toYi(raw.admin),
+        rd: toYi(raw.rd),
+        interest: toYi(raw.interest),
+        netProfit: toYi(raw.netProfit),
+        totalAssets: toYi(raw.totalAssets),
+        currentAssets: toYi(raw.currentAssets),
+        totalLiab: toYi(raw.totalLiab),
+        currentLiab: toYi(raw.currentLiab),
+        equity: toYi(raw.equity),
+        inventory: toYi(raw.inventory),
+        receivables: toYi(raw.receivables),
+        goodwill: (toYi(raw.goodwill) || 0) + (toYi(raw.intangible) || 0),
+        opCF: toYi(raw.opCF),
+        capex: Math.abs(toYi(raw.capex)),
+        depreciation: toYi(raw.depreciation),
+        price: 0, shares: 0
+      };
+      return { year: 'FY' + y, data: data };
+    });
+
+    var result = analyzeMultiYear(yearlyData, res.company);
+    renderMultiYearResult(result);
+    status.textContent = '分析完成 — ' + res.company + ' (' + years.length + ' 年数据)';
+    btn.disabled = false;
+  })
+  .catch(function(err) {
+    status.textContent = '获取失败：' + err.message;
+    btn.disabled = false;
+    console.error(err);
+  });
+});
+
+// ═══════════════════════════════════════════
+// 8. Manual Entry — Dynamic Form
+// ═══════════════════════════════════════════
+var manualFields = [
+  { section: 'Income', fields: [
+    { id: 'mRevenue', label: '营业收入' },
+    { id: 'mCost', label: '营业成本' },
+    { id: 'mSelling', label: '销售费用' },
+    { id: 'mAdmin', label: '管理费用' },
+    { id: 'mRD', label: '研发费用' },
+    { id: 'mInterest', label: '财务费用/利息' },
+    { id: 'mNetProfit', label: '净利润' },
+  ]},
+  { section: 'Balance', fields: [
+    { id: 'mTotalAssets', label: '总资产' },
+    { id: 'mCurrentAssets', label: '流动资产' },
+    { id: 'mTotalLiab', label: '总负债' },
+    { id: 'mCurrentLiab', label: '流动负债' },
+    { id: 'mEquity', label: '股东权益' },
+    { id: 'mInventory', label: '存货' },
+    { id: 'mReceivables', label: '应收账款' },
+    { id: 'mGoodwill', label: '商誉+无形资产' },
+  ]},
+  { section: 'Cash', fields: [
+    { id: 'mOpCF', label: '经营现金流' },
+    { id: 'mCapex', label: '资本支出 CAPEX' },
+    { id: 'mDepreciation', label: '折旧摊销' },
+  ]},
+  { section: 'Market', fields: [
+    { id: 'mPrice', label: '股价' },
+    { id: 'mShares', label: '总股本（亿股）' },
+  ]},
+];
+
+function buildManualForm() {
+  // Income grid (per year)
+  var incomeHtml = '';
+  ['Y1','Y2','Y3'].forEach(function(y) {
+    incomeHtml += '<div style="font-size:0.82rem;font-weight:600;color:#888;margin-top:6px;">年份 ' + y + '</div>';
+    manualFields[0].fields.forEach(function(f) {
+      incomeHtml += '<div class="form-field"><label>' + f.label + '</label><input type="number" id="' + f.id + y + '" placeholder="0" step="any"></div>';
+    });
+  });
+  document.getElementById('manualIncomeGrid').innerHTML = incomeHtml;
+
+  var balanceHtml = '';
+  ['Y1','Y2','Y3'].forEach(function(y) {
+    balanceHtml += '<div style="font-size:0.82rem;font-weight:600;color:#888;margin-top:6px;">年份 ' + y + '</div>';
+    manualFields[1].fields.forEach(function(f) {
+      balanceHtml += '<div class="form-field"><label>' + f.label + '</label><input type="number" id="' + f.id + y + '" placeholder="0" step="any"></div>';
+    });
+  });
+  document.getElementById('manualBalanceGrid').innerHTML = balanceHtml;
+
+  var cashHtml = '';
+  ['Y1','Y2','Y3'].forEach(function(y) {
+    cashHtml += '<div style="font-size:0.82rem;font-weight:600;color:#888;margin-top:6px;">年份 ' + y + '</div>';
+    manualFields[2].fields.forEach(function(f) {
+      cashHtml += '<div class="form-field"><label>' + f.label + '</label><input type="number" id="' + f.id + y + '" placeholder="0" step="any"></div>';
+    });
+  });
+  document.getElementById('manualCashGrid').innerHTML = cashHtml;
+
+  var marketHtml = '';
+  manualFields[3].fields.forEach(function(f) {
+    marketHtml += '<div class="form-field"><label>' + f.label + '</label><input type="number" id="' + f.id + '" placeholder="0" step="any"></div>';
+  });
+  document.getElementById('manualMarketGrid').innerHTML = marketHtml;
+}
+
+buildManualForm();
+
+// Init API key status on page load
+updateApiKeyStatus();
+
+document.getElementById('manualAnalyzeBtn').addEventListener('click', function() {
+  var companyName = document.getElementById('mCompany').value || '';
+  var years = [
+    document.getElementById('mYear1').value || 'Y1',
+    document.getElementById('mYear2').value || 'Y2',
+    document.getElementById('mYear3').value || 'Y3',
+  ].filter(function(y) { return y.trim(); });
+
+  var yearlyData = [];
+  // Detect how many years of data were filled
+  ['Y1','Y2','Y3'].forEach(function(ys, idx) {
+    var prefix = ys;
+    var data = {};
+    var hasData = false;
+    manualFields.slice(0, 3).forEach(function(section) {
+      section.fields.forEach(function(f) {
+        var id = f.id + prefix;
+        var el = document.getElementById(id);
+        if (el) {
+          var v = parseFloat(el.value);
+          if (!isNaN(v) && v !== 0) hasData = true;
+          data[id.replace(prefix, '').replace('m','').toLowerCase()] = isNaN(v) ? 0 : v;
+        }
+      });
+    });
+    // Map to standard field names
+    var mapped = {};
+    var map = {
+      'revenue': 'revenue', 'cost': 'cost', 'selling': 'selling', 'admin': 'admin',
+      'rd': 'rd', 'interest': 'interest', 'netprofit': 'netProfit',
+      'totalassets': 'totalAssets', 'currentassets': 'currentAssets',
+      'totalliab': 'totalLiab', 'currentliab': 'currentLiab', 'equity': 'equity',
+      'inventory': 'inventory', 'receivables': 'receivables', 'goodwill': 'goodwill',
+      'opcf': 'opCF', 'capex': 'capex', 'depreciation': 'depreciation'
+    };
+    Object.keys(data).forEach(function(k) {
+      if (map[k]) mapped[map[k]] = data[k];
+    });
+
+    // Market data
+    var price = parseFloat((document.getElementById('mPrice') || {}).value) || 0;
+    var shares = parseFloat((document.getElementById('mShares') || {}).value) || 0;
+    mapped.price = price;
+    mapped.shares = shares;
+
+    if (hasData) {
+      yearlyData.push({ year: years[idx] || ('Y' + (idx+1)), data: mapped });
+    }
+  });
+
+  if (yearlyData.length === 0) { alert('请至少填入一年的关键数据'); return; }
+
+  var result = analyzeMultiYear(yearlyData, companyName);
+  renderMultiYearResult(result);
+});
+</script>
+</body>
+</html>
