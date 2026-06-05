@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 产业链上市公司图谱 + 财务报告查询</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+    background: #f5f5f5;
+    color: #1a1a1a;
+    line-height: 1.6;
+  }
+
+  /* ── 顶部导航 ── */
+  .topbar {
+    background: #1e3a5f;
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-inner {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    height: 52px;
+    gap: 24px;
+    overflow-x: auto;
+  }
+  .topbar-brand { font-weight: 700; font-size: 1rem; white-space: nowrap; }
+  .topbar a { color: #cbd5e1; text-decoration: none; font-size: 0.84rem; transition: color 0.15s; white-space: nowrap; }
+  .topbar a:hover { color: #fff; }
+
+  .container { max-width: 1300px; margin: 0 auto; padding: 32px 24px 60px; }
+
+  h1 { text-align: center; margin-bottom: 6px; font-size: 1.8rem; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 40px; font-size: 0.95rem; }
+
+  /* ── 产业链层级 ── */
+  .chain-section { margin-bottom: 44px; }
+  .chain-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .chain-num {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .chain-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1e3a5f;
+  }
+  .chain-desc {
+    font-size: 0.82rem;
+    color: #888;
+    margin-left: auto;
+  }
+
+  .sub-group { margin-bottom: 20px; }
+  .sub-group-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+    padding-left: 6px;
+    border-left: 3px solid #93c5fd;
+  }
+
+  .company-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 8px;
+  }
+  .company-card {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: box-shadow 0.15s;
+  }
+  .company-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+  .company-info { flex: 1; min-width: 0; }
+  .company-name { font-weight: 600; font-size: 0.88rem; }
+  .company-ticker {
+    font-size: 0.73rem;
+    color: #999;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+  }
+
+  .market-badge {
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .m-us { background: #dbeafe; color: #1e40af; }
+  .m-cn { background: #fef3c7; color: #92400e; }
+  .m-hk { background: #fce7f3; color: #9d174d; }
+  .m-jp { background: #fce7f3; color: #9d174d; }
+  .m-eu { background: #e0e7ff; color: #4338ca; }
+  .m-kr { background: #fef3c7; color: #92400e; }
+  .m-ipo { background: #dcfce7; color: #166534; }
+
+  .btn-site {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 5px;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    color: #555;
+    text-decoration: none;
+    font-size: 0.7rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .btn-site:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+  /* ── 资源链接区 ── */
+  .card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .card-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 12px;
+    transition: background 0.15s;
+  }
+  .card-row:last-child { border-bottom: none; }
+  .card-row:hover { background: #fafbff; }
+
+  .badge-s {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    min-width: 52px;
+    text-align: center;
+  }
+  .badge-official { background: #dbeafe; color: #1e40af; }
+  .badge-aggregator { background: #fef3c7; color: #92400e; }
+
+  .link-info { flex: 1; min-width: 0; }
+  .link-name { font-weight: 600; font-size: 0.95rem; }
+  .link-name a { color: #2563eb; text-decoration: none; }
+  .link-name a:hover { text-decoration: underline; }
+  .link-desc { font-size: 0.82rem; color: #666; margin-top: 2px; }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 1px 8px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+    background: #e8e8e8;
+    color: #555;
+  }
+
+  /* ── 底部提示 ── */
+  .tip-box {
+    background: #eff6ff;
+    border-left: 3px solid #2563eb;
+    padding: 16px 20px;
+    border-radius: 0 6px 6px 0;
+    margin-top: 32px;
+    font-size: 0.88rem;
+    color: #1e3a5f;
+  }
+  .tip-box strong { display: block; margin-bottom: 8px; }
+
+  /* ── 财报搜索工具 ── */
+  .search-tool {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 28px 32px;
+    margin-bottom: 40px;
+  }
+  .search-tool h2 { font-size: 1.15rem; margin-bottom: 6px; }
+  .search-tool .hint { font-size: 0.82rem; color: #888; margin-bottom: 18px; }
+  .search-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-row input {
+    flex: 1;
+    min-width: 160px;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    transition: border-color 0.15s;
+  }
+  .search-row input:focus { outline: none; border-color: #2563eb; }
+  .mkt-btn {
+    padding: 8px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .mkt-btn:hover { border-color: #2563eb; color: #2563eb; }
+  .mkt-btn.active {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+  }
+  .search-btn {
+    padding: 10px 24px;
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .search-btn:hover { background: #1d4ed8; }
+  .result-links {
+    margin-top: 18px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .result-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #f0f7ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    color: #1e40af;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .result-link:hover { background: #dbeafe; }
+  .result-link .icon { font-size: 1rem; }
+  .tip-box p { margin-bottom: 4px; font-size: 0.82rem; }
+
+  hr.divider {
+    border: none;
+    border-top: 2px dashed #e0e0e0;
+    margin: 48px 0;
+  }
+
+  .data-source {
+    font-size: 0.78rem;
+    color: #aaa;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  @media (max-width: 600px) {
+    .company-grid { grid-template-columns: 1fr; }
+    .topbar-inner { gap: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="topbar-inner">
+    <span class="topbar-brand">AI 产业链图谱</span>
+    <a href="#search">查财报</a>
+    <a href="financial-analyzer.html">财报分析</a>
+    <a href="#chain">产业链图谱</a>
+    <a href="#resources">查询入口</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <h1>AI 产业链上市公司图谱</h1>
+  <p class="subtitle">基于 BOTZ · AIQ · 中证人工智能指数 930713 · 行业研报 综合整理</p>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 上游：基础设施层 -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="chain">
+
+  <div class="chain-section">
+    <div class="chain-header">
+      <div class="chain-num" style="background:#dc2626;">上</div>
+      <span class="chain-title">上游 — 基础设施层</span>
+      <span class="chain-desc">半导体设备 · 材料 · IP/EDA · 晶圆代工 · 存储 · 网络 · 电力 · 数据中心</span>
+    </div>
+
+    <!-- EDA / IP -->
+    <div class="sub-group">
+      <div class="sub-group-title">EDA / IP 设计</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Synopsys</div><div class="company-ticker">SNPS</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.synopsys.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Cadence Design Systems</div><div class="company-ticker">CDNS</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.cadence.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Arm Holdings</div><div class="company-ticker">ARM</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.arm.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">华大九天</div><div class="company-ticker">301269 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.empyrean-tech.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 半导体设备 -->
+    <div class="sub-group">
+      <div class="sub-group-title">半导体设备</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">ASML Holding</div><div class="company-ticker">ASML</div></div>
+          <span class="market-badge m-eu">欧股</span>
+          <a class="btn-site" href="https://www.asml.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Applied Materials</div><div class="company-ticker">AMAT</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.appliedmaterials.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Lam Research</div><div class="company-ticker">LRCX</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.lamresearch.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">KLA Corporation</div><div class="company-ticker">KLAC</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.kla.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">北方华创</div><div class="company-ticker">002371 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.naura.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">中微公司</div><div class="company-ticker">688012 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.amec-inc.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 晶圆代工 -->
+    <div class="sub-group">
+      <div class="sub-group-title">晶圆代工</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">TSMC 台积电</div><div class="company-ticker">TSM</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.tsmc.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Samsung Electronics</div><div class="company-ticker">005930 · KRX</div></div>
+          <span class="market-badge m-kr">韩股</span>
+          <a class="btn-site" href="https://www.samsung.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">GlobalFoundries</div><div class="company-ticker">GFS</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://gf.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">中芯国际</div><div class="company-ticker">688981 · 上交所 / 00981 · 港交所</div></div>
+          <span class="market-badge m-cn">A+H</span>
+          <a class="btn-site" href="https://www.smics.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">华虹半导体</div><div class="company-ticker">01347 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.huahonggrace.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 存储 / HBM -->
+    <div class="sub-group">
+      <div class="sub-group-title">存储芯片 / HBM（AI 高带宽内存）</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">SK Hynix</div><div class="company-ticker">000660 · KRX</div></div>
+          <span class="market-badge m-kr">韩股</span>
+          <a class="btn-site" href="https://www.skhynix.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Micron Technology</div><div class="company-ticker">MU</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.micron.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Seagate Technology</div><div class="company-ticker">STX</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.seagate.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">兆易创新</div><div class="company-ticker">603986 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.gigadevice.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">江波龙</div><div class="company-ticker">301308 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.longsys.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">北京君正</div><div class="company-ticker">300223 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.ingenic.com.cn" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 网络互联 -->
+    <div class="sub-group">
+      <div class="sub-group-title">网络互联 / 光通信</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Arista Networks</div><div class="company-ticker">ANET</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.arista.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Cisco Systems</div><div class="company-ticker">CSCO</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.cisco.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Marvell Technology</div><div class="company-ticker">MRVL</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.marvell.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">中际旭创</div><div class="company-ticker">300308 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.zj-innolight.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">新易盛</div><div class="company-ticker">300502 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.eoptolink.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">天孚通信</div><div class="company-ticker">300394 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.tfcsz.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">光迅科技</div><div class="company-ticker">002281 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.accelink.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 电力 / 散热 -->
+    <div class="sub-group">
+      <div class="sub-group-title">电力 / 散热 / 数据中心基础设施</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Vertiv Holdings</div><div class="company-ticker">VRT</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.vertiv.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Eaton Corporation</div><div class="company-ticker">ETN</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.eaton.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Siemens AG</div><div class="company-ticker">SIE · ETR</div></div>
+          <span class="market-badge m-eu">欧股</span>
+          <a class="btn-site" href="https://www.siemens.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Schneider Electric</div><div class="company-ticker">SU · EPA</div></div>
+          <span class="market-badge m-eu">欧股</span>
+          <a class="btn-site" href="https://www.se.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">英维克</div><div class="company-ticker">002837 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="http://www.envicool.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">高澜股份</div><div class="company-ticker">300499 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="http://www.goaland.com.cn" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据中心 / IDC -->
+    <div class="sub-group">
+      <div class="sub-group-title">数据中心 / IDC</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Equinix</div><div class="company-ticker">EQIX</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.equinix.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Digital Realty</div><div class="company-ticker">DLR</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.digitalrealty.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">CoreWeave</div><div class="company-ticker">CRWV</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.coreweave.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">万国数据</div><div class="company-ticker">09698 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.gds-services.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">光环新网</div><div class="company-ticker">300383 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.sinnet.com.cn" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">润泽科技</div><div class="company-ticker">300442 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.runzekj.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">宝信软件</div><div class="company-ticker">600845 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.baosight.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 中游：算力与平台 -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="chain-section">
+    <div class="chain-header">
+      <div class="chain-num" style="background:#ea580c;">中</div>
+      <span class="chain-title">中游 — 算力与平台</span>
+      <span class="chain-desc">AI芯片 · 服务器 · 云计算 · 大数据平台 · 工业自动化</span>
+    </div>
+
+    <!-- AI 芯片 -->
+    <div class="sub-group">
+      <div class="sub-group-title">AI 芯片 / GPU / ASIC</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">NVIDIA 英伟达</div><div class="company-ticker">NVDA</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.nvidia.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">AMD 超威半导体</div><div class="company-ticker">AMD</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.amd.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Intel 英特尔</div><div class="company-ticker">INTC</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.intel.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Broadcom 博通</div><div class="company-ticker">AVGO</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.broadcom.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Qualcomm</div><div class="company-ticker">QCOM</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.qualcomm.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">NXP Semiconductors</div><div class="company-ticker">NXPI</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.nxp.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Infineon Technologies</div><div class="company-ticker">IFX · ETR</div></div>
+          <span class="market-badge m-eu">欧股</span>
+          <a class="btn-site" href="https://www.infineon.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">寒武纪</div><div class="company-ticker">688256 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.cambricon.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">海光信息</div><div class="company-ticker">688041 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.hygon.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">澜起科技</div><div class="company-ticker">688008 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.montage-tech.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Horizon Robotics 地平线</div><div class="company-ticker">09660 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.horizon.ai" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 服务器 / 硬件 -->
+    <div class="sub-group">
+      <div class="sub-group-title">服务器 / 硬件 / 代工</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Dell Technologies</div><div class="company-ticker">DELL</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.dell.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Hewlett Packard Enterprise</div><div class="company-ticker">HPE</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.hpe.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Super Micro Computer</div><div class="company-ticker">SMCI</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.supermicro.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Foxconn 鸿海精密</div><div class="company-ticker">2317 · TWSE</div></div>
+          <span class="market-badge m-kr">台股</span>
+          <a class="btn-site" href="https://www.honhai.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">浪潮信息</div><div class="company-ticker">000977 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.ieisystem.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">中科曙光</div><div class="company-ticker">603019 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.sugon.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">紫光股份</div><div class="company-ticker">000938 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.unigroup.com.cn" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">联想集团</div><div class="company-ticker">00992 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.lenovo.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 云计算 -->
+    <div class="sub-group">
+      <div class="sub-group-title">云计算 / 平台</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Microsoft Azure</div><div class="company-ticker">MSFT</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.microsoft.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Amazon AWS</div><div class="company-ticker">AMZN</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.amazon.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Google Cloud</div><div class="company-ticker">GOOGL</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://abc.xyz" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Oracle Cloud</div><div class="company-ticker">ORCL</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.oracle.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">IBM</div><div class="company-ticker">IBM</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.ibm.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">阿里巴巴</div><div class="company-ticker">09988 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.alibabagroup.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">腾讯云</div><div class="company-ticker">00700 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.tencent.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">金山云</div><div class="company-ticker">03896 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.ksyun.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 大数据 / AI 平台 -->
+    <div class="sub-group">
+      <div class="sub-group-title">大数据 / AI 平台 / 数据分析</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Palantir Technologies</div><div class="company-ticker">PLTR</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.palantir.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Snowflake</div><div class="company-ticker">SNOW</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.snowflake.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">MongoDB</div><div class="company-ticker">MDB</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.mongodb.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Datadog</div><div class="company-ticker">DDOG</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.datadoghq.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Elastic</div><div class="company-ticker">ESTC</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.elastic.co" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Confluent</div><div class="company-ticker">CFLT</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.confluent.io" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Accenture</div><div class="company-ticker">ACN</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.accenture.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">昆仑万维</div><div class="company-ticker">300418 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.kunlun.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 工业自动化 / 机器人 -->
+    <div class="sub-group">
+      <div class="sub-group-title">工业自动化 / 机器人（BOTZ ETF 核心持仓）</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Fanuc 发那科</div><div class="company-ticker">6954 · TYO</div></div>
+          <span class="market-badge m-jp">日股</span>
+          <a class="btn-site" href="https://www.fanuc.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Keyence 基恩士</div><div class="company-ticker">6861 · TYO</div></div>
+          <span class="market-badge m-jp">日股</span>
+          <a class="btn-site" href="https://www.keyence.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">ABB Ltd</div><div class="company-ticker">ABBN · SWX</div></div>
+          <span class="market-badge m-eu">欧股</span>
+          <a class="btn-site" href="https://global.abb" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">SMC Corporation</div><div class="company-ticker">6273 · TYO</div></div>
+          <span class="market-badge m-jp">日股</span>
+          <a class="btn-site" href="https://www.smcworld.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Yaskawa Electric</div><div class="company-ticker">6506 · TYO</div></div>
+          <span class="market-badge m-jp">日股</span>
+          <a class="btn-site" href="https://www.yaskawa.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Daifuku 大福</div><div class="company-ticker">6383 · TYO</div></div>
+          <span class="market-badge m-jp">日股</span>
+          <a class="btn-site" href="https://www.daifuku.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Intuitive Surgical</div><div class="company-ticker">ISRG</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.intuitive.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Cognex</div><div class="company-ticker">CGNX</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.cognex.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Symbotic</div><div class="company-ticker">SYM</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.symbotic.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Rockwell Automation</div><div class="company-ticker">ROK</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.rockwellautomation.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">汇川技术</div><div class="company-ticker">300124 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.inovance.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">绿的谐波</div><div class="company-ticker">688017 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="http://www.leaderdrive.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">拓斯达</div><div class="company-ticker">300607 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.topstarltd.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Ubt ech 优必选</div><div class="company-ticker">09880 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.ubtrobot.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 下游：应用层 -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="chain-section">
+    <div class="chain-header">
+      <div class="chain-num">下</div>
+      <span class="chain-title">下游 — 应用层</span>
+      <span class="chain-desc">软件SaaS · 网安AI · 医疗AI · 自动驾驶 · 语音交互 · 互联网 · 广告 · 教育</span>
+    </div>
+
+    <!-- AI 软件 / SaaS -->
+    <div class="sub-group">
+      <div class="sub-group-title">AI 软件 / SaaS</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">ServiceNow</div><div class="company-ticker">NOW</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.servicenow.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Salesforce</div><div class="company-ticker">CRM</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.salesforce.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Adobe</div><div class="company-ticker">ADBE</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.adobe.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">SAP SE</div><div class="company-ticker">SAP</div></div>
+          <span class="market-badge m-eu">欧股</span>
+          <a class="btn-site" href="https://www.sap.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Shopify</div><div class="company-ticker">SHOP</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.shopify.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">UiPath (RPA)</div><div class="company-ticker">PATH</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.uipath.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Twilio</div><div class="company-ticker">TWLO</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.twilio.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">金山办公</div><div class="company-ticker">688111 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.wps.cn" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">第四范式</div><div class="company-ticker">06682 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.4paradigm.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 网络安全 -->
+    <div class="sub-group">
+      <div class="sub-group-title">AI 网络安全</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">CrowdStrike</div><div class="company-ticker">CRWD</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.crowdstrike.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Palo Alto Networks</div><div class="company-ticker">PANW</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.paloaltonetworks.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">SentinelOne</div><div class="company-ticker">S</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.sentinelone.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Zscaler</div><div class="company-ticker">ZS</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.zscaler.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Cloudflare</div><div class="company-ticker">NET</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.cloudflare.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">CyberArk</div><div class="company-ticker">CYBR</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.cyberark.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Okta</div><div class="company-ticker">OKTA</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.okta.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Fortinet</div><div class="company-ticker">FTNT</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.fortinet.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">奇安信</div><div class="company-ticker">688561 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.qianxin.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">深信服</div><div class="company-ticker">300454 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.sangfor.com.cn" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 医疗 -->
+    <div class="sub-group">
+      <div class="sub-group-title">AI 医疗</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Tempus AI</div><div class="company-ticker">TEM</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.tempus.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Schrodinger</div><div class="company-ticker">SDGR</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.schrodinger.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Recursion Pharma</div><div class="company-ticker">RXRX</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.recursion.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">AbCellera Biologics</div><div class="company-ticker">ABCL</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.abcellera.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Doximity</div><div class="company-ticker">DOCS</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.doximity.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Certara</div><div class="company-ticker">CERT</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.certara.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">GE HealthCare</div><div class="company-ticker">GEHC</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.gehealthcare.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">讯飞医疗</div><div class="company-ticker">港股 · HKEX</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.iflyhealth.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">晶泰控股 XtalPi</div><div class="company-ticker">港股 · HKEX</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.xtalpi.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">医渡科技</div><div class="company-ticker">02158 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.yiducloud.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 自动驾驶 -->
+    <div class="sub-group">
+      <div class="sub-group-title">自动驾驶 / ADAS / 激光雷达</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Mobileye Global</div><div class="company-ticker">MBLY</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.mobileye.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Aurora Innovation</div><div class="company-ticker">AUR</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://aurora.tech" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Hesai Group 禾赛</div><div class="company-ticker">HSAI</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.hesaitech.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">RoboSense 速腾聚创</div><div class="company-ticker">02498 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.robosense.cn" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Tesla (FSD)</div><div class="company-ticker">TSLA</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.tesla.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Pony AI 小马智行</div><div class="company-ticker">PONY</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.pony.ai" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">百度 Apollo</div><div class="company-ticker">BIDU / 09888</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.baidu.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">小鹏汽车</div><div class="company-ticker">XPEV / 09868</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.xiaopeng.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">德赛西威</div><div class="company-ticker">002920 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.desaysv.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">经纬恒润</div><div class="company-ticker">688326 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.hirain.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">伯特利 (制动)</div><div class="company-ticker">603596 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.btl-auto.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">韦尔股份 (CIS)</div><div class="company-ticker">603501 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.willsemi.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 语音 / 交互 / 视觉 -->
+    <div class="sub-group">
+      <div class="sub-group-title">AI 语音 / 交互 / 视觉</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">SoundHound AI</div><div class="company-ticker">SOUN</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.soundhound.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">科大讯飞</div><div class="company-ticker">002230 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.iflytek.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">海康威视</div><div class="company-ticker">002415 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.hikvision.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">云从科技</div><div class="company-ticker">688327 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.cloudwalk.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">芯原股份</div><div class="company-ticker">688521 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.verisilicon.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">奥比中光 (3D视觉)</div><div class="company-ticker">688322 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.orbbec.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">豪威集团 (图像传感)</div><div class="company-ticker">688213 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.omnivision-group.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 互联网 -->
+    <div class="sub-group">
+      <div class="sub-group-title">互联网 / AI 应用</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Meta Platforms</div><div class="company-ticker">META</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.meta.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Apple</div><div class="company-ticker">AAPL</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.apple.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Netflix</div><div class="company-ticker">NFLX</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.netflix.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Uber Technologies</div><div class="company-ticker">UBER</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.uber.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">AppLovin (AI广告)</div><div class="company-ticker">APP</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.applovin.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">The Trade Desk</div><div class="company-ticker">TTD</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.thetradedesk.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">腾讯控股</div><div class="company-ticker">00700 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.tencent.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">美团</div><div class="company-ticker">03690 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.meituan.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">小米集团</div><div class="company-ticker">01810 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.mi.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">网易</div><div class="company-ticker">09999 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.netease.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">京东集团</div><div class="company-ticker">09618 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.jd.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">快手</div><div class="company-ticker">01024 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.kuaishou.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">神州泰岳</div><div class="company-ticker">300002 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.ultrapower.com.cn" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 教育 -->
+    <div class="sub-group">
+      <div class="sub-group-title">AI 教育</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Duolingo</div><div class="company-ticker">DUOL</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.duolingo.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Coursera</div><div class="company-ticker">COUR</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.coursera.org" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 具身智能 / 人形机器人 -->
+    <div class="sub-group">
+      <div class="sub-group-title">具身智能 / 人形机器人</div>
+      <div class="company-grid">
+        <!-- 已上市：美股 -->
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Tesla (Optimus)</div><div class="company-ticker">TSLA</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.tesla.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">NVIDIA (Isaac / 机器人芯片)</div><div class="company-ticker">NVDA</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.nvidia.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Intuitive Surgical (手术机器人)</div><div class="company-ticker">ISRG</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.intuitive.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Symbotic (仓储机器人)</div><div class="company-ticker">SYM</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.symbotic.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Serve Robotics (配送机器人)</div><div class="company-ticker">SERV</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.serverobotics.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Aurora Innovation (自动驾驶)</div><div class="company-ticker">AUR</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://aurora.tech" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Rockwell Automation</div><div class="company-ticker">ROK</div></div>
+          <span class="market-badge m-us">美股</span>
+          <a class="btn-site" href="https://www.rockwellautomation.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <!-- 已上市：A股供应链 -->
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">蓝思科技 (机器人组装)</div><div class="company-ticker">300433 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.hnlens.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">奥比中光 (3D视觉传感器)</div><div class="company-ticker">688322 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.orbbec.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">柯力传感 (力传感器)</div><div class="company-ticker">603662 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.keli sensing.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">绿的谐波 (减速器/丝杠)</div><div class="company-ticker">688017 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="http://www.leaderdrive.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">拓普集团 (执行器/灵巧手)</div><div class="company-ticker">601689 · 上交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.tuopu.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">汇川技术 (伺服驱动)</div><div class="company-ticker">300124 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.inovance.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">拓斯达 (工业机器人)</div><div class="company-ticker">300607 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.topstarltd.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">中科创达 (机器人OS)</div><div class="company-ticker">300496 · 深交所</div></div>
+          <span class="market-badge m-cn">A股</span>
+          <a class="btn-site" href="https://www.thundercomm.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <!-- 已上市：港股 -->
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">优必选 UBTech (人形机器人)</div><div class="company-ticker">09880 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.ubtrobot.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">越疆 (协作机器人)</div><div class="company-ticker">02432 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.dobot.cn" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">地平线 (机器人端侧AI芯片)</div><div class="company-ticker">09660 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.horizon.ai" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">商汤-W (善惠人形机器人)</div><div class="company-ticker">00020 · 港交所</div></div>
+          <span class="market-badge m-hk">港股</span>
+          <a class="btn-site" href="https://www.sensetime.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <!-- 已上市：日/韩/欧 -->
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Fanuc 发那科</div><div class="company-ticker">6954 · TYO</div></div>
+          <span class="market-badge m-jp">日股</span>
+          <a class="btn-site" href="https://www.fanuc.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Yaskawa Electric</div><div class="company-ticker">6506 · TYO</div></div>
+          <span class="market-badge m-jp">日股</span>
+          <a class="btn-site" href="https://www.yaskawa.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">ABB Ltd</div><div class="company-ticker">ABBN · SWX</div></div>
+          <span class="market-badge m-eu">欧股</span>
+          <a class="btn-site" href="https://global.abb" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Rainbow Robotics</div><div class="company-ticker">277810 · KOSDAQ</div></div>
+          <span class="market-badge m-kr">韩股</span>
+          <a class="btn-site" href="https://www.rainbow-robotics.com" target="_blank" rel="noopener">官</a>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Doosan Robotics</div><div class="company-ticker">454910 · KRX</div></div>
+          <span class="market-badge m-kr">韩股</span>
+          <a class="btn-site" href="https://www.doosanrobotics.com" target="_blank" rel="noopener">官</a>
+        </div>
+      </div>
+
+      <!-- IPO 排队中 -->
+      <div class="sub-group-title" style="margin-top:14px; border-left-color:#86efac;">IPO 排队中 / 未上市</div>
+      <div class="company-grid">
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">宇树科技 (Unitree)</div><div class="company-ticker">科创板已过会 · 2025营收 17亿</div></div>
+          <span class="market-badge m-ipo">IPO</span>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">云深处 (Deep Robotics)</div><div class="company-ticker">科创板已受理 · 四足行业应用全球第一</div></div>
+          <span class="market-badge m-ipo">IPO</span>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">乐聚智能 (Leju Robotics)</div><div class="company-ticker">创业板已受理 · 全尺寸人形"夸父"</div></div>
+          <span class="market-badge m-ipo">IPO</span>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">银河通用 (GalaxyBot)</div><div class="company-ticker">已完成股改 · 宁德时代工业落地</div></div>
+          <span class="market-badge m-ipo">IPO</span>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">智元机器人 (Agibot)</div><div class="company-ticker">已完成股改 · 3C工厂流水线作业</div></div>
+          <span class="market-badge m-ipo">IPO</span>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">星海图 (Galaxea AI)</div><div class="company-ticker">已完成股改</div></div>
+          <span class="market-badge m-ipo">IPO</span>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">众擎机器人 (Engine AI)</div><div class="company-ticker">已完成股改</div></div>
+          <span class="market-badge m-ipo">IPO</span>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">星尘智能 (Stardust)</div><div class="company-ticker">未上市 · 3C电子/汽车零部件仓储</div></div>
+          <span class="market-badge m-ipo">IPO</span>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">Figure AI</div><div class="company-ticker">未上市 · OpenAI合作/宝马工厂</div></div>
+          <span class="market-badge m-ipo">IPO</span>
+        </div>
+        <div class="company-card">
+          <div class="company-info"><div class="company-name">卧安机器人 (SwitchBot)</div><div class="company-ticker">港股 2025.12上市 · 家庭机器人</div></div>
+          <span class="market-badge m-ipo">IPO</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /#chain -->
+
+  <!-- ═══════ 财报搜索工具 ═══════ -->
+  <div class="search-tool" id="search">
+    <h2>快速查财报</h2>
+    <p class="hint">输入美股代码（如 AAPL、TSLA）、A 股代码（如 002230、688256）或公司名称关键词，直接跳转下载</p>
+    <div class="search-row">
+      <input type="text" id="tickerInput" placeholder="输入股票代码或公司名称…" autocomplete="off">
+      <button class="search-btn" id="searchBtn">查询</button>
+    </div>
+    <div id="searchResult" style="margin-top:14px;"></div>
+  </div>
+
+  <script>
+  (function() {
+    var input = document.getElementById('tickerInput');
+    var btn = document.getElementById('searchBtn');
+    var result = document.getElementById('searchResult');
+
+    // ── 公司名称索引 ──
+    var companyIndex = [];
+    (function buildIndex() {
+      var cards = document.querySelectorAll('.company-card');
+      cards.forEach(function(c) {
+        var name = (c.querySelector('.company-name') || {}).textContent || '';
+        var ticker = (c.querySelector('.company-ticker') || {}).textContent || '';
+        companyIndex.push({ name: name.trim(), ticker: ticker.trim() });
+      });
+    })();
+
+    function normalize(s) {
+      return (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function fuzzyMatch(query) {
+      var q = normalize(query);
+      if (!q) return [];
+      // 精确代码匹配优先
+      var byTicker = companyIndex.filter(function(c) {
+        return normalize(c.ticker).indexOf(q) !== -1;
+      });
+      if (byTicker.length > 0 && byTicker.length <= 5) return byTicker;
+      // 名称关键词匹配
+      var qParts = q.split(/\s+/);
+      var byName = companyIndex.filter(function(c) {
+        var n = normalize(c.name);
+        return qParts.every(function(p) { return n.indexOf(p) !== -1; });
+      });
+      return byName.slice(0, 8);
+    }
+
+    function isCNCode(s) { return /^\d{6}$/.test(s.trim()); }
+    function isHKCode(s) { return /^\d{4,5}$/.test(s.trim()); }
+
+    function isUSTicker(s) {
+      return /^[a-zA-Z]{1,5}$/.test(s.trim());
+    }
+
+    function buildLinks(query) {
+      var q = query.trim();
+      var links = [];
+
+      if (isCNCode(q)) {
+        // A 股六位代码 → 巨潮 + 东方财富
+        var sz = q.startsWith('0') || q.startsWith('3') || q.startsWith('2');
+        var prefix = sz ? 'SZ' : 'SH';
+        links.push({
+          label: '巨潮资讯网 - 公司公告 & 年报',
+          url: 'http://www.cninfo.com.cn/new/commonUrl?url=disclosure/list/notice&stockCode=' + q,
+          desc: '证监会指定披露平台，包含年报/季报 PDF'
+        });
+        links.push({
+          label: '东方财富 - 财务报表',
+          url: 'https://emweb.securities.eastmoney.com/pc_hsfi/pc.html#!/zcfz?code=' + prefix + q,
+          desc: '资产负债表 / 利润表 / 现金流量表'
+        });
+      } else if (isHKCode(q)) {
+        // 港股代码 → 披露易
+        var padded = q.length < 5 ? ('0' + q).slice(-5) : q;
+        links.push({
+          label: '港交所披露易 - 公司公告',
+          url: 'https://www.hkexnews.hk/search/titlesearch.xhtml?stock=' + padded,
+          desc: '港股官方披露平台，含年报/中报'
+        });
+      } else if (isUSTicker(q)) {
+        // 美股 ticker → SEC EDGAR
+        var upper = q.toUpperCase();
+        links.push({
+          label: 'SEC EDGAR - 10-K 年报',
+          url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=' + upper + '&type=10-K&dateb=&owner=include&count=20',
+          desc: '美国证监会官方，10-K 年报全文'
+        });
+        links.push({
+          label: 'SEC EDGAR - 10-Q 季报',
+          url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=' + upper + '&type=10-Q&dateb=&owner=include&count=20',
+          desc: '美国证监会官方，10-Q 季度报告'
+        });
+        links.push({
+          label: 'SEC EDGAR - 全部文件',
+          url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=' + upper + '&owner=include&count=40',
+          desc: '8-K, S-1, DEF 14A 等所有披露文件'
+        });
+        links.push({
+          label: 'SEC XBRL - 结构化财务数据 (JSON)',
+          url: 'https://data.sec.gov/submissions/CIK' + upper + '.json',
+          desc: '可机读的结构化财务数据 API'
+        });
+        links.push({
+          label: 'Yahoo Finance - 财务报表',
+          url: 'https://finance.yahoo.com/quote/' + upper + '/financials',
+          desc: '资产负债表 / 利润表 / 现金流'
+        });
+      } else {
+        // 公司名称搜索 → 模糊匹配
+        var matches = fuzzyMatch(q);
+        return { matches: matches, query: q };
+      }
+      return { links: links, query: q };
+    }
+
+    function showLoading(text) {
+      result.innerHTML = '<div style="color:#888;font-size:0.88rem;padding:8px 0;">' + text + '</div>';
+    }
+
+    function renderResults(data) {
+      if (data.matches !== undefined) {
+        // 模糊匹配结果
+        if (data.matches.length === 0) {
+          result.innerHTML = '<div style="color:#999;font-size:0.88rem;padding:8px 0;">未找到匹配公司，请尝试输入完整股票代码（如 AAPL、002230、00700）</div>';
+          return;
+        }
+        var html = '<div style="font-size:0.85rem;color:#666;margin-bottom:6px;">页面内匹配到 ' + data.matches.length + ' 家公司：</div><div class="result-links">';
+        data.matches.forEach(function(m) {
+          html += '<span style="display:inline-block;padding:6px 12px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;font-size:0.85rem;">' + m.name + ' &nbsp;<code style="color:#888;font-size:0.78rem;">' + m.ticker + '</code></span>';
+        });
+        html += '</div><div style="font-size:0.82rem;color:#999;margin-top:8px;">提示：要直接跳转财报，请输入准确的股票代码（美股如 AAPL、A 股如 002230、港股如 00700）</div>';
+        result.innerHTML = html;
+        return;
+      }
+
+      // 直接跳转链接
+      if (data.links.length === 0) {
+        result.innerHTML = '<div style="color:#999;font-size:0.88rem;padding:8px 0;">无法识别该代码，请检查后重试</div>';
+        return;
+      }
+      var html = '<div style="font-size:0.85rem;color:#666;margin-bottom:6px;">「' + data.query + '」财报查询入口：</div><div class="result-links">';
+      data.links.forEach(function(l) {
+        html += '<a class="result-link" href="' + l.url + '" target="_blank" rel="noopener"><span class="icon">&#8599;</span>' + l.label + '</a>';
+        if (l.desc) html += '<span style="font-size:0.75rem;color:#aaa;margin-left:-4px;">' + l.desc + '</span>';
+      });
+      result.innerHTML = html;
+    }
+
+    function doSearch() {
+      var q = input.value;
+      if (!q.trim()) { result.innerHTML = ''; return; }
+      var data = buildLinks(q);
+      renderResults(data);
+    }
+
+    btn.addEventListener('click', doSearch);
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doSearch();
+    });
+
+    // 自动检测：输入完整代码时实时显示
+    var autoTimer;
+    input.addEventListener('input', function() {
+      clearTimeout(autoTimer);
+      var q = input.value.trim();
+      if (isCNCode(q) || isUSTicker(q) || isHKCode(q)) {
+        autoTimer = setTimeout(function() {
+          var data = buildLinks(input.value);
+          renderResults(data);
+        }, 300);
+      } else {
+        result.innerHTML = '';
+        if (q.length >= 2) {
+          autoTimer = setTimeout(function() {
+            var data = buildLinks(input.value);
+            renderResults(data);
+          }, 400);
+        }
+      }
+    });
+  })();
+  </script>
+
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 财务报告查询入口 -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="resources">
+    <h1>财务报告查询入口</h1>
+    <p class="subtitle">A股 / 港股 / 美股 — 官方及常用查询入口汇总</p>
+
+    <div class="chain-section">
+      <div class="section-title">A股（沪深）</div>
+      <div class="card">
+        <div class="card-row">
+          <span class="badge-s badge-official">官方</span>
+          <div class="link-info">
+            <div class="link-name"><a href="http://www.cninfo.com.cn" target="_blank" rel="noopener">巨潮资讯网</a><span class="tag">首选</span></div>
+            <div class="link-desc">证监会指定披露平台，A股最全、最权威</div>
+          </div>
+        </div>
+        <div class="card-row">
+          <span class="badge-s badge-official">官方</span>
+          <div class="link-info">
+            <div class="link-name"><a href="http://www.sse.com.cn" target="_blank" rel="noopener">上海证券交易所</a></div>
+            <div class="link-desc">"信息披露"栏目，沪市主板 + 科创板</div>
+          </div>
+        </div>
+        <div class="card-row">
+          <span class="badge-s badge-official">官方</span>
+          <div class="link-info">
+            <div class="link-name"><a href="http://www.szse.cn" target="_blank" rel="noopener">深圳证券交易所</a></div>
+            <div class="link-desc">"信息披露"栏目，深市主板 + 创业板</div>
+          </div>
+        </div>
+        <div class="card-row">
+          <span class="badge-s badge-aggregator">聚合</span>
+          <div class="link-info">
+            <div class="link-name"><a href="https://www.eastmoney.com" target="_blank" rel="noopener">东方财富网</a></div>
+            <div class="link-desc">数据聚合，查询方便，可能有延迟</div>
+          </div>
+        </div>
+        <div class="card-row">
+          <span class="badge-s badge-aggregator">聚合</span>
+          <div class="link-info">
+            <div class="link-name"><a href="https://www.10jqka.com.cn" target="_blank" rel="noopener">同花顺</a></div>
+            <div class="link-desc">数据聚合，查询方便，可能有延迟</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chain-section">
+      <div class="section-title">港股</div>
+      <div class="card">
+        <div class="card-row">
+          <span class="badge-s badge-official">官方</span>
+          <div class="link-info">
+            <div class="link-name"><a href="https://www.hkexnews.hk" target="_blank" rel="noopener">港交所披露易</a></div>
+            <div class="link-desc">港股官方披露平台</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chain-section">
+      <div class="section-title">美股</div>
+      <div class="card">
+        <div class="card-row">
+          <span class="badge-s badge-official">官方</span>
+          <div class="link-info">
+            <div class="link-name"><a href="https://www.sec.gov/edgar" target="_blank" rel="noopener">SEC EDGAR</a><span class="tag">首选</span></div>
+            <div class="link-desc">美国证监会官方数据库，10-K、10-Q 都在这里</div>
+          </div>
+        </div>
+        <div class="card-row">
+          <span class="badge-s badge-aggregator">聚合</span>
+          <div class="link-info">
+            <div class="link-name"><a href="https://finance.yahoo.com" target="_blank" rel="noopener">Yahoo Finance</a></div>
+            <div class="link-desc">快速浏览财务指标，覆盖美股/港股/A股</div>
+          </div>
+        </div>
+        <div class="card-row">
+          <span class="badge-s badge-aggregator">聚合</span>
+          <div class="link-info">
+            <div class="link-name"><a href="https://xueqiu.com" target="_blank" rel="noopener">雪球</a></div>
+            <div class="link-desc">中文社区，覆盖A股/港股/美股财务数据</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="data-source">
+    数据来源：BOTZ ETF · AIQ ETF · 中证人工智能指数 930713 · 中证人工智能ETF 159819 · SEC EDGAR · 券商研报 &nbsp;|&nbsp; 更新时间：2026年6月
+  </div>
+
+  <div class="tip-box">
+    <strong>使用建议</strong>
+    <p>产业链图谱基于 AI 主题 ETF 持仓 + 行业研报综合整理，覆盖上游基础设施、中游算力平台、下游应用三个层级。</p>
+    <p>做分析优先用官方渠道：A股 → 巨潮资讯网 &nbsp;|&nbsp; 美股 → SEC EDGAR &nbsp;|&nbsp; 港股 → 披露易</p>
+    <p>如需获得最完整的最新名单，建议直接查阅对应 ETF/指数的官方持仓文件。</p>
+  </div>
+
+</div>
+</body>
+</html>

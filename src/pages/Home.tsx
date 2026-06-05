@@ -45,9 +45,9 @@ const modules = [
 
 const projects = [
   {
-    title: "财务尽调分析工具",
-    desc: "上传年报 PDF，AI 自动生成投资尽调报告，含定量仪表盘",
-    url: "https://lisazhang0707-ops.github.io/paodou-ai/financial-analyzer.html",
+    title: "AI 产业链图谱 & 财报分析",
+    desc: "上市公司产业链图谱 + 财务报告查询 + AI 尽调分析工具",
+    url: "https://lisazhang0707-ops.github.io/paodou-ai/financial-resources.html",
   },
   {
     title: "毕业指南",
