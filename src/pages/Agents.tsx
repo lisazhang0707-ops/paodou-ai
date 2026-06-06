@@ -1,5 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { agents } from "../data/agents";
+import { API_PROVIDERS } from "../data/providers";
+
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useChat } from "../hooks/useChat";
 import AgentSidebar from "../components/chat/AgentSidebar";
@@ -7,17 +9,39 @@ import ChatMessage from "../components/chat/ChatMessage";
 import ChatInput from "../components/chat/ChatInput";
 import ApiKeyModal from "../components/ApiKeyModal";
 
-export const AI_MODELS = [
-  { id: "deepseek-chat", label: "DeepSeek V3", desc: "通用对话" },
-  { id: "deepseek-reasoner", label: "DeepSeek R1", desc: "深度推理" },
-];
+function getKeyForProvider(providerId: string): string {
+  return "api_key_" + providerId;
+}
 
 export default function Agents() {
+  const [providerId, setProviderId] = useLocalStorage("ai_provider", "deepseek");
+  const provider = useMemo(
+    () => API_PROVIDERS.find((p) => p.id === providerId) ?? API_PROVIDERS[0],
+    [providerId]
+  );
+
+  // Effective endpoint (custom provider reads from localStorage)
+  const endpoint = useMemo(() => {
+    if (providerId === "custom") {
+      return localStorage.getItem("api_endpoint_custom") || "";
+    }
+    return provider.endpoint;
+  }, [providerId, provider.endpoint]);
+
+  const [model, setModel] = useLocalStorage(
+    "ai_model_" + providerId,
+    provider.defaultModel
+  );
+  useEffect(() => {
+    if (providerId !== "custom" && provider.models.length > 0 && !provider.models.includes(model)) {
+      setModel(provider.defaultModel);
+    }
+  }, [providerId]);
+
   const [apiKey, setApiKey, clearApiKey] = useLocalStorage(
-    "deepseek_api_key",
+    getKeyForProvider(providerId),
     ""
   );
-  const [model, setModel] = useLocalStorage("ai_model", "deepseek-chat");
   const [activeAgentId, setActiveAgentId] = useState(agents[0].id);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
@@ -29,7 +53,7 @@ export default function Agents() {
     sendMessage,
     abortStream,
     clearMessages,
-  } = useChat(apiKey, activeAgent.systemPrompt, model);
+  } = useChat(apiKey, activeAgent.systemPrompt, endpoint, model);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -37,24 +61,38 @@ export default function Agents() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const hasKey = !!apiKey;
+
+  const handleProviderChange = (newProviderId: string) => {
+    const p = API_PROVIDERS.find((pr) => pr.id === newProviderId);
+    if (p) {
+      setProviderId(newProviderId);
+      setModel(localStorage.getItem("ai_model_" + newProviderId) || p.defaultModel);
+    }
+  };
+
+  const handleModelChange = (newModel: string) => {
+    setModel(newModel);
+  };
+
   return (
     <div className="flex h-[calc(100vh-4rem)]">
       <AgentSidebar
         agents={agents}
         activeId={activeAgentId}
         onSelect={setActiveAgentId}
-        hasApiKey={!!apiKey}
+        hasApiKey={hasKey}
         onApiKeyClick={() => setShowApiKeyModal(true)}
+        providerId={providerId}
+        providers={API_PROVIDERS}
+        onProviderChange={handleProviderChange}
         model={model}
-        models={AI_MODELS}
-        onModelChange={setModel}
+        onModelChange={handleModelChange}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Messages area */}
         <div className="flex-1 overflow-y-auto">
           {messages.length === 0 ? (
-            /* Welcome screen */
             <div className="max-w-2xl mx-auto px-6 py-16 text-center">
               <div className="text-5xl mb-4">{activeAgent.icon}</div>
               <h2 className="text-xl font-bold text-slate-900 mb-2">
@@ -62,10 +100,10 @@ export default function Agents() {
               </h2>
               <p className="text-slate-500 mb-8">{activeAgent.description}</p>
 
-              {!apiKey && (
+              {!hasKey && (
                 <div className="mb-8 p-4 rounded-2xl bg-amber-50 border border-amber-200">
                   <p className="text-sm text-amber-700 mb-3">
-                    请先配置 DeepSeek API Key 以开始使用
+                    请先配置 {provider.label} 的 API Key 以开始使用
                   </p>
                   <button
                     onClick={() => setShowApiKeyModal(true)}
@@ -82,7 +120,7 @@ export default function Agents() {
                   <button
                     key={i}
                     onClick={() => sendMessage(ex)}
-                    disabled={!apiKey || isLoading}
+                    disabled={!hasKey || isLoading}
                     className="block w-full text-left px-4 py-3 rounded-xl border border-slate-200 text-sm text-slate-600 hover:border-blue-200 hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {ex}
@@ -91,7 +129,6 @@ export default function Agents() {
               </div>
             </div>
           ) : (
-            /* Message list */
             <div className="max-w-3xl mx-auto px-4 py-6">
               {error && (
                 <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
@@ -121,12 +158,11 @@ export default function Agents() {
           )}
         </div>
 
-        {/* Input area */}
         <ChatInput
           onSend={sendMessage}
           isLoading={isLoading}
           onStop={abortStream}
-          disabled={!apiKey}
+          disabled={!hasKey}
         />
       </div>
 
@@ -136,6 +172,7 @@ export default function Agents() {
         apiKey={apiKey}
         onSave={setApiKey}
         onClear={clearApiKey}
+        providerLabel={provider.label}
       />
     </div>
   );

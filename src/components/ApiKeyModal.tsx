@@ -6,6 +6,7 @@ interface Props {
   apiKey: string;
   onSave: (key: string) => void;
   onClear: () => void;
+  providerLabel?: string;
 }
 
 export default function ApiKeyModal({
@@ -14,6 +15,7 @@ export default function ApiKeyModal({
   apiKey,
   onSave,
   onClear,
+  providerLabel,
 }: Props) {
   const [input, setInput] = useState("");
   const [validation, setValidation] = useState("");
@@ -70,21 +72,11 @@ export default function ApiKeyModal({
     >
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
         <h3 className="text-lg font-bold text-slate-900 mb-2">
-          配置 DeepSeek API Key
+          配置 {providerLabel ?? ""} API Key
         </h3>
         <p className="text-sm text-slate-500 mb-4 leading-relaxed">
-          Key 仅保存在浏览器本地存储（localStorage），不会上传到任何服务器。API
-          请求直连 api.deepseek.com。
-          <br />
-          获取 Key：
-          <a
-            href="https://platform.deepseek.com/api_keys"
-            target="_blank"
-            rel="noopener"
-            className="text-blue-600 underline"
-          >
-            platform.deepseek.com
-          </a>
+          Key 仅保存在浏览器本地存储（localStorage），不会上传到任何服务器。
+          各服务商的 Key 独立存储，切换服务商不会丢失。
         </p>
 
         {apiKey && (

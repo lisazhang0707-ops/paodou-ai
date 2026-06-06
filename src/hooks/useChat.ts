@@ -14,7 +14,7 @@ interface UseChatReturn {
   clearMessages: () => void;
 }
 
-export function useChat(apiKey: string, systemPrompt: string, model: string): UseChatReturn {
+export function useChat(apiKey: string, systemPrompt: string, endpoint: string, model: string): UseChatReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,7 +91,7 @@ export function useChat(apiKey: string, systemPrompt: string, model: string): Us
         }
 
         const response = await fetch(
-          "https://api.deepseek.com/v1/chat/completions",
+          endpoint,
           {
             method: "POST",
             headers: {
@@ -168,7 +168,7 @@ export function useChat(apiKey: string, systemPrompt: string, model: string): Us
         abortRef.current = null;
       }
     },
-    [apiKey, isLoading, messages]
+    [apiKey, endpoint, model, isLoading, messages]
   );
 
   return { messages, isLoading, error, sendMessage, abortStream, clearMessages };
