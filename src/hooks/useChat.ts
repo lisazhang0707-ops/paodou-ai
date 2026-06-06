@@ -14,7 +14,7 @@ interface UseChatReturn {
   clearMessages: () => void;
 }
 
-export function useChat(apiKey: string, systemPrompt: string): UseChatReturn {
+export function useChat(apiKey: string, systemPrompt: string, model: string): UseChatReturn {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,7 +99,7 @@ export function useChat(apiKey: string, systemPrompt: string): UseChatReturn {
               Authorization: "Bearer " + apiKey,
             },
             body: JSON.stringify({
-              model: "deepseek-chat",
+              model: model,
               messages: apiMessages,
               stream: true,
             }),

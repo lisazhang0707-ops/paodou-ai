@@ -1,11 +1,20 @@
 import type { AgentConfig } from "../../data/agents";
 
+interface ModelInfo {
+  id: string;
+  label: string;
+  desc: string;
+}
+
 interface Props {
   agents: AgentConfig[];
   activeId: string;
   onSelect: (id: string) => void;
   hasApiKey: boolean;
   onApiKeyClick: () => void;
+  model: string;
+  models: ModelInfo[];
+  onModelChange: (model: string) => void;
 }
 
 export default function AgentSidebar({
@@ -14,6 +23,9 @@ export default function AgentSidebar({
   onSelect,
   hasApiKey,
   onApiKeyClick,
+  model,
+  models,
+  onModelChange,
 }: Props) {
   return (
     <>
@@ -72,6 +84,22 @@ export default function AgentSidebar({
             </button>
           ))}
         </nav>
+        <div className="p-3 border-t border-slate-100">
+          <label className="block text-xs text-slate-500 mb-1.5 font-medium">
+            模型
+          </label>
+          <select
+            value={model}
+            onChange={(e) => onModelChange(e.target.value)}
+            className="w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="p-4 border-t border-slate-100">
           <button
             onClick={onApiKeyClick}
@@ -120,6 +148,17 @@ export default function AgentSidebar({
             />
             {hasApiKey ? "已配置" : "设置Key"}
           </button>
+          <select
+            value={model}
+            onChange={(e) => onModelChange(e.target.value)}
+            className="text-xs border border-slate-200 rounded-full px-2 py-1 bg-white text-slate-600 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          >
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
     </>

@@ -7,11 +7,17 @@ import ChatMessage from "../components/chat/ChatMessage";
 import ChatInput from "../components/chat/ChatInput";
 import ApiKeyModal from "../components/ApiKeyModal";
 
+export const AI_MODELS = [
+  { id: "deepseek-chat", label: "DeepSeek V3", desc: "通用对话" },
+  { id: "deepseek-reasoner", label: "DeepSeek R1", desc: "深度推理" },
+];
+
 export default function Agents() {
   const [apiKey, setApiKey, clearApiKey] = useLocalStorage(
     "deepseek_api_key",
     ""
   );
+  const [model, setModel] = useLocalStorage("ai_model", "deepseek-chat");
   const [activeAgentId, setActiveAgentId] = useState(agents[0].id);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
@@ -23,7 +29,7 @@ export default function Agents() {
     sendMessage,
     abortStream,
     clearMessages,
-  } = useChat(apiKey, activeAgent.systemPrompt);
+  } = useChat(apiKey, activeAgent.systemPrompt, model);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -39,6 +45,9 @@ export default function Agents() {
         onSelect={setActiveAgentId}
         hasApiKey={!!apiKey}
         onApiKeyClick={() => setShowApiKeyModal(true)}
+        model={model}
+        models={AI_MODELS}
+        onModelChange={setModel}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
