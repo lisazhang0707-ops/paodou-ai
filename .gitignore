@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Bid documents (internal, do not publish)
+bid-documents/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { AgentConfig } from "../../data/agents";
 import type { ApiProvider } from "../../data/providers";
 
@@ -12,6 +13,10 @@ interface Props {
   onProviderChange: (id: string) => void;
   model: string;
   onModelChange: (model: string) => void;
+  searchEnabled: boolean;
+  onSearchToggle: () => void;
+  tavilyKey: string;
+  onTavilyKeyChange: (key: string) => void;
 }
 
 export default function AgentSidebar({
@@ -25,8 +30,33 @@ export default function AgentSidebar({
   onProviderChange,
   model,
   onModelChange,
+  searchEnabled,
+  onSearchToggle,
+  tavilyKey,
+  onTavilyKeyChange,
 }: Props) {
   const currentProvider = providers.find((p) => p.id === providerId) ?? providers[0];
+  // expanded parent agents — auto-expand when a sub-agent is active
+  const [expanded, setExpanded] = useState<Set<string>>(() => {
+    const set = new Set<string>();
+    for (const a of agents) {
+      if (a.subAgents?.some((s) => s.id === activeId)) {
+        set.add(a.id);
+      }
+    }
+    return set;
+  });
+
+  const toggleExpand = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const isSubActive = (parent: AgentConfig) =>
+    parent.subAgents?.some((s) => s.id === activeId);
 
   const ProviderSelect = () => (
     <select
@@ -62,6 +92,11 @@ export default function AgentSidebar({
     </select>
   );
 
+  // Mobile: flatten all agents + subAgents into one list
+  const flatAgents = agents.flatMap((a) =>
+    a.subAgents ? [a, ...a.subAgents] : [a]
+  );
+
   return (
     <>
       {/* Desktop sidebar */}
@@ -82,30 +117,86 @@ export default function AgentSidebar({
           </h2>
         </div>
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {agents.map((agent) => (
-            <button
-              key={agent.id}
-              onClick={() => onSelect(agent.id)}
-              className={`w-full text-left p-3 rounded-xl transition-all ${
-                activeId === agent.id
-                  ? "bg-white shadow-sm ring-1 ring-blue-100"
-                  : "hover:bg-white hover:shadow-sm"
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xl">{agent.icon}</span>
-                <span className="font-bold text-sm text-slate-900">{agent.name}</span>
+          {agents.map((agent) => {
+            const hasSubs = !!agent.subAgents?.length;
+            const expanded_ = expanded.has(agent.id);
+            const subActive = isSubActive(agent);
+            const isActive = activeId === agent.id || subActive;
+
+            return (
+              <div key={agent.id}>
+                {/* Parent agent button */}
+                <button
+                  onClick={() => {
+                    if (hasSubs) {
+                      toggleExpand(agent.id);
+                      // if not expanded and no sub active yet, select first sub
+                      if (!expanded_ && !subActive && agent.subAgents?.[0]) {
+                        onSelect(agent.subAgents[0].id);
+                      }
+                    } else {
+                      onSelect(agent.id);
+                    }
+                  }}
+                  className={`w-full text-left p-3 rounded-xl transition-all ${
+                    isActive
+                      ? "bg-white shadow-sm ring-1 ring-blue-100"
+                      : "hover:bg-white hover:shadow-sm"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{agent.icon}</span>
+                    <span className="font-bold text-sm text-slate-900 flex-1">{agent.name}</span>
+                    {hasSubs && (
+                      <svg
+                        width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                        className={`text-slate-400 transition-transform ${expanded_ ? "rotate-90" : ""}`}
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">{agent.description}</p>
+                  <div className="flex gap-1 mt-2">
+                    {agent.tags.map((tag) => (
+                      <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </button>
+
+                {/* Sub-agents */}
+                {hasSubs && expanded_ && (
+                  <div className="ml-4 mt-1 space-y-1 border-l-2 border-slate-200 pl-3">
+                    {agent.subAgents!.map((sub) => (
+                      <button
+                        key={sub.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelect(sub.id);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-lg transition-all ${
+                          activeId === sub.id
+                            ? "bg-blue-50 ring-1 ring-blue-100"
+                            : "hover:bg-slate-100"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-base">{sub.icon}</span>
+                          <span className={`text-sm font-medium ${activeId === sub.id ? "text-blue-700" : "text-slate-700"}`}>
+                            {sub.name}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5">{sub.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed">{agent.description}</p>
-              <div className="flex gap-1 mt-2">
-                {agent.tags.map((tag) => (
-                  <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </button>
-          ))}
+            );
+          })}
         </nav>
         <div className="p-3 border-t border-slate-100 space-y-2">
           <div>
@@ -139,6 +230,37 @@ export default function AgentSidebar({
             </div>
           )}
         </div>
+        <div className="p-3 border-t border-slate-100 space-y-3">
+          {/* Search toggle */}
+          <div className="flex items-center justify-between">
+            <label className="text-xs text-slate-500 font-medium">🔍 联网搜索</label>
+            <button
+              onClick={onSearchToggle}
+              className={`relative w-9 h-5 rounded-full transition-colors ${
+                searchEnabled ? "bg-blue-500" : "bg-slate-300"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+                  searchEnabled ? "translate-x-4" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+          {/* Tavily key */}
+          {searchEnabled && (
+            <div>
+              <label className="block text-xs text-slate-500 mb-1 font-medium">Tavily API Key</label>
+              <input
+                type="password"
+                value={tavilyKey}
+                onChange={(e) => onTavilyKeyChange(e.target.value)}
+                placeholder="tvly-dev-..."
+                className="w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+          )}
+        </div>
         <div className="p-4 border-t border-slate-100">
           <button
             onClick={onApiKeyClick}
@@ -154,7 +276,7 @@ export default function AgentSidebar({
       {/* Mobile top bar */}
       <div className="lg:hidden border-b border-slate-100 bg-white px-4 py-3">
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          {agents.map((agent) => (
+          {flatAgents.map((agent) => (
             <button
               key={agent.id}
               onClick={() => onSelect(agent.id)}

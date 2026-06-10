@@ -24,9 +24,9 @@ export const API_PROVIDERS: ApiProvider[] = [
   {
     id: "minimax",
     label: "MiniMax",
-    endpoint: "https://api.minimax.chat/v1/text/chatcompletion_v2",
-    defaultModel: "abab6.5s-chat",
-    models: ["abab6.5s-chat", "abab6.5t-chat", "abab5.5s-chat"],
+    endpoint: "https://api.minimaxi.com/v1/chat/completions",
+    defaultModel: "MiniMax-M3",
+    models: ["MiniMax-M3", "minimax-m1", "abab6.5s-chat", "abab6.5t-chat"],
   },
   {
     id: "moonshot",
