@@ -22,6 +22,16 @@ const modules = [
     ),
   },
   {
+    to: "/agents",
+    title: "智能体",
+    desc: "AI 写作助手：公众号长文、短视频脚本、标书分析",
+    icon: (
+      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+      </svg>
+    ),
+  },
+  {
     to: "/about",
     title: "关于",
     desc: "Lisa 是谁？为什么做跑豆AI",
@@ -94,11 +104,11 @@ export default function Home() {
         </h1>
 
         <p className="text-xl md:text-2xl text-slate-400 font-light max-w-xl mb-12 leading-relaxed">
-          文章 · 工具 · 学习 · 合作
+          帮销售管理者用 AI 提效——不讲概念，给可落地的工具和方法
         </p>
 
         {/* Module cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-4xl">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-full max-w-6xl">
           {modules.map((m) => (
             <Link
               key={m.to}
@@ -146,11 +156,6 @@ export default function Home() {
                 </a>
               ))}
 
-              {/* Add project card */}
-              <div className="p-6 rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center text-center min-h-[100px]">
-                <span className="text-2xl text-slate-300 mb-1">+</span>
-                <span className="text-sm text-slate-400">添加你的作品</span>
-              </div>
             </div>
           </div>
         </section>

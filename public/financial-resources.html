@@ -360,6 +360,69 @@
     text-align: center;
   }
 
+  /* ── 浙江上市公司 ── */
+  .zj-filter-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .zj-filter-row + .zj-filter-row { margin-top: 8px; }
+  .zj-filter-btn {
+    padding: 4px 10px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 14px;
+    background: #fff;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    color: #555;
+  }
+  .zj-filter-btn:hover { border-color: #dc2626; color: #dc2626; }
+  .zj-filter-btn.active { background: #dc2626; color: #fff; border-color: #dc2626; }
+  .zj-search {
+    padding: 4px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 14px;
+    font-size: 0.78rem;
+    outline: none;
+    min-width: 160px;
+    margin-left: auto;
+  }
+  .zj-search:focus { border-color: #dc2626; }
+  .zj-count { font-size: 0.75rem; color: #999; white-space: nowrap; }
+  .zj-table-wrap { overflow-x: auto; margin-top: 12px; }
+  .zj-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .zj-table th {
+    background: #f8f9fb;
+    color: #555;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid #e0e0e0;
+    white-space: nowrap;
+  }
+  .zj-table td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; }
+  .zj-table tbody tr:hover { background: #fef8f8; }
+  .zj-code { font-family: "SF Mono","Fira Code","Consolas",monospace; color: #888; font-size: 0.8rem; }
+  .zj-link {
+    color: #dc2626;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .zj-link:hover { text-decoration: underline; }
+  .zj-city-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: #fef2f2;
+    color: #991b1b;
+  }
+  .zj-no-results { text-align: center; padding: 36px 16px; color: #999; font-size: 0.9rem; }
+
   @media (max-width: 600px) {
     .company-grid { grid-template-columns: 1fr; }
     .topbar-inner { gap: 14px; }
@@ -375,6 +438,7 @@
     <a href="financial-analyzer.html">财报分析</a>
     <a href="#chain">产业链图谱</a>
     <a href="#resources">查询入口</a>
+    <a href="#zhejiang">浙江上市公司</a>
   </div>
 </nav>
 
@@ -510,6 +574,44 @@
     </div>
   </div>
 
+  <hr class="divider">
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 浙江省上市公司名录 -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="zhejiang">
+    <h1>浙江省上市公司名录</h1>
+    <p class="subtitle">按行业和地区筛选，查看公司股票代码与官网</p>
+
+    <div class="filter-bar" id="zjFilterBar">
+      <div class="zj-filter-row">
+        <span class="filter-label">地区：</span>
+        <button class="zj-filter-btn active" data-zj-city="all">全部</button>
+        <span class="zj-count" id="zjCount"></span>
+      </div>
+      <div class="zj-filter-row">
+        <span class="filter-label">行业：</span>
+        <button class="zj-filter-btn active" data-zj-industry="all">全部</button>
+        <input type="text" class="zj-search" id="zjSearch" placeholder="搜索公司名或代码…" autocomplete="off">
+      </div>
+      <div class="zj-table-wrap">
+        <table class="zj-table">
+          <thead>
+            <tr>
+              <th>股票代码</th>
+              <th>公司名称</th>
+              <th>行业</th>
+              <th>地区</th>
+              <th>官网</th>
+            </tr>
+          </thead>
+          <tbody id="zjTableBody"></tbody>
+        </table>
+        <div class="zj-no-results" id="zjNoResults" style="display:none;">没有匹配的公司，试试调整筛选条件</div>
+      </div>
+    </div>
+  </div>
+
   <div class="data-source">
     数据来源：BOTZ ETF · AIQ ETF · 中证人工智能指数 930713 · 中证人工智能ETF 159819 · SEC EDGAR · 券商研报 &nbsp;|&nbsp; 更新时间：2026年6月
   </div>
@@ -523,6 +625,7 @@
 
 </div>
 
+<script src="zhejiang-companies-data.js"></script>
 <script src="ai-landscape-data.js"></script>
 <script>
 (function() {
@@ -806,6 +909,128 @@
       }
     }
   });
+})();
+</script>
+
+<script>
+// ── 浙江省上市公司名录 ──
+(function() {
+  var state = { city: "all", industry: "all", search: "" };
+
+  // Deduplicate by stock code (keep first occurrence)
+  var deduped = [];
+  var seen = {};
+  ZHEJIANG_COMPANIES.forEach(function(c) {
+    if (!seen[c.code]) { seen[c.code] = true; deduped.push(c); }
+  });
+
+  // Extract unique cities and industries (preserve order)
+  var cities = [];
+  var industries = [];
+  var citySeen = {}, indSeen = {};
+  deduped.forEach(function(c) {
+    if (!citySeen[c.city]) { citySeen[c.city] = true; cities.push(c.city); }
+    if (!indSeen[c.industry]) { indSeen[c.industry] = true; industries.push(c.industry); }
+  });
+
+  function filterData() {
+    return deduped.filter(function(c) {
+      if (state.city !== "all" && c.city !== state.city) return false;
+      if (state.industry !== "all" && c.industry !== state.industry) return false;
+      if (state.search) {
+        var q = state.search.toLowerCase();
+        if (c.name.toLowerCase().indexOf(q) === -1 && c.code.toLowerCase().indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function render() {
+    var filtered = filterData();
+    document.getElementById("zjCount").textContent = filtered.length + " 家公司";
+
+    var tbody = document.getElementById("zjTableBody");
+    var noRes = document.getElementById("zjNoResults");
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = "";
+      noRes.style.display = "block";
+      return;
+    }
+    noRes.style.display = "none";
+
+    var html = "";
+    filtered.forEach(function(c) {
+      html += '<tr>';
+      html += '<td><span class="zj-code">' + c.code + '</span></td>';
+      html += '<td><strong>' + c.name + '</strong></td>';
+      html += '<td>' + c.industry + '</td>';
+      html += '<td><span class="zj-city-tag">' + c.city + '</span></td>';
+      html += '<td>' + (c.url ? '<a class="zj-link" href="' + c.url + '" target="_blank" rel="noopener">官网 &#8599;</a>' : '<span style="color:#ccc;">-</span>') + '</td>';
+      html += '</tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  function buildFilterButtons() {
+    var cityRow = document.querySelector("#zjFilterBar .zj-filter-row:first-child");
+    // Insert city buttons before the count span
+    var countSpan = document.getElementById("zjCount");
+    cities.forEach(function(city) {
+      var btn = document.createElement("button");
+      btn.className = "zj-filter-btn";
+      btn.dataset.zjCity = city;
+      btn.textContent = city;
+      cityRow.insertBefore(btn, countSpan);
+    });
+
+    var indRow = document.querySelector("#zjFilterBar .zj-filter-row:nth-child(2)");
+    var indAll = indRow.querySelector("[data-zj-industry]");
+    industries.forEach(function(ind) {
+      var btn = document.createElement("button");
+      btn.className = "zj-filter-btn";
+      btn.dataset.zjIndustry = ind;
+      btn.textContent = ind;
+      indRow.insertBefore(btn, indAll.nextSibling);
+    });
+    // Move search to the end
+    var searchInput = document.getElementById("zjSearch");
+    indRow.appendChild(searchInput);
+  }
+
+  function setupFilters() {
+    document.querySelector("#zjFilterBar").addEventListener("click", function(e) {
+      var btn = e.target.closest(".zj-filter-btn");
+      if (!btn) return;
+
+      if (btn.dataset.zjCity !== undefined) {
+        document.querySelectorAll("[data-zj-city]").forEach(function(b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        state.city = btn.dataset.zjCity;
+      }
+      if (btn.dataset.zjIndustry !== undefined) {
+        document.querySelectorAll("[data-zj-industry]").forEach(function(b) { b.classList.remove("active"); });
+        btn.classList.add("active");
+        state.industry = btn.dataset.zjIndustry;
+      }
+      render();
+    });
+
+    var searchInput = document.getElementById("zjSearch");
+    var searchTimer;
+    searchInput.addEventListener("input", function() {
+      clearTimeout(searchTimer);
+      var self = this;
+      searchTimer = setTimeout(function() {
+        state.search = self.value.trim();
+        render();
+      }, 250);
+    });
+  }
+
+  buildFilterButtons();
+  setupFilters();
+  render();
 })();
 </script>
 
