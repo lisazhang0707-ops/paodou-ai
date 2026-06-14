@@ -5,7 +5,15 @@ import { useEffect, useState } from "react"
 function Blog() {
   const posts: Array<{
     slug: string; title: string; date: string; summary: string; tags: string[];
-  }> = []
+  }> = [
+    {
+      slug: "wechat-mcp-guide",
+      title: "微信公众号 MCP 使用手册",
+      date: "2026-06-14",
+      summary: "用自然语言直接操作微信公众号——从连接配置到草稿发布、菜单管理、素材上传、用户管理、数据统计的全流程指南",
+      tags: ["微信公众号", "MCP", "AI工具"],
+    },
+  ]
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
