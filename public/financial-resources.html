@@ -966,7 +966,9 @@
       html += '<td><strong>' + c.name + '</strong></td>';
       html += '<td>' + c.industry + '</td>';
       html += '<td><span class="zj-city-tag">' + c.city + '</span></td>';
-      html += '<td>' + (c.url ? '<a class="zj-link" href="' + c.url + '" target="_blank" rel="noopener">官网 &#8599;</a>' : '<span style="color:#ccc;">-</span>') + '</td>';
+      var href = c.url;
+      if (href && !/^https?:\/\//i.test(href)) href = 'https://' + href;
+      html += '<td>' + (href ? '<a class="zj-link" href="' + href + '" target="_blank" rel="noopener">官网 &#8599;</a>' : '<span style="color:#ccc;">-</span>') + '</td>';
       html += '</tr>';
     });
     tbody.innerHTML = html;

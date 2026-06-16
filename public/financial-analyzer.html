@@ -267,6 +267,31 @@
   .quant-hint { font-size: 0.75rem; color: #aaa; margin-top: 4px; text-align: center; }
   .quant-empty { text-align: center; padding: 30px; color: #999; font-size: 0.9rem; }
 
+  /* ── DuPont Analysis ── */
+  .dupont-container { background: #fff; border-radius: 10px; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px; }
+  .dupont-roe-label { text-align: center; font-size: 0.78rem; color: #888; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .dupont-roe { text-align: center; font-size: 2rem; font-weight: 800; color: #1e3a5f; margin-bottom: 4px; }
+  .dupont-roe.dupont-good { color: #16a34a; }
+  .dupont-roe.dupont-warn { color: #ea580c; }
+  .dupont-roe.dupont-bad { color: #dc2626; }
+  .dupont-tree { display: flex; align-items: center; justify-content: center; gap: 4px; flex-wrap: wrap; margin: 12px 0; }
+  .dupont-factor { flex: 1; min-width: 150px; max-width: 220px; text-align: center; background: #f8fafc; border-radius: 8px; padding: 14px 10px; }
+  .dupont-factor.f-profit { border-top: 3px solid #2563eb; }
+  .dupont-factor.f-efficiency { border-top: 3px solid #16a34a; }
+  .dupont-factor.f-leverage { border-top: 3px solid #ea580c; }
+  .dupont-factor .factor-name { font-size: 0.84rem; font-weight: 600; color: #1e3a5f; }
+  .dupont-factor .factor-value { font-size: 1.35rem; font-weight: 700; font-family: "SF Mono","Consolas",monospace; margin: 4px 0; }
+  .dupont-factor .factor-formula { font-size: 0.7rem; color: #888; }
+  .dupont-factor .factor-detail { font-size: 0.7rem; color: #aaa; margin-top: 2px; }
+  .dupont-operator { display: flex; align-items: center; font-size: 1.4rem; font-weight: 700; color: #bbb; padding: 0 2px; flex-shrink: 0; }
+  .dupont-verify { text-align: center; font-size: 0.84rem; color: #555; margin-top: 12px; padding: 10px 16px; background: #f0f4ff; border-radius: 6px; }
+  .dupont-verify strong { color: #1e3a5f; }
+  @media (max-width: 700px) {
+    .dupont-tree { flex-direction: column; gap: 8px; }
+    .dupont-operator { transform: rotate(90deg); }
+    .dupont-factor { max-width: none; }
+  }
+
 </style>
 </head>
 <body>
@@ -3777,6 +3802,7 @@ function analyzeMultiYear(yearlyData, companyName) {
     var pe = np > 0 ? (marketCap / np) : 0;
     var pb = eq > 0 ? (marketCap / eq) : 0;
     var ps = rev > 0 ? (marketCap / rev) : 0;
+    var dupontEquityMultiplier = eq > 0 ? (ta / eq) : 0;
 
     results.push({
       year: yd.year,
@@ -3788,7 +3814,10 @@ function analyzeMultiYear(yearlyData, companyName) {
         assetTurnover: assetTurnover, invTurnover: invTurnover, recvTurnover: recvTurnover,
         fcf: fcf, opcfToNp: opcfToNp, ebitda: ebitda,
         rdRatio: rdRatio, goodwillRatio: goodwillRatio,
-        pe: pe, pb: pb, ps: ps, marketCap: marketCap
+        pe: pe, pb: pb, ps: ps, marketCap: marketCap,
+        dupontNetMargin: netMargin, dupontAssetTurnover: assetTurnover,
+        dupontEquityMultiplier: dupontEquityMultiplier,
+        dupontROEVerified: dupontEquityMultiplier > 0 ? (netMargin / 100 * assetTurnover * dupontEquityMultiplier * 100) : 0
       }
     });
   });
@@ -3913,6 +3942,62 @@ function renderMultiYearResult(analysisResult) {
   html += mc('商誉/总资产', m.goodwillRatio, '%', m.goodwillRatio < 20 ? 'good' : m.goodwillRatio < 40 ? 'warn' : 'bad');
   html += mc('研发占比', m.rdRatio, '%', m.rdRatio > 5 ? 'good' : m.rdRatio > 1 ? 'warn' : 'bad');
   html += '</div></div>';
+
+  // ── DuPont Analysis ──
+  var dm = m;
+  if (dm.dupontEquityMultiplier > 0) {
+    var roeCls = dm.roe > 15 ? 'dupont-good' : dm.roe > 8 ? 'dupont-warn' : 'dupont-bad';
+    html += '<div class="result-section"><h3>杜邦分析 (DuPont Analysis)</h3>';
+    html += '<div class="dupont-container">';
+    html += '<div class="dupont-roe-label">净资产收益率 ROE</div>';
+    html += '<div class="dupont-roe ' + roeCls + '">' + dm.roe.toFixed(2) + '%</div>';
+    html += '<div class="dupont-tree">';
+    html += '<div class="dupont-factor f-profit"><div class="factor-name">净利润率</div><div class="factor-value">' + dm.dupontNetMargin.toFixed(2) + '%</div><div class="factor-formula">= 净利润 / 营业收入</div></div>';
+    html += '<div class="dupont-operator">&times;</div>';
+    html += '<div class="dupont-factor f-efficiency"><div class="factor-name">总资产周转率</div><div class="factor-value">' + dm.dupontAssetTurnover.toFixed(2) + '</div><div class="factor-formula">= 营业收入 / 总资产</div></div>';
+    html += '<div class="dupont-operator">&times;</div>';
+    html += '<div class="dupont-factor f-leverage"><div class="factor-name">权益乘数</div><div class="factor-value">' + dm.dupontEquityMultiplier.toFixed(2) + '</div><div class="factor-formula">= 总资产 / 股东权益</div></div>';
+    html += '</div>';
+    html += '<div class="dupont-verify"><strong>' + dm.dupontNetMargin.toFixed(2) + '% &times; ' + dm.dupontAssetTurnover.toFixed(2) + ' &times; ' + dm.dupontEquityMultiplier.toFixed(2) + '</strong> = <strong>' + dm.dupontROEVerified.toFixed(2) + '%</strong> &asymp; ROE ' + dm.roe.toFixed(2) + '%</div>';
+    html += '</div>';
+
+    // Multi-year DuPont comparison
+    if (r.length >= 2) {
+      html += '<table class="cmp-table" style="margin-top:12px;"><thead><tr><th>杜邦因子</th>';
+      r.forEach(function(rd) { html += '<th>' + rd.year + '</th>'; });
+      html += '<th>趋势</th></tr></thead><tbody>';
+      var dupontFields = [
+        { label: '净利润率', key: 'dupontNetMargin', unit: '%', higher: true },
+        { label: '总资产周转率', key: 'dupontAssetTurnover', unit: '', higher: true },
+        { label: '权益乘数', key: 'dupontEquityMultiplier', unit: '', higher: false },
+        { label: 'ROE（验证）', key: 'dupontROEVerified', unit: '%', higher: true }
+      ];
+      dupontFields.forEach(function(cf) {
+        html += '<tr><td style="font-weight:600;">' + cf.label + '</td>';
+        var vals = [];
+        r.forEach(function(rd) {
+          var v = rd.metrics[cf.key];
+          if (v === undefined || v === null || isNaN(v)) v = null;
+          vals.push(v);
+          html += '<td>' + (v !== null ? v.toFixed(2) + cf.unit : '--') + '</td>';
+        });
+        var first = vals[vals.length - 1];
+        var last = vals[0];
+        if (first !== null && last !== null && first !== 0) {
+          var chg = ((last - first) / Math.abs(first) * 100);
+          var isGood = cf.higher ? chg > 0 : chg < 0;
+          var cls = chg === 0 ? '' : (isGood ? 'trend-up' : 'trend-down');
+          var arrow = chg > 0 ? '&#8593;' : chg < 0 ? '&#8595;' : '&#8594;';
+          html += '<td class="' + cls + '">' + arrow + ' ' + Math.abs(chg).toFixed(1) + '%</td>';
+        } else {
+          html += '<td>--</td>';
+        }
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+    }
+    html += '</div>';
+  }
 
   html += '<div class="result-section"><h3>现金流质量</h3><div class="metric-grid">';
   html += mc('自由现金流', m.fcf, '', m.fcf > 0 ? 'good' : 'bad');
