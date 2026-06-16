@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   --sans: "Noto Sans SC", system-ui, -apple-system, sans-serif;
@@ -6,4 +7,147 @@
 
 body {
   font-family: var(--sans);
+}
+
+/* Blog prose overrides */
+.prose h1 {
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.5rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.prose h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: 1.75rem;
+}
+
+.prose table {
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.prose thead th {
+  background: #f1f5f9;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+}
+
+.prose tbody td {
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.prose tbody tr:hover td {
+  background: #f8fafc;
+}
+
+.prose blockquote {
+  border-left: 4px solid;
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 1rem 1.25rem;
+  font-style: normal;
+}
+
+.prose blockquote p:first-child {
+  margin-top: 0;
+}
+
+.prose blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.prose pre {
+  background: #1e293b;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.prose pre code {
+  color: #86efac;
+  font-size: 0.9em;
+}
+
+.prose code {
+  background: #f1f5f9;
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+
+.prose pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.prose hr {
+  margin: 2.5rem 0;
+}
+
+.prose ol {
+  padding-left: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.prose ol li {
+  counter-increment: step;
+  padding: 0.75rem 0 0.75rem 3rem;
+  position: relative;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.prose ol li:last-child {
+  border-bottom: none;
+}
+
+.prose ol li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  width: 2rem;
+  height: 2rem;
+  background: linear-gradient(135deg, #07c160, #06ad56);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9em;
+}
+
+/* TOC link active state */
+.toc-link {
+  position: relative;
+  transition: all 0.2s;
+}
+
+.toc-link:hover,
+.toc-link.active {
+  color: #07c160;
+}
+
+.toc-link.active::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1rem;
+  background: #07c160;
+  border-radius: 2px;
 }

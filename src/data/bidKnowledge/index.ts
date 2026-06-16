@@ -1,7 +1,7 @@
 import Fuse from "fuse.js";
 import { standardScoring, subjectiveTiers, pricingStrategy } from "./scoring";
 import { schemeOutlines } from "./schemes";
-import { historicalCases, historicalFileIndex } from "./cases";
+import { loadContracts } from "../contracts/loader";
 import { reusableTemplates, digitalManagementIntro } from "./templates";
 
 export interface KnowledgeChunk {
@@ -60,30 +60,20 @@ function buildChunks(): KnowledgeChunk[] {
     });
   }
 
-  // Historical cases
-  for (const c of historicalCases) {
-    const scoreMappings = c.scoreMapping
-      .map((m) => `  ${m.scoreItem} → ${m.source} [${m.reuseLevel}] ${m.note}`)
-      .join("\n");
+  // Historical contracts (loaded from contracts/ folder at build time)
+  const contracts = loadContracts();
+  for (const c of contracts) {
     chunks.push({
       type: "case",
-      title: c.projectName,
+      title: c.meta.projectName,
       content: [
-        `项目：${c.projectName}`,
-        `日期：${c.date}，预算：${c.budget}，电梯：${c.elevatorCount}`,
-        `投标方：${c.bidder}`,
-        `关键信息：${c.keyContent.join("；")}`,
-        `材料复用映射：\n${scoreMappings}`,
+        `项目：${c.meta.projectName}`,
+        `日期：${c.meta.date}，预算：${(c.meta.budget / 10000).toFixed(0)}万，电梯：${c.meta.elevatorCount}台`,
+        `投标方：${c.meta.bidder}`,
+        `类型：${c.meta.projectType} | 评标方式：${c.meta.bidMethod} | 中标：${c.meta.won ? "是" : "否"}`,
+        `地区：${c.meta.region} | 标签：${c.meta.tags.join("、")}`,
+        `详细内容：\n${c.body}`,
       ].join("\n"),
-    });
-  }
-
-  // File index
-  for (const [name, info] of Object.entries(historicalFileIndex.files)) {
-    chunks.push({
-      type: "case",
-      title: `历史文件：${name}`,
-      content: `历史投标文件「${name}」，${info.chars}字，包含：${info.keySections.join("、")}。${info.note}`,
     });
   }
 

@@ -12,6 +12,9 @@ import ThresholdModel from "./pages/ThresholdModel"
 import About from "./pages/About"
 import Collaborate from "./pages/Collaborate"
 import Agents from "./pages/Agents"
+import Dashboard from "./pages/Dashboard"
+import FinanceDashboard from "./pages/FinanceDashboard"
+import CustomerDashboard from "./pages/CustomerDashboard"
 
 export default function App() {
   return (
@@ -31,6 +34,9 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/collaborate" element={<Collaborate />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/finance" element={<FinanceDashboard />} />
+          <Route path="/dashboard/customers" element={<CustomerDashboard />} />
         </Routes>
       </main>
       <Footer />
