@@ -226,6 +226,22 @@
         .tech-card .stats-row .label { color: #8a96a8; font-size: 10px; }
         .tech-card .stats-row .val { color: #fff; font-weight: 600; }
 
+        /* P0: MoM delta indicators */
+        .mom-delta { font-size: 10px; margin-left: 4px; font-weight: 500; }
+        .mom-up { color: #4ade80; }
+        .mom-down { color: #f87171; }
+
+        /* P1: Mini sparkline bars */
+        .sparkline-bar { transition: height 0.4s ease; min-width: 6px; border-radius: 2px 2px 0 0; }
+
+        /* P2: Pipeline stage badge */
+        .stage-pill { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 600; }
+        .stage-pill.已签约 { background: rgba(74,222,128,0.15); color: #4ade80; }
+        .stage-pill.商务谈判 { background: rgba(96,165,250,0.15); color: #60a5fa; }
+        .stage-pill.方案报价 { background: rgba(167,139,250,0.15); color: #a78bfa; }
+        .stage-pill.初步接触 { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .stage-pill.线索 { background: rgba(107,118,137,0.15); color: #8a96a8; }
+
         .view-section { display: none; }
         .view-section.active { display: block; }
 
@@ -290,6 +306,33 @@
     <div class="panel" style="margin-bottom: 20px; border-color: #4f7cf7;">
         <h3>🎯 公司年度目标完成度 <span class="badge" id="m-target-year">-</span></h3>
         <div class="grid-2" id="m-target-grid" style="margin-top: 8px;"></div>
+    </div>
+
+    <!-- NEW P0: 月度趋势对比 -->
+    <div class="panel" style="margin-bottom: 20px; border-color: #4f7cf7;">
+        <h3>📈 月度趋势对比 <span class="badge">近 7 月</span></h3>
+        <div class="grid-3" style="margin-bottom: 16px;" id="m-mom-grid">
+            <div style="background: #0f1419; padding: 14px 16px; border-radius: 8px; border-left: 3px solid #60a5fa;">
+                <div style="color: #8a96a8; font-size: 11px; margin-bottom: 4px;">月收入趋势</div>
+                <div style="font-size: 20px; font-weight: 700; color: #60a5fa;" id="m-mom-rev-latest">-</div>
+                <div style="font-size: 10px; margin-top: 2px;" id="m-mom-rev-delta">-</div>
+            </div>
+            <div style="background: #0f1419; padding: 14px 16px; border-radius: 8px; border-left: 3px solid #a78bfa;">
+                <div style="color: #8a96a8; font-size: 11px; margin-bottom: 4px;">月工单趋势</div>
+                <div style="font-size: 20px; font-weight: 700; color: #a78bfa;" id="m-mom-orders-latest">-</div>
+                <div style="font-size: 10px; margin-top: 2px;" id="m-mom-orders-delta">-</div>
+            </div>
+            <div style="background: #0f1419; padding: 14px 16px; border-radius: 8px; border-left: 3px solid #4ade80;">
+                <div style="color: #8a96a8; font-size: 11px; margin-bottom: 4px;">月利润趋势</div>
+                <div style="font-size: 20px; font-weight: 700;" id="m-mom-profit-latest">-</div>
+                <div style="font-size: 10px; margin-top: 2px;" id="m-mom-profit-delta">-</div>
+            </div>
+        </div>
+        <div class="grid-3">
+            <div class="chart" id="m-chart-rev-trend" style="height: 280px;"></div>
+            <div class="chart" id="m-chart-order-trend" style="height: 280px;"></div>
+            <div class="chart" id="m-chart-profit-trend" style="height: 280px;"></div>
+        </div>
     </div>
 
     <!-- 状态分布 -->
@@ -362,6 +405,8 @@
                         <th>距离</th>
                         <th>预估台量</th>
                         <th>预估金额</th>
+                        <th>负责人</th>
+                        <th>阶段</th>
                         <th>状态</th>
                     </tr>
                 </thead>
@@ -414,6 +459,36 @@
                 </tr>
             </thead>
             <tbody id="m-forecast-tbody"></tbody>
+        </table>
+    </div>
+
+    <!-- NEW P2: 技师人效排名 -->
+    <div class="panel" style="margin-bottom: 20px; border-color: #a78bfa;">
+        <h3>👷 技师人效排名 <span class="badge" id="m-techrank-count">-</span>
+            <select id="m-techrank-sort" style="background: #0f1419; color: #fff; border: 1px solid #2a3548; padding: 4px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">
+                <option value="revenue">按收入</option>
+                <option value="orders">按工单</option>
+                <option value="customers">按客户</option>
+                <option value="first_fix">按首修率</option>
+                <option value="response">按响应时间</option>
+            </select>
+        </h3>
+        <table class="station-table">
+            <thead>
+                <tr>
+                    <th>排名</th>
+                    <th>技师</th>
+                    <th>站点</th>
+                    <th>等级</th>
+                    <th>工龄</th>
+                    <th>收入贡献</th>
+                    <th>工单数</th>
+                    <th>服务客户</th>
+                    <th>首修率</th>
+                    <th>均响应</th>
+                </tr>
+            </thead>
+            <tbody id="m-techrank-tbody"></tbody>
         </table>
     </div>
 
@@ -489,6 +564,11 @@
             </thead>
             <tbody id="m-profit-tbody"></tbody>
         </table>
+        <!-- P1: 6月盈亏趋势图 -->
+        <div style="margin-top: 16px;">
+            <h4 style="color: #8a96a8; font-size: 12px; margin-bottom: 8px;">📊 近 6 月盈亏趋势</h4>
+            <div class="chart" id="m-chart-profit-6m" style="height: 320px;"></div>
+        </div>
     </div>
 
     <!-- ============== 客户级分析子模块 ============== -->
@@ -889,7 +969,39 @@ document.addEventListener('DOMContentLoaded', () => {
             el.addEventListener('input', renderCustomerPNLTable);
         }
     });
+
+    // P2: 技师排名排序
+    const techRankSort = document.getElementById('m-techrank-sort');
+    if (techRankSort) {
+        techRankSort.addEventListener('change', renderManagerTechRank);
+    }
 });
+
+	// ============= P0: 月度数据聚合 =============
+	function computeMonthlyAggregates() {
+	    const months = ['2025-12','2026-01','2026-02','2026-03','2026-04','2026-05','2026-06'];
+	    const result = { months, orders: {}, revenue: {}, costs: {}, profit: {}, firstFix: {}, complaint: {} };
+	    months.forEach(m => { result.orders[m] = 0; result.revenue[m] = 0; result.costs[m] = 0; result.firstFix[m] = 0; result.complaint[m] = 0; });
+
+	    RAW.work_orders.forEach(o => {
+	        const m = o.report_time.substring(0, 7);
+	        if (result.orders[m] !== undefined) {
+	            result.orders[m]++;
+	            result.revenue[m] += o.repair_revenue || 0;
+	        }
+	    });
+
+	    RAW.customer_monthly_costs.forEach(c => {
+	        if (result.costs[c.month] !== undefined) {
+	            result.costs[c.month] += c.direct_labor + c.travel + c.warranty_parts + c.compliance_cost + c.subcontracting + c.material_cost + c.overhead_allocated;
+	        }
+	    });
+
+	    months.forEach(m => {
+	        result.profit[m] = result.revenue[m] - result.costs[m];
+	    });
+	    return result;
+	}
 
 function switchRole() {
     document.getElementById('view-manager').classList.toggle('active', CURRENT_ROLE === 'manager');
@@ -1103,21 +1215,29 @@ function renderCustomerPNLTable() {
 
 function renderManagerView() {
     const s = RAW.summary;
+    const agg = computeMonthlyAggregates();
+    const mKeys = agg.months;
+    const latestM = mKeys[mKeys.length - 1], prevM = mKeys[mKeys.length - 2];
 
-    // 顶部 4 卡
+    // 顶部 4 卡 (含环比)
     document.getElementById('m-region-station').textContent = `${s.total_regions} / ${s.total_stations}`;
-    document.getElementById('m-region-station-sub').textContent = `${s.green_count}绿 ${s.yellow_count}黄 ${s.red_count}红`;
+    document.getElementById('m-region-station-sub').innerHTML = `${s.green_count}绿 ${s.yellow_count}黄 ${s.red_count}红 <span class="mom-delta" style="color:#8a96a8;">vs 上月</span>`;
+
+    const custDelta = agg.orders[prevM] > 0 ? ((agg.orders[latestM] - agg.orders[prevM]) / agg.orders[prevM] * 100) : 0;
     document.getElementById('m-tech-customer').textContent = `${s.total_techs} / ${s.total_customers}`;
-    document.getElementById('m-tech-customer-sub').textContent = `人均 ${(s.total_customers/s.total_techs).toFixed(1)} 台`;
+    document.getElementById('m-tech-customer-sub').innerHTML = `人均 ${(s.total_customers/s.total_techs).toFixed(1)} 台 <span class="mom-delta ${custDelta>=0?'mom-up':'mom-down'}">${custDelta>=0?'&#9650;':'&#9660;'}${Math.abs(custDelta).toFixed(1)}%</span>`;
+
+    const ordDelta = agg.orders[prevM] > 0 ? ((agg.orders[latestM] - agg.orders[prevM]) / agg.orders[prevM] * 100) : 0;
     document.getElementById('m-orders-opps').textContent = `${s.total_orders_6m} / ${s.total_opportunities}`;
-    document.getElementById('m-orders-opps-sub').textContent = `工单 / 销售机会`;
+    document.getElementById('m-orders-opps-sub').innerHTML = `工单 / 销售机会 <span class="mom-delta ${ordDelta>=0?'mom-up':'mom-down'}">${ordDelta>=0?'&#9650;':'&#9660;'}${Math.abs(ordDelta).toFixed(1)}% MoM</span>`;
 
     // 整体首修率 + 投诉率
     const allOrders = RAW.work_orders;
     const firstFixRate = (allOrders.filter(o => o.first_fix === 1).length / allOrders.length * 100).toFixed(1);
     const complaintRate = (allOrders.filter(o => o.complaint === 1).length / allOrders.length * 100).toFixed(2);
     document.getElementById('m-fix-complaint').textContent = `${firstFixRate}% / ${complaintRate}%`;
-    document.getElementById('m-fix-complaint-sub').textContent = `首修 / 投诉`;
+    const fixDelta = ((firstFixRate - 85) / 85 * 100).toFixed(1);
+    document.getElementById('m-fix-complaint-sub').innerHTML = `首修 / 投诉 <span class="mom-delta ${fixDelta>=0?'mom-up':'mom-down'}">vs基准 ${fixDelta>=0?'+':''}${fixDelta}%</span>`;
 
     // 状态分布
     document.getElementById('m-green').textContent = s.green_count;
@@ -1135,7 +1255,9 @@ function renderManagerView() {
     renderManagerForecastTable();
     renderManagerChurn();
     renderManagerTransfers();
+    renderManagerTechRank();
     renderManagerTarget();
+    renderManagerMonthTrend();
     renderManagerProfit();
     renderCustomerView();  // 客户级分析（作为 manager 视图子模块）
 }
@@ -1282,15 +1404,20 @@ function renderManagerOpportunities() {
     const opps = RAW.sales_opportunities;
     document.getElementById('m-opp-count').textContent = `${opps.length} 个机会`;
 
+    const stageColorMap = { '已签约': '已签约', '商务谈判': '商务谈判', '方案报价': '方案报价', '初步接触': '初步接触', '线索': '线索' };
+
     const tbody = document.getElementById('m-opp-tbody');
     tbody.innerHTML = opps.map(o => {
         const statusColor = o.status === '已签约' ? 'green' : o.status === '进行中' ? 'yellow' : 'red';
+        const stage = o.pipeline_stage || '-';
         return `<tr>
             <td><b>${o.project_name}</b></td>
             <td>${o.station_name.replace('站点', '')}</td>
             <td>${o.distance_km} km</td>
             <td>${o.estimated_units}</td>
             <td>¥${(o.estimated_revenue/10000).toFixed(1)}万</td>
+            <td>${o.responsible_person || '-'}</td>
+            <td><span class="stage-pill ${stageColorMap[stage] || '线索'}">${stage}</span></td>
             <td><span class="status-pill ${statusColor}">${o.status}</span></td>
         </tr>`;
     }).join('');
@@ -1390,6 +1517,56 @@ function renderManagerForecastTable() {
     }).join('');
 }
 
+// ============= P2: 技师人效排名 =============
+function renderManagerTechRank() {
+    const sortBy = document.getElementById('m-techrank-sort')?.value || 'revenue';
+    document.getElementById('m-techrank-count').textContent = `${RAW.technicians.length} 名技师`;
+
+    // 从 work_orders 聚合每人指标
+    const techMetrics = RAW.technicians.map(t => {
+        const orders = RAW.work_orders.filter(o => o.tech_id === t.id);
+        const totalRevenue = orders.reduce((s, o) => s + (o.repair_revenue || 0), 0);
+        const orderCount = orders.length;
+        const customersServed = new Set(orders.map(o => o.customer_id)).size;
+        const firstFixCount = orders.filter(o => o.first_fix === 1).length;
+        const firstFixRate = orderCount > 0 ? (firstFixCount / orderCount * 100) : 0;
+        const avgResponse = orderCount > 0 ? (orders.reduce((s, o) => s + o.response_min, 0) / orderCount) : 0;
+        const station = RAW.stations.find(s => s.id === t.station_id);
+        return { name: t.name, stationName: station ? station.name.replace('站点', '') : '-', level: t.level, years: t.years, totalRevenue, orderCount, customersServed, firstFixRate, avgResponse };
+    });
+
+    const sortKeys = {
+        revenue: (a, b) => b.totalRevenue - a.totalRevenue,
+        orders: (a, b) => b.orderCount - a.orderCount,
+        customers: (a, b) => b.customersServed - a.customersServed,
+        first_fix: (a, b) => b.firstFixRate - a.firstFixRate,
+        response: (a, b) => a.avgResponse - b.avgResponse
+    };
+    techMetrics.sort(sortKeys[sortBy] || sortKeys.revenue);
+
+    const tbody = document.getElementById('m-techrank-tbody');
+    tbody.innerHTML = techMetrics.map((t, i) => {
+        const rank = i + 1;
+        const rankIcon = rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : rank;
+        const levelColor = t.level === '师傅' ? '#4ade80' : t.level === '熟手' ? '#60a5fa' : '#fbbf24';
+        const fixColor = t.firstFixRate >= 90 ? '#4ade80' : t.firstFixRate >= 80 ? '#fbbf24' : '#f87171';
+        const respColor = t.avgResponse <= 20 ? '#4ade80' : t.avgResponse <= 30 ? '#fbbf24' : '#f87171';
+
+        return `<tr>
+            <td><b>${rankIcon}</b></td>
+            <td><b>${t.name}</b></td>
+            <td>${t.stationName}</td>
+            <td><span style="color:${levelColor}; font-weight:600;">${t.level}</span></td>
+            <td>${t.years}年</td>
+            <td>¥${(t.totalRevenue/10000).toFixed(1)}万</td>
+            <td>${t.orderCount}</td>
+            <td>${t.customersServed}</td>
+            <td style="color:${fixColor}; font-weight:600;">${t.firstFixRate.toFixed(1)}%</td>
+            <td style="color:${respColor}; font-weight:600;">${t.avgResponse.toFixed(0)}min</td>
+        </tr>`;
+    }).join('');
+}
+
 function renderManagerChurn() {
     // Top 高风险客户（全部站点）
     const highRisk = RAW.customers
@@ -1441,11 +1618,116 @@ function renderManagerTransfers() {
     }).join('');
 }
 
+// ============= P0: 月度趋势对比 =============
+function renderManagerMonthTrend() {
+    const agg = computeMonthlyAggregates();
+    const months = agg.months.map(m => m.substring(2)); // ["25-12","26-01",...]
+    const latestIdx = agg.months.length - 1;
+    const prevIdx = latestIdx - 1;
+
+    // --- Revenue MoM card ---
+    const revLatest = agg.revenue[agg.months[latestIdx]];
+    const revPrev = agg.revenue[agg.months[prevIdx]];
+    const revDelta = revPrev > 0 ? ((revLatest - revPrev) / revPrev * 100) : 0;
+    document.getElementById('m-mom-rev-latest').textContent = `¥${(revLatest/10000).toFixed(1)}万`;
+    document.getElementById('m-mom-rev-delta').innerHTML = `<span class="mom-delta ${revDelta>=0?'mom-up':'mom-down'}">${revDelta>=0?'&#9650;':'&#9660;'} ${Math.abs(revDelta).toFixed(1)}% vs上月</span>`;
+
+    // --- Orders MoM card ---
+    const ordLatest = agg.orders[agg.months[latestIdx]];
+    const ordPrev = agg.orders[agg.months[prevIdx]];
+    const ordDelta = ordPrev > 0 ? ((ordLatest - ordPrev) / ordPrev * 100) : 0;
+    document.getElementById('m-mom-orders-latest').textContent = `${ordLatest} 单`;
+    document.getElementById('m-mom-orders-delta').innerHTML = `<span class="mom-delta ${ordDelta>=0?'mom-up':'mom-down'}">${ordDelta>=0?'&#9650;':'&#9660;'} ${Math.abs(ordDelta).toFixed(1)}% vs上月</span>`;
+
+    // --- Profit MoM card ---
+    const profLatest = agg.profit[agg.months[latestIdx]];
+    const profPrev = agg.profit[agg.months[prevIdx]];
+    const profDelta = Math.abs(profPrev) > 100 ? ((profLatest - profPrev) / Math.abs(profPrev) * 100) : 0;
+    document.getElementById('m-mom-profit-latest').textContent = `¥${(profLatest/10000).toFixed(1)}万`;
+    document.getElementById('m-mom-profit-latest').style.color = profLatest >= 0 ? '#4ade80' : '#f87171';
+    document.getElementById('m-mom-profit-delta').innerHTML = `<span class="mom-delta ${profDelta>=0?'mom-up':'mom-down'}">${profDelta>=0?'&#9650;':'&#9660;'} ${Math.abs(profDelta).toFixed(1)}% vs上月</span>`;
+
+    // --- Revenue trend chart (bar) ---
+    (function(){
+        const el = document.getElementById('m-chart-rev-trend');
+        if (!el) return;
+        echarts.dispose(el);
+        const chart = echarts.init(el);
+        chart.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'axis', formatter: p => `${p[0].axisValue}<br/>收入: ¥${(p[0].value/10000).toFixed(1)}万` },
+            grid: { left: 55, right: 15, top: 10, bottom: 30 },
+            xAxis: { type: 'category', data: months, axisLabel: { color: '#8a96a8', fontSize: 10 }, axisLine: { lineStyle: { color: '#2a3548' } } },
+            yAxis: { type: 'value', name: '万元', nameTextStyle: { color: '#8a96a8', fontSize: 10 }, axisLabel: { color: '#8a96a8', formatter: v => (v/10000).toFixed(0) }, splitLine: { lineStyle: { color: '#1f2937' } } },
+            series: [{
+                data: agg.months.map(m => agg.revenue[m]),
+                type: 'bar',
+                itemStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1, [{offset:0,color:'#60a5fa'},{offset:1,color:'rgba(96,165,250,0.2)'}]) },
+                barWidth: '50%'
+            }]
+        });
+    })();
+
+    // --- Order trend chart (line) ---
+    (function(){
+        const el = document.getElementById('m-chart-order-trend');
+        if (!el) return;
+        echarts.dispose(el);
+        const chart = echarts.init(el);
+        chart.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'axis' },
+            grid: { left: 55, right: 15, top: 10, bottom: 30 },
+            xAxis: { type: 'category', data: months, axisLabel: { color: '#8a96a8', fontSize: 10 }, axisLine: { lineStyle: { color: '#2a3548' } } },
+            yAxis: { type: 'value', name: '单', nameTextStyle: { color: '#8a96a8', fontSize: 10 }, axisLabel: { color: '#8a96a8' }, splitLine: { lineStyle: { color: '#1f2937' } } },
+            series: [{
+                data: agg.months.map(m => agg.orders[m]),
+                type: 'line', smooth: true,
+                itemStyle: { color: '#a78bfa' },
+                areaStyle: { color: 'rgba(167,139,250,0.1)' }
+            }]
+        });
+    })();
+
+    // --- Profit trend chart (bar, red/green) ---
+    (function(){
+        const el = document.getElementById('m-chart-profit-trend');
+        if (!el) return;
+        echarts.dispose(el);
+        const chart = echarts.init(el);
+        const profitData = agg.months.map(m => agg.profit[m]);
+        chart.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'axis', formatter: p => `${p[0].axisValue}<br/>利润: ¥${(p[0].value/10000).toFixed(1)}万` },
+            grid: { left: 55, right: 15, top: 10, bottom: 30 },
+            xAxis: { type: 'category', data: months, axisLabel: { color: '#8a96a8', fontSize: 10 }, axisLine: { lineStyle: { color: '#2a3548' } } },
+            yAxis: { type: 'value', name: '万元', nameTextStyle: { color: '#8a96a8', fontSize: 10 }, axisLabel: { color: '#8a96a8', formatter: v => (v/10000).toFixed(0) }, splitLine: { lineStyle: { color: '#1f2937' } } },
+            series: [{
+                data: profitData,
+                type: 'bar',
+                itemStyle: { color: p => p.value >= 0 ? '#4ade80' : '#f87171' },
+                barWidth: '50%'
+            }]
+        });
+    })();
+}
+
 function renderManagerTarget() {
     const co = RAW.company_profit;
     const target = RAW.company_target;
+    const agg = computeMonthlyAggregates();
+    const months = agg.months.map(m => m.substring(2));
+    const monthlyTargetRevenue = target.annual_revenue / 12;
 
     document.getElementById('m-target-year').textContent = `${new Date().getFullYear()} 年`;
+    const revGap = target.annual_revenue - co.projected_annual_revenue;
+    const custGap = target.customer_count - co.current_customers;
+
+    // Monthly completion sparklines
+    const monthlyCompletion = agg.months.map(m => {
+        const pct = Math.min((agg.revenue[m] / monthlyTargetRevenue * 100), 120);
+        return { month: m.substring(2), pct: pct.toFixed(0), color: pct >= 100 ? '#4ade80' : pct >= 80 ? '#60a5fa' : '#fbbf24', h: Math.max(pct * 0.35, 3) };
+    });
 
     const grid = document.getElementById('m-target-grid');
     grid.innerHTML = `
@@ -1457,9 +1739,20 @@ function renderManagerTarget() {
             <div style="background: #1a2332; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 6px;">
                 <div style="background: ${co.revenue_completion >= 100 ? '#4ade80' : co.revenue_completion >= 80 ? '#60a5fa' : '#fbbf24'}; height: 100%; width: ${Math.min(co.revenue_completion, 100)}%; transition: width 0.5s;"></div>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
                 <span style="color: #6b7689;">预估年收 ¥${(co.projected_annual_revenue/10000).toFixed(0)}万</span>
                 <span style="color: #fff; font-weight: 600;">${co.revenue_completion}%</span>
+            </div>
+            <div style="font-size: 10px; color: ${co.revenue_completion >= 100 ? '#4ade80' : '#fbbf24'}; margin-bottom: 8px;">
+                ${co.revenue_completion >= 100 ? '&#10004; 已达标' : `&#9888; 还差 ¥${(revGap/10000).toFixed(0)}万 才能达标`}
+            </div>
+            <div style="display: flex; gap: 4px; align-items: flex-end; height: 44px;">
+                ${monthlyCompletion.map(m => `
+                    <div style="flex:1; text-align:center;">
+                        <div class="sparkline-bar" style="background:${m.color}; height:${m.h}px;" title="${m.month}: ${m.pct}%"></div>
+                        <div style="color:#6b7689;font-size:8px;margin-top:2px;">${m.month}</div>
+                    </div>
+                `).join('')}
             </div>
         </div>
         <div style="background: #0f1419; padding: 18px 22px; border-radius: 10px;">
@@ -1470,9 +1763,20 @@ function renderManagerTarget() {
             <div style="background: #1a2332; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 6px;">
                 <div style="background: ${co.customer_completion >= 100 ? '#4ade80' : '#60a5fa'}; height: 100%; width: ${Math.min(co.customer_completion, 100)}%;"></div>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 11px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
                 <span style="color: #6b7689;">当前 ${co.current_customers} 台</span>
                 <span style="color: #fff; font-weight: 600;">${co.customer_completion}%</span>
+            </div>
+            <div style="font-size: 10px; color: ${co.customer_completion >= 100 ? '#4ade80' : '#fbbf24'}; margin-bottom: 8px;">
+                ${co.customer_completion >= 100 ? '&#10004; 已达标' : `&#9888; 还差 ${custGap} 台 才能达标`}
+            </div>
+            <div style="display: flex; gap: 4px; align-items: flex-end; height: 44px;">
+                ${monthlyCompletion.map(m => `
+                    <div style="flex:1; text-align:center;">
+                        <div class="sparkline-bar" style="background:${m.color}; height:${m.h * 0.7}px;" title="${m.month}"></div>
+                        <div style="color:#6b7689;font-size:8px;margin-top:2px;">${m.month}</div>
+                    </div>
+                `).join('')}
             </div>
         </div>
     `;
@@ -1516,6 +1820,32 @@ function renderManagerProfit() {
             <td><span class="status-pill ${statusColor}">${p.profit_status === '绿' ? '🟢' : p.profit_status === '黄' ? '🟡' : '🔴'}</span></td>
         </tr>`;
     }).join('');
+
+    // P1: 6月盈亏趋势图
+    (function(){
+        const el = document.getElementById('m-chart-profit-6m');
+        if (!el) return;
+        echarts.dispose(el);
+        const agg = computeMonthlyAggregates();
+        const months = agg.months.map(m => m.substring(2));
+        const revenueData = agg.months.map(m => +(agg.revenue[m]/10000).toFixed(2));
+        const costData = agg.months.map(m => +(agg.costs[m]/10000).toFixed(2));
+        const profitData = agg.months.map(m => +(agg.profit[m]/10000).toFixed(2));
+        const chart = echarts.init(el);
+        chart.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['收入','成本','利润'], textStyle: { color: '#8a96a8', fontSize: 11 }, top: 0 },
+            grid: { left: 55, right: 20, top: 35, bottom: 30 },
+            xAxis: { type: 'category', data: months, axisLabel: { color: '#8a96a8', fontSize: 10 }, axisLine: { lineStyle: { color: '#2a3548' } } },
+            yAxis: { type: 'value', name: '万元', nameTextStyle: { color: '#8a96a8', fontSize: 10 }, axisLabel: { color: '#8a96a8' }, splitLine: { lineStyle: { color: '#1f2937' } } },
+            series: [
+                { name: '收入', type: 'bar', data: revenueData, itemStyle: { color: '#60a5fa', borderRadius: [4,4,0,0] }, barGap: '20%', barWidth: '25%' },
+                { name: '成本', type: 'bar', data: costData, itemStyle: { color: '#f87171', borderRadius: [4,4,0,0] }, barWidth: '25%' },
+                { name: '利润', type: 'line', data: profitData, smooth: true, itemStyle: { color: '#4ade80' }, lineStyle: { width: 2 }, symbol: 'circle', symbolSize: 6 }
+            ]
+        });
+    })();
 }
 
 // ============= 站长视图 =============
@@ -1878,6 +2208,23 @@ function renderStationProfit() {
 // ============= 启动 =============
 if (typeof RAW_DATA !== 'undefined') {
     RAW = RAW_DATA;
+
+    // P2: 数据后处理 — 销售机会补充负责人和阶段
+    const oppPersons = ['吴海涛','徐丽敏','张志强','李建国','王晓东','陈伟民','刘晓燕','赵明华','黄志刚','周丽华'];
+    const oppStages = {
+        '已签约': '已签约',
+        '进行中': ['初步接触','方案报价','商务谈判'],
+        '待评估': '线索'
+    };
+    RAW.sales_opportunities.forEach((o, i) => {
+        o.responsible_person = o.responsible_person || oppPersons[i % oppPersons.length];
+        if (!o.pipeline_stage) {
+            if (o.status === '已签约') o.pipeline_stage = '已签约';
+            else if (o.status === '进行中') o.pipeline_stage = oppStages['进行中'][i % 3];
+            else o.pipeline_stage = '线索';
+        }
+    });
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => { switchRole(); });
     } else {
