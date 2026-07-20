@@ -19,7 +19,7 @@ import Strategy from "./pages/Strategy"
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{background: "#faf7f2"}}>
       <Navbar />
       <main className="flex-1">
         <Routes>

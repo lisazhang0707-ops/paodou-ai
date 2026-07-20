@@ -19,33 +19,33 @@ function Blog() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
       <div className="mb-12">
-        <h1 className="text-3xl font-black text-slate-100 mb-3">文章</h1>
-        <p className="text-slate-400">销售 × AI 的实操案例、工具教程与学习笔记</p>
+        <h1 className="text-3xl font-black text-[#3d3835] mb-3">文章</h1>
+        <p className="text-[#8a827c]">销售 × AI 的实操案例、工具教程与学习笔记</p>
       </div>
 
       {posts.length === 0 ? (
         <div className="text-center py-20">
           <div className="text-5xl mb-4">📝</div>
-          <p className="text-slate-400 text-lg">文章即将上线</p>
-          <p className="text-slate-300 text-sm mt-2">正在整理实操案例和工具教程，敬请期待</p>
+          <p className="text-[#8a827c] text-lg">文章即将上线</p>
+          <p className="text-[#6b6560] text-sm mt-2">正在整理实操案例和工具教程，敬请期待</p>
         </div>
       ) : (
         <div className="space-y-8">
           {posts.map((post) => (
-            <article key={post.slug} className="group pb-8 border-b border-slate-800 last:border-0">
+            <article key={post.slug} className="group pb-8 border-b border-[#e8e3dc] last:border-0">
               <div className="flex gap-2 mb-3">
                 {post.tags.map((tag) => (
-                  <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-medium">
+                  <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-[#c2785e]/10 text-[#c2785e] font-medium">
                     {tag}
                   </span>
                 ))}
               </div>
               <Link to={`/blog/${post.slug}`} className="block">
-                <h2 className="text-xl font-bold text-slate-100 mb-2 group-hover:text-blue-400 transition-colors">
+                <h2 className="text-xl font-bold text-[#3d3835] mb-2 group-hover:text-[#c2785e] transition-colors">
                   {post.title}
                 </h2>
-                <p className="text-slate-400 mb-3 leading-relaxed">{post.summary}</p>
-                <time className="text-sm text-slate-500">{post.date}</time>
+                <p className="text-[#8a827c] mb-3 leading-relaxed">{post.summary}</p>
+                <time className="text-sm text-[#b8b0a8]">{post.date}</time>
               </Link>
             </article>
           ))}
@@ -136,7 +136,7 @@ function BlogPost() {
   if (!content) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-16">
-        <p className="text-slate-400">加载中...</p>
+        <p className="text-[#8a827c]">加载中...</p>
       </div>
     )
   }
@@ -145,7 +145,7 @@ function BlogPost() {
     return (
       <div className="max-w-3xl mx-auto px-6 py-16 text-center">
         <div className="text-5xl mb-4">😕</div>
-        <p className="text-slate-400 text-lg">文章不存在或已被删除</p>
+        <p className="text-[#8a827c] text-lg">文章不存在或已被删除</p>
         <Link to="/blog" className="text-blue-600 hover:underline mt-4 inline-block">返回文章列表</Link>
       </div>
     )
@@ -153,7 +153,7 @@ function BlogPost() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
-      <Link to="/blog" className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-200 text-sm mb-8 transition-colors">
+      <Link to="/blog" className="inline-flex items-center gap-1 text-[#8a827c] hover:text-[#3d3835] text-sm mb-8 transition-colors">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
@@ -182,9 +182,9 @@ function BlogPost() {
                 ),
                 blockquote: ({ children }) => {
                   const text = String(children)
-                  let variant = "border-blue-500 bg-blue-500/5"
+                  let variant = "border-blue-500 bg-[#c2785e]/5"
                   if (text.includes("⚠️")) variant = "border-amber-500 bg-amber-500/5"
-                  else if (text.includes("💡") || text.includes("📌")) variant = "border-blue-500 bg-blue-500/5"
+                  else if (text.includes("💡") || text.includes("📌")) variant = "border-blue-500 bg-[#c2785e]/5"
                   else if (text.includes("✅")) variant = "border-green-500 bg-green-500/5"
                   return (
                     <blockquote className={`border-l-4 ${variant} rounded-r-xl p-4 my-5`}>
@@ -193,7 +193,7 @@ function BlogPost() {
                   )
                 },
                 a: ({ href, children }) => (
-                  <a href={href} target={href?.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                  <a href={href} target={href?.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="text-[#c2785e] hover:underline">
                     {children}
                   </a>
                 ),
@@ -212,7 +212,7 @@ function BlogPost() {
             </div>
             <div className="relative">
               <p className="text-lg font-semibold mb-2">觉得有用？</p>
-              <p className="text-slate-300 mb-4">扫码加 Lisa 微信，获取更多销售 × AI 的实操内容</p>
+              <p className="text-[#6b6560] mb-4">扫码加 Lisa 微信，获取更多销售 × AI 的实操内容</p>
               <Link to="/collaborate" className="inline-block px-6 py-2.5 bg-white text-slate-800 rounded-full font-medium hover:bg-slate-100 transition-colors">
                 了解更多合作方式
               </Link>
@@ -224,7 +224,7 @@ function BlogPost() {
         {toc.length > 0 && (
           <aside className="hidden lg:block w-56 flex-shrink-0">
             <div className="sticky top-24">
-              <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">目录</h4>
+              <h4 className="text-sm font-semibold text-[#8a827c] uppercase tracking-wider mb-3">目录</h4>
               <nav className="space-y-0.5">
                 {toc.map((item) => (
                   <a
@@ -233,7 +233,7 @@ function BlogPost() {
                     className={`toc-link block text-sm py-1.5 transition-colors ${
                       item.level === 1 ? "pl-0 font-medium" : item.level === 2 ? "pl-3" : "pl-6"
                     } ${
-                      activeId === item.slug ? "text-blue-400 font-medium" : "text-slate-500 hover:text-slate-300"
+                      activeId === item.slug ? "text-[#c2785e] font-medium" : "text-[#b8b0a8] hover:text-[#6b6560]"
                     }`}
                     onClick={(e) => {
                       e.preventDefault()

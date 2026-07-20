@@ -96,8 +96,8 @@ export default function CustomerDashboard() {
     <div>
       <DashboardNav />
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-black text-slate-100 mb-1">客户价值分析</h1>
-        <p className="text-sm text-slate-400 mb-8">RFM 分层 · LTV 预测 · 流失预警</p>
+        <h1 className="text-2xl font-black text-[#3d3835] mb-1">客户价值分析</h1>
+        <p className="text-sm text-[#8a827c] mb-8">RFM 分层 · LTV 预测 · 流失预警</p>
 
         {/* KPI 概要 */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
@@ -107,9 +107,9 @@ export default function CustomerDashboard() {
             { label: "流失风险", value: churnRisky.length, unit: "家" },
             { label: "VIP 客户", value: rfmGroups[0]?.count || 0, unit: "家" },
           ].map((k) => (
-            <div key={k.label} className="p-4 rounded-2xl border border-slate-800 bg-slate-900">
-              <div className="text-xs text-slate-500 mb-1">{k.label}</div>
-              <div className="text-xl font-black text-slate-100">
+            <div key={k.label} className="p-4 rounded-2xl border border-[#e8e3dc] bg-white">
+              <div className="text-xs text-[#b8b0a8] mb-1">{k.label}</div>
+              <div className="text-xl font-black text-[#3d3835]">
                 {k.unit === "万元" ? `${(k.value / 10000).toFixed(1)}万` : `${k.value}${k.unit}`}
               </div>
             </div>
@@ -119,8 +119,8 @@ export default function CustomerDashboard() {
         {/* RFM 图表 */}
         {customers.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900">
-              <h3 className="text-sm font-bold text-slate-300 mb-4">RFM 客户分层</h3>
+            <div className="p-5 rounded-2xl border border-[#e8e3dc] bg-white">
+              <h3 className="text-sm font-bold text-[#6b6560] mb-4">RFM 客户分层</h3>
               <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
                   <Pie data={rfmGroups} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ payload }: any) => `${payload.name}: ${payload.count}`}>
@@ -132,11 +132,11 @@ export default function CustomerDashboard() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900">
-              <h3 className="text-sm font-bold text-slate-300 mb-4">各层收入贡献（万元）</h3>
+            <div className="p-5 rounded-2xl border border-[#e8e3dc] bg-white">
+              <h3 className="text-sm font-bold text-[#6b6560] mb-4">各层收入贡献（万元）</h3>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={rfmGroups}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e8e3dc" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
@@ -153,19 +153,19 @@ export default function CustomerDashboard() {
 
         {/* 流失预警 */}
         {churnRisky.length > 0 && (
-          <div className="mb-8 p-5 rounded-2xl border border-red-500/20 bg-red-500/5">
-            <h3 className="text-sm font-bold text-red-400 mb-3">流失预警（{churnRisky.length}家）</h3>
+          <div className="mb-8 p-5 rounded-2xl border border-red-200 bg-red-50/50">
+            <h3 className="text-sm font-bold text-red-500 mb-3">流失预警（{churnRisky.length}家）</h3>
             <div className="space-y-2">
               {churnRisky.slice(0, 10).map((c) => (
-                <div key={c.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-xl">
+                <div key={c.id} className="flex items-center justify-between p-3 bg-[#f5f0ea] rounded-xl">
                   <div>
-                    <span className="font-medium text-slate-200">{c.name}</span>
-                    <span className="text-xs text-slate-500 ml-2">{c.segment}</span>
+                    <span className="font-medium text-[#3d3835]">{c.name}</span>
+                    <span className="text-xs text-[#b8b0a8] ml-2">{c.segment}</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-xs text-slate-400">{Math.round(c.daysSinceLast)}天未下单</span>
+                    <span className="text-xs text-[#8a827c]">{Math.round(c.daysSinceLast)}天未下单</span>
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      c.churnScore >= 0.6 ? "text-red-400 bg-red-500/10" : "text-amber-400 bg-amber-500/10"
+                      c.churnScore >= 0.6 ? "text-red-500 bg-red-500/10" : "text-amber-600 bg-amber-500/10"
                     }`}>
                       风险 {(c.churnScore * 100).toFixed(0)}%
                     </span>
@@ -178,34 +178,34 @@ export default function CustomerDashboard() {
 
         {/* LTV 排行 */}
         {ltvs.length > 0 && (
-          <div className="mb-8 p-5 rounded-2xl border border-slate-800 bg-slate-900">
-            <h3 className="text-sm font-bold text-slate-300 mb-4">客户 LTV 预估 Top 10</h3>
+          <div className="mb-8 p-5 rounded-2xl border border-[#e8e3dc] bg-white">
+            <h3 className="text-sm font-bold text-[#6b6560] mb-4">客户 LTV 预估 Top 10</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-800">
+                <thead className="bg-[#f5f0ea]">
                   <tr>
-                    <th className="text-left px-4 py-2 font-medium text-slate-400">客户名称</th>
-                    <th className="text-left px-4 py-2 font-medium text-slate-400">RFM 层级</th>
-                    <th className="text-right px-4 py-2 font-medium text-slate-400">客单价</th>
-                    <th className="text-right px-4 py-2 font-medium text-slate-400">累计收入</th>
-                    <th className="text-right px-4 py-2 font-medium text-slate-400">预估 LTV</th>
+                    <th className="text-left px-4 py-2 font-medium text-[#8a827c]">客户名称</th>
+                    <th className="text-left px-4 py-2 font-medium text-[#8a827c]">RFM 层级</th>
+                    <th className="text-right px-4 py-2 font-medium text-[#8a827c]">客单价</th>
+                    <th className="text-right px-4 py-2 font-medium text-[#8a827c]">累计收入</th>
+                    <th className="text-right px-4 py-2 font-medium text-[#8a827c]">预估 LTV</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ltvs.slice(0, 10).map((c) => (
-                    <tr key={c.id} className="border-t border-slate-800 hover:bg-slate-800/50">
-                      <td className="px-4 py-2 font-medium text-slate-200">{c.name}</td>
+                    <tr key={c.id} className="border-t border-[#e8e3dc] hover:bg-[#f5f0ea]">
+                      <td className="px-4 py-2 font-medium text-[#3d3835]">{c.name}</td>
                       <td className="px-4 py-2">
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          c.ltv > 500000 ? "bg-blue-500/10 text-blue-400" :
-                          c.ltv > 100000 ? "bg-emerald-500/10 text-emerald-400" : "bg-slate-800 text-slate-400"
+                          c.ltv > 500000 ? "bg-[#c2785e]/10 text-[#c2785e]" :
+                          c.ltv > 100000 ? "bg-emerald-50 text-emerald-600" : "bg-[#f5f0ea] text-[#8a827c]"
                         }`}>
                           {classifyRfm(c).segment}
                         </span>
                       </td>
-                      <td className="px-4 py-2 text-right text-slate-300">{(c.avgOrderValue / 10000).toFixed(1)}万</td>
-                      <td className="px-4 py-2 text-right text-slate-300">{(c.totalRevenue / 10000).toFixed(1)}万</td>
-                      <td className="px-4 py-2 text-right font-bold text-blue-400">{(c.ltv / 10000).toFixed(1)}万</td>
+                      <td className="px-4 py-2 text-right text-[#6b6560]">{(c.avgOrderValue / 10000).toFixed(1)}万</td>
+                      <td className="px-4 py-2 text-right text-[#6b6560]">{(c.totalRevenue / 10000).toFixed(1)}万</td>
+                      <td className="px-4 py-2 text-right font-bold text-[#c2785e]">{(c.ltv / 10000).toFixed(1)}万</td>
                     </tr>
                   ))}
                 </tbody>
@@ -215,8 +215,8 @@ export default function CustomerDashboard() {
         )}
 
         {/* 添加/编辑表单 */}
-        <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900 mb-8">
-          <h3 className="text-sm font-bold text-slate-300 mb-4">{editing ? "编辑客户" : "添加客户"}</h3>
+        <div className="p-5 rounded-2xl border border-[#e8e3dc] bg-white mb-8">
+          <h3 className="text-sm font-bold text-[#6b6560] mb-4">{editing ? "编辑客户" : "添加客户"}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
             {[
               { key: "name", label: "名称", type: "text" },
@@ -229,12 +229,12 @@ export default function CustomerDashboard() {
               { key: "lastOrderDate", label: "最后下单", type: "date" },
             ].map((f) => (
               <label key={f.key} className="block">
-                <span className="text-[11px] text-slate-400">{f.label}</span>
+                <span className="text-[11px] text-[#8a827c]">{f.label}</span>
                 <input
                   type={f.type}
                   value={(form as any)[f.key]}
                   onChange={(e) => setForm({ ...form, [f.key]: f.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value })}
-                  className="w-full mt-1 px-2 py-1.5 text-sm border border-slate-700 bg-slate-800 text-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full mt-1 px-2 py-1.5 text-sm border border-[#e8e3dc] bg-white text-[#3d3835] rounded-lg focus:outline-none focus:border-blue-500"
                 />
               </label>
             ))}
@@ -244,7 +244,7 @@ export default function CustomerDashboard() {
               {editing ? "更新" : "添加"}
             </button>
             {editing && (
-              <button onClick={() => { setForm(emptyCustomer()); setEditing(false); }} className="px-4 py-2 text-sm font-medium text-slate-400 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
+              <button onClick={() => { setForm(emptyCustomer()); setEditing(false); }} className="px-4 py-2 text-sm font-medium text-[#8a827c] bg-[#f5f0ea] hover:bg-[#f0ebe4] rounded-xl transition-colors">
                 取消
               </button>
             )}
@@ -253,12 +253,12 @@ export default function CustomerDashboard() {
 
         {/* 客户列表 */}
         {customers.length > 0 && (
-          <div className="overflow-x-auto rounded-2xl border border-slate-800">
+          <div className="overflow-x-auto rounded-2xl border border-[#e8e3dc]">
             <table className="w-full text-sm">
-              <thead className="bg-slate-800">
+              <thead className="bg-[#f5f0ea]">
                 <tr>
                   {["名称", "行业", "RFM层级", "累计收入", "订单数", "客单价", "最后下单", "操作"].map((h) => (
-                    <th key={h} className="text-left px-4 py-2 font-medium text-slate-400 whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left px-4 py-2 font-medium text-[#8a827c] whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -266,14 +266,14 @@ export default function CustomerDashboard() {
                 {customers.map((c) => {
                   const { segment } = classifyRfm(c);
                   return (
-                    <tr key={c.id} className="border-t border-slate-800 hover:bg-slate-800/50">
-                      <td className="px-4 py-2 font-medium text-slate-200">{c.name}</td>
-                      <td className="px-4 py-2 text-slate-400">{c.segment}</td>
+                    <tr key={c.id} className="border-t border-[#e8e3dc] hover:bg-[#f5f0ea]">
+                      <td className="px-4 py-2 font-medium text-[#3d3835]">{c.name}</td>
+                      <td className="px-4 py-2 text-[#8a827c]">{c.segment}</td>
                       <td className="px-4 py-2">
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          segment === "VIP" ? "bg-blue-500/10 text-blue-400" :
-                          segment === "高价值" ? "bg-emerald-500/10 text-emerald-400" :
-                          segment === "中价值" ? "bg-amber-500/10 text-amber-400" : "bg-slate-800 text-slate-400"
+                          segment === "VIP" ? "bg-[#c2785e]/10 text-[#c2785e]" :
+                          segment === "高价值" ? "bg-emerald-50 text-emerald-600" :
+                          segment === "中价值" ? "bg-amber-50 text-amber-600" : "bg-[#f5f0ea] text-[#8a827c]"
                         }`}>{segment}</span>
                       </td>
                       <td className="px-4 py-2">{(c.totalRevenue / 10000).toFixed(1)}万</td>
@@ -281,8 +281,8 @@ export default function CustomerDashboard() {
                       <td className="px-4 py-2">{(c.avgOrderValue / 10000).toFixed(1)}万</td>
                       <td className="px-4 py-2">{c.lastOrderDate}</td>
                       <td className="px-4 py-2">
-                        <button onClick={() => handleEdit(c)} className="text-blue-400 hover:underline mr-2">编辑</button>
-                        <button onClick={() => handleDelete(c.id)} className="text-red-400 hover:underline">删除</button>
+                        <button onClick={() => handleEdit(c)} className="text-[#c2785e] hover:underline mr-2">编辑</button>
+                        <button onClick={() => handleDelete(c.id)} className="text-red-500 hover:underline">删除</button>
                       </td>
                     </tr>
                   );

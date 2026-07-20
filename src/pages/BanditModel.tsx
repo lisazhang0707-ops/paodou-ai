@@ -58,42 +58,42 @@ export default function BanditModel() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-black text-slate-100 mb-2">多臂老虎机 — A/B 测试预算分配</h1>
-      <p className="text-slate-400 mb-4">自动探索 vs 利用：用 Thompson Sampling 动态分配营销预算到转化率最高的渠道</p>
-      <div className="mb-8 p-4 rounded-xl bg-slate-800 text-sm text-slate-400">
-        <span className="font-medium text-slate-300">模型来源：</span>《模型思维》第 27 章 — 多臂老虎机问题。平衡探索新选项（explore）和利用已知最优解（exploit），最大化长期收益。
+      <h1 className="text-3xl font-black text-[#3d3835] mb-2">多臂老虎机 — A/B 测试预算分配</h1>
+      <p className="text-[#8a827c] mb-4">自动探索 vs 利用：用 Thompson Sampling 动态分配营销预算到转化率最高的渠道</p>
+      <div className="mb-8 p-4 rounded-xl bg-[#f5f0ea] text-sm text-[#8a827c]">
+        <span className="font-medium text-[#6b6560]">模型来源：</span>《模型思维》第 27 章 — 多臂老虎机问题。平衡探索新选项（explore）和利用已知最优解（exploit），最大化长期收益。
       </div>
 
       <div className="grid md:grid-cols-2 gap-8 mb-10">
         <div className="space-y-5">
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-slate-400">总预算 (¥)</span>
-              <span className="font-semibold text-slate-100">{budget.toLocaleString()}</span>
+              <span className="text-[#8a827c]">总预算 (¥)</span>
+              <span className="font-semibold text-[#3d3835]">{budget.toLocaleString()}</span>
             </div>
             <input
               type="range" min={1000} max={100000} step={1000} value={budget}
               onChange={(e) => setBudget(Number(e.target.value))}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-full h-2 bg-[#f5f0ea] rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
           </div>
           <div>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-slate-400">探索比例 (Explore %)</span>
-              <span className="font-semibold text-slate-100">{(exploreRatio * 100).toFixed(0)}%</span>
+              <span className="text-[#8a827c]">探索比例 (Explore %)</span>
+              <span className="font-semibold text-[#3d3835]">{(exploreRatio * 100).toFixed(0)}%</span>
             </div>
             <input
               type="range" min={1} max={50} step={1} value={exploreRatio * 100}
               onChange={(e) => setExploreRatio(Number(e.target.value) / 100)}
-              className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-full h-2 bg-[#f5f0ea] rounded-lg appearance-none cursor-pointer accent-blue-600"
             />
           </div>
 
           <div className="pt-2">
-            <h3 className="text-sm font-semibold text-slate-300 mb-3">渠道真实转化率（隐藏值，仅用于模拟）</h3>
+            <h3 className="text-sm font-semibold text-[#6b6560] mb-3">渠道真实转化率（隐藏值，仅用于模拟）</h3>
             {channels.map((c, i) => (
               <div key={c.name} className="flex items-center justify-between mb-2">
-                <span className="text-sm text-slate-400">{c.name}</span>
+                <span className="text-sm text-[#8a827c]">{c.name}</span>
                 <input
                   type="range" min={0.1} max={10} step={0.1} value={c.trueRate * 100}
                   onChange={(e) => {
@@ -101,9 +101,9 @@ export default function BanditModel() {
                     updated[i].trueRate = Number(e.target.value) / 100
                     setChannels(updated)
                   }}
-                  className="w-32 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  className="w-32 h-1.5 bg-[#f5f0ea] rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
-                <span className="text-sm font-mono text-slate-300 w-10 text-right">{(c.trueRate * 100).toFixed(1)}%</span>
+                <span className="text-sm font-mono text-[#6b6560] w-10 text-right">{(c.trueRate * 100).toFixed(1)}%</span>
               </div>
             ))}
           </div>
@@ -111,33 +111,33 @@ export default function BanditModel() {
 
         <div>
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-slate-800 text-center">
-              <p className="text-xl font-black text-blue-400">¥{results.totalReward.toLocaleString()}</p>
-              <p className="text-xs text-slate-400">实际收益</p>
+            <div className="p-3 rounded-xl bg-[#f5f0ea] text-center">
+              <p className="text-xl font-black text-[#c2785e]">¥{results.totalReward.toLocaleString()}</p>
+              <p className="text-xs text-[#8a827c]">实际收益</p>
             </div>
-            <div className="p-3 rounded-xl bg-slate-800 text-center">
-              <p className="text-xl font-black text-slate-100">¥{results.optimalReward.toLocaleString()}</p>
-              <p className="text-xs text-slate-400">完美决策收益</p>
+            <div className="p-3 rounded-xl bg-[#f5f0ea] text-center">
+              <p className="text-xl font-black text-[#3d3835]">¥{results.optimalReward.toLocaleString()}</p>
+              <p className="text-xs text-[#8a827c]">完美决策收益</p>
             </div>
-            <div className="p-3 rounded-xl bg-slate-800 text-center">
+            <div className="p-3 rounded-xl bg-[#f5f0ea] text-center">
               <p className="text-xl font-black text-red-500">¥{regret.toLocaleString()}</p>
-              <p className="text-xs text-slate-400">遗憾值 (Regret)</p>
+              <p className="text-xs text-[#8a827c]">遗憾值 (Regret)</p>
             </div>
-            <div className="p-3 rounded-xl bg-slate-800 text-center">
-              <p className="text-xl font-black text-emerald-400">{((results.totalReward / results.optimalReward) * 100).toFixed(1)}%</p>
-              <p className="text-xs text-slate-400">效率比</p>
+            <div className="p-3 rounded-xl bg-[#f5f0ea] text-center">
+              <p className="text-xl font-black text-emerald-600">{((results.totalReward / results.optimalReward) * 100).toFixed(1)}%</p>
+              <p className="text-xs text-[#8a827c]">效率比</p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-slate-300">各渠道学习结果</h3>
+            <h3 className="text-sm font-semibold text-[#6b6560]">各渠道学习结果</h3>
             {results.finalState.map((c) => (
-              <div key={c.name} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800">
-                <span className="text-sm font-medium text-slate-300">{c.name}</span>
-                <div className="flex gap-3 text-xs text-slate-400">
+              <div key={c.name} className="flex items-center justify-between p-2.5 rounded-lg bg-[#f5f0ea]">
+                <span className="text-sm font-medium text-[#6b6560]">{c.name}</span>
+                <div className="flex gap-3 text-xs text-[#8a827c]">
                   <span>尝试 {c.trials} 次</span>
                   <span>成功 {c.successes} 次</span>
-                  <span className="font-semibold text-slate-300">
+                  <span className="font-semibold text-[#6b6560]">
                     估计 {(c.successes / Math.max(c.trials, 1) * 100).toFixed(1)}%
                   </span>
                 </div>
