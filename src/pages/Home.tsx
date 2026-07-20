@@ -87,30 +87,30 @@ export default function Home() {
       {/* Hero */}
       <section className="relative min-h-[70vh] flex flex-col items-center justify-center text-center px-6 py-24 overflow-hidden">
         {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-white -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-slate-950 -z-10" />
 
         {/* Hero SVG illustration */}
         <div className="absolute inset-0 -z-10 opacity-[0.03]">
           <svg viewBox="0 0 1200 800" fill="none">
-            <rect x="100" y="100" width="300" height="300" rx="16" stroke="currentColor" strokeWidth="2" className="text-slate-900" />
-            <rect x="430" y="130" width="300" height="240" rx="16" stroke="currentColor" strokeWidth="2" className="text-slate-900" />
-            <rect x="760" y="70" width="340" height="360" rx="16" stroke="currentColor" strokeWidth="2" className="text-slate-900" />
-            <circle cx="250" cy="520" r="80" stroke="currentColor" strokeWidth="2" className="text-blue-600" />
-            <circle cx="600" cy="550" r="60" stroke="currentColor" strokeWidth="2" className="text-blue-600" />
-            <circle cx="900" cy="500" r="100" stroke="currentColor" strokeWidth="2" className="text-blue-600" />
-            <line x1="50" y1="650" x2="1150" y2="650" stroke="currentColor" strokeWidth="1" strokeDasharray="8 8" className="text-slate-300" />
-            <path d="M200 400 L350 250 L500 350 L600 200" stroke="currentColor" strokeWidth="2" className="text-blue-600" opacity="0.5" />
-            <path d="M650 380 L800 280 L950 400" stroke="currentColor" strokeWidth="2" className="text-blue-600" opacity="0.5" />
+            <rect x="100" y="100" width="300" height="300" rx="16" stroke="currentColor" strokeWidth="2" className="text-slate-700" />
+            <rect x="430" y="130" width="300" height="240" rx="16" stroke="currentColor" strokeWidth="2" className="text-slate-700" />
+            <rect x="760" y="70" width="340" height="360" rx="16" stroke="currentColor" strokeWidth="2" className="text-slate-700" />
+            <circle cx="250" cy="520" r="80" stroke="currentColor" strokeWidth="2" className="text-blue-500/30" />
+            <circle cx="600" cy="550" r="60" stroke="currentColor" strokeWidth="2" className="text-blue-500/30" />
+            <circle cx="900" cy="500" r="100" stroke="currentColor" strokeWidth="2" className="text-blue-500/30" />
+            <line x1="50" y1="650" x2="1150" y2="650" stroke="currentColor" strokeWidth="1" strokeDasharray="8 8" className="text-slate-700" />
+            <path d="M200 400 L350 250 L500 350 L600 200" stroke="currentColor" strokeWidth="2" className="text-blue-500/30" opacity="0.5" />
+            <path d="M650 380 L800 280 L950 400" stroke="currentColor" strokeWidth="2" className="text-blue-500/30" opacity="0.5" />
           </svg>
         </div>
 
-        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium bg-blue-50 text-blue-700 mb-8">
+        <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium bg-blue-500/10 text-blue-400 mb-8">
           <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
           AI 驱动的销售与营销
         </span>
 
-        <h1 className="text-5xl md:text-7xl font-black tracking-tight text-slate-900 mb-6">
-          跑豆<span className="text-blue-600">AI</span>
+        <h1 className="text-5xl md:text-7xl font-black tracking-tight text-slate-100 mb-6">
+          跑豆<span className="text-blue-400">AI</span>
         </h1>
 
         <p className="text-xl md:text-2xl text-slate-400 font-light max-w-xl mb-12 leading-relaxed">
@@ -123,12 +123,12 @@ export default function Home() {
             <Link
               key={m.to}
               to={m.to}
-              className="group p-6 rounded-2xl border border-slate-100 bg-white hover:border-blue-100 hover:shadow-lg hover:shadow-slate-100 transition-all text-left"
+              className="group p-6 rounded-2xl border border-slate-800 bg-slate-900 hover:border-slate-700 hover:shadow-lg hover:shadow-black/30 transition-all text-left"
             >
-              <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-slate-800 text-slate-400 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 {m.icon}
               </div>
-              <h3 className="font-bold text-slate-900 mb-1">{m.title}</h3>
+              <h3 className="font-bold text-slate-100 mb-1">{m.title}</h3>
               <p className="text-sm text-slate-400 leading-relaxed">{m.desc}</p>
             </Link>
           ))}
@@ -140,9 +140,9 @@ export default function Home() {
         <section className="px-6 pb-24">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
-              <div className="h-px flex-1 bg-slate-100" />
-              <h2 className="text-lg font-bold text-slate-800 whitespace-nowrap">作品展示</h2>
-              <div className="h-px flex-1 bg-slate-100" />
+              <div className="h-px flex-1 bg-slate-800" />
+              <h2 className="text-lg font-bold text-slate-200 whitespace-nowrap">作品展示</h2>
+              <div className="h-px flex-1 bg-slate-800" />
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -152,13 +152,13 @@ export default function Home() {
                   href={p.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group p-6 rounded-2xl border border-slate-100 bg-white hover:border-blue-100 hover:shadow-lg transition-all"
+                  className="group p-6 rounded-2xl border border-slate-800 bg-slate-900 hover:border-slate-700 hover:shadow-lg transition-all"
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-bold text-slate-100 group-hover:text-blue-400 transition-colors">
                       {p.title}
                     </h3>
-                    <svg className="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
                     </svg>
                   </div>

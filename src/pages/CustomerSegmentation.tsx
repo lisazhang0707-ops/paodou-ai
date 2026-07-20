@@ -29,9 +29,9 @@ function classify(r: number, f: number, m: number): string {
 }
 
 const segmentColors: Record<string, string> = {
-  "高价值客户": "bg-emerald-50 text-emerald-700",
-  "潜力客户": "bg-amber-50 text-amber-700",
-  "流失风险": "bg-red-50 text-red-700",
+  "高价值客户": "bg-emerald-500/10 text-emerald-400",
+  "潜力客户": "bg-amber-500/10 text-amber-400",
+  "流失风险": "bg-red-500/10 text-red-400",
 }
 
 export default function CustomerSegmentation() {
@@ -46,13 +46,13 @@ export default function CustomerSegmentation() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-black text-slate-900 mb-2">客户分层模板</h1>
+      <h1 className="text-3xl font-black text-slate-100 mb-2">客户分层模板</h1>
       <p className="text-slate-400 mb-10">基于 RFM 模型（最近购买时间、购买频率、消费金额）自动给客户打分分层</p>
 
       <div className="grid sm:grid-cols-3 gap-4 mb-10">
         {Object.entries(counts).map(([segment, count]) => (
-          <div key={segment} className="p-6 rounded-2xl bg-white border border-slate-100 text-center">
-            <p className="text-3xl font-black text-slate-900">{count}</p>
+          <div key={segment} className="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-center">
+            <p className="text-3xl font-black text-slate-100">{count}</p>
             <p className="text-sm text-slate-400 mt-1">{segment}</p>
           </div>
         ))}
@@ -72,10 +72,10 @@ export default function CustomerSegmentation() {
           <tbody>
             {customers.map((c) => (
               <tr key={c.id} className="border-b border-slate-50">
-                <td className="py-3 font-medium text-slate-900">{c.name}</td>
-                <td className="py-3 text-slate-500">{c.recency} 天</td>
-                <td className="py-3 text-slate-500">{c.frequency} 次</td>
-                <td className="py-3 text-slate-500">¥{c.monetary.toLocaleString()}</td>
+                <td className="py-3 font-medium text-slate-100">{c.name}</td>
+                <td className="py-3 text-slate-400">{c.recency} 天</td>
+                <td className="py-3 text-slate-400">{c.frequency} 次</td>
+                <td className="py-3 text-slate-400">¥{c.monetary.toLocaleString()}</td>
                 <td className="py-3">
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${segmentColors[c.segment]}`}>
                     {c.segment}
@@ -87,8 +87,8 @@ export default function CustomerSegmentation() {
         </table>
       </div>
 
-      <div className="mt-8 p-4 rounded-xl bg-slate-50 text-sm text-slate-400">
-        <p className="font-medium text-slate-600 mb-1">分层逻辑说明</p>
+      <div className="mt-8 p-4 rounded-xl bg-slate-800 text-sm text-slate-400">
+        <p className="font-medium text-slate-300 mb-1">分层逻辑说明</p>
         <p>RFM 模型：根据最近购买时间 (Recency)、购买频次 (Frequency)、消费金额 (Monetary) 三个维度打分，每个维度 1-3 分。总分 8-9 分为高价值客户，5-7 分为潜力客户，3-4 分为流失风险。</p>
       </div>
 

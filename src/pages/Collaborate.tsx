@@ -1,7 +1,7 @@
 export default function Collaborate() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-black text-slate-900 mb-3">合作</h1>
+      <h1 className="text-3xl font-black text-slate-100 mb-3">合作</h1>
       <p className="text-slate-400 mb-12">为销售团队和营销人提供 AI 落地的咨询、培训与工具定制</p>
 
       <div className="space-y-6 mb-16">
@@ -22,10 +22,10 @@ export default function Collaborate() {
             price: "按需报价",
           },
         ].map((s) => (
-          <div key={s.title} className="p-6 rounded-2xl border border-slate-100 bg-white hover:border-blue-100 transition-colors">
+          <div key={s.title} className="p-6 rounded-2xl border border-slate-800 bg-slate-900 hover:border-slate-700 transition-colors">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-xl font-bold text-slate-900">{s.title}</h3>
-              <span className="text-blue-600 font-semibold text-sm whitespace-nowrap ml-4">{s.price}</span>
+              <h3 className="text-xl font-bold text-slate-100">{s.title}</h3>
+              <span className="text-blue-400 font-semibold text-sm whitespace-nowrap ml-4">{s.price}</span>
             </div>
             <p className="text-slate-400 leading-relaxed">{s.desc}</p>
           </div>

@@ -49,10 +49,10 @@ export default function DiffusionModel() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-black text-slate-900 mb-2">营销传播扩散模型</h1>
+      <h1 className="text-3xl font-black text-slate-100 mb-2">营销传播扩散模型</h1>
       <p className="text-slate-400 mb-4">基于 SIR 传染病模型，模拟营销信息在目标人群中的传播过程</p>
-      <div className="mb-8 p-4 rounded-xl bg-slate-50 text-sm text-slate-400">
-        <span className="font-medium text-slate-600">模型来源：</span>《模型思维》第 11 章 — 广播模型、扩散模型和传染模型。R₀ = 接触率 × 转化率 × 传播周期。
+      <div className="mb-8 p-4 rounded-xl bg-slate-800 text-sm text-slate-400">
+        <span className="font-medium text-slate-300">模型来源：</span>《模型思维》第 11 章 — 广播模型、扩散模型和传染模型。R₀ = 接触率 × 转化率 × 传播周期。
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -60,8 +60,8 @@ export default function DiffusionModel() {
           {inputs.map(({ label, value, set, step, min, max }) => (
             <div key={label}>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-slate-500">{label}</span>
-                <span className="font-semibold text-slate-900">{typeof value === "number" && value % 1 !== 0 ? value.toFixed(1) : value.toLocaleString()}</span>
+                <span className="text-slate-400">{label}</span>
+                <span className="font-semibold text-slate-100">{typeof value === "number" && value % 1 !== 0 ? value.toFixed(1) : value.toLocaleString()}</span>
               </div>
               <input
                 type="range"
@@ -70,16 +70,16 @@ export default function DiffusionModel() {
                 step={step}
                 value={value}
                 onChange={(e) => set(Number(e.target.value))}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
             </div>
           ))}
         </div>
 
         <div>
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-4">
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 mb-4">
             <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full">
-              <line x1="0" y1={chartHeight} x2={chartWidth} y2={chartHeight} stroke="#e2e8f0" strokeWidth="1" />
+              <line x1="0" y1={chartHeight} x2={chartWidth} y2={chartHeight} stroke="#334155" strokeWidth="1" />
               <path d={pathI} fill="none" stroke="#2563eb" strokeWidth="2" />
               {/* Peak marker */}
               {(() => {
@@ -89,27 +89,27 @@ export default function DiffusionModel() {
                   <>
                     <line x1={peakX} y1={peakY} x2={peakX} y2={chartHeight} stroke="#2563eb" strokeWidth="1" strokeDasharray="4 4" />
                     <circle cx={peakX} cy={peakY} r="3" fill="#2563eb" />
-                    <text x={peakX + 5} y={peakY - 5} fontSize="10" fill="#64748b">峰值 第{data.peakDay}天</text>
+                    <text x={peakX + 5} y={peakY - 5} fontSize="10" fill="#94a3b8">峰值 第{data.peakDay}天</text>
                   </>
                 )
               })()}
               <text x="0" y="10" fontSize="10" fill="#94a3b8">感染人数</text>
-              <text x={chartWidth - 30} y="10" fontSize="10" fill="#64748b">SIR 曲线</text>
+              <text x={chartWidth - 30} y="10" fontSize="10" fill="#94a3b8">SIR 曲线</text>
             </svg>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 rounded-xl bg-slate-50 text-center">
-              <p className={`text-xl font-black ${data.r0 >= 1 ? "text-red-600" : "text-emerald-600"}`}>{data.r0.toFixed(2)}</p>
+            <div className="p-3 rounded-xl bg-slate-800 text-center">
+              <p className={`text-xl font-black ${data.r0 >= 1 ? "text-red-400" : "text-emerald-400"}`}>{data.r0.toFixed(2)}</p>
               <p className="text-xs text-slate-400">R₀ (基本再生数)</p>
-              <p className="text-xs text-slate-300 mt-0.5">{data.r0 >= 1 ? "会扩散" : "不会扩散"}</p>
+              <p className="text-xs text-slate-500 mt-0.5">{data.r0 >= 1 ? "会扩散" : "不会扩散"}</p>
             </div>
-            <div className="p-3 rounded-xl bg-slate-50 text-center">
-              <p className="text-xl font-black text-slate-900">第{data.peakDay}天</p>
+            <div className="p-3 rounded-xl bg-slate-800 text-center">
+              <p className="text-xl font-black text-slate-100">第{data.peakDay}天</p>
               <p className="text-xs text-slate-400">感染峰值</p>
             </div>
-            <div className="p-3 rounded-xl bg-slate-50 text-center">
-              <p className="text-xl font-black text-blue-600">{Math.round(data.totalReached).toLocaleString()}</p>
+            <div className="p-3 rounded-xl bg-slate-800 text-center">
+              <p className="text-xl font-black text-blue-400">{Math.round(data.totalReached).toLocaleString()}</p>
               <p className="text-xs text-slate-400">总触达人数</p>
             </div>
           </div>

@@ -10,9 +10,9 @@ export default function DashboardNav() {
   const { pathname } = useLocation();
 
   return (
-    <div className="border-b border-slate-100 bg-white">
+    <div className="border-b border-slate-800 bg-slate-900">
       <div className="max-w-6xl mx-auto px-6 flex items-center gap-1 py-2 overflow-x-auto">
-        <span className="text-xs font-bold text-slate-300 mr-2 whitespace-nowrap">MBA 仪表盘</span>
+        <span className="text-xs font-bold text-slate-500 mr-2 whitespace-nowrap">MBA 仪表盘</span>
         {items.map((item) => {
           const active = pathname === item.to;
           return (
@@ -21,8 +21,8 @@ export default function DashboardNav() {
               to={item.to}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                 active
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                  ? "bg-blue-500/10 text-blue-400"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
               }`}
             >
               <span className="hidden sm:inline">{item.label}</span>
@@ -30,7 +30,7 @@ export default function DashboardNav() {
             </Link>
           );
         })}
-        <span className="text-[11px] text-slate-300 ml-2 whitespace-nowrap hidden sm:inline">M3-M5 即将上线</span>
+        <span className="text-[11px] text-slate-600 ml-2 whitespace-nowrap hidden sm:inline">M3-M5 即将上线</span>
       </div>
     </div>
   );

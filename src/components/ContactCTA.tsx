@@ -6,7 +6,7 @@ interface Props {
 
 export default function ContactCTA({ message = "想要定制化方案？" }: Props) {
   return (
-    <div className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-700 text-white text-center relative overflow-hidden">
+    <div className="mt-16 p-8 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-700 border border-slate-700 text-white text-center relative overflow-hidden">
       <div className="absolute right-0 top-0 w-48 h-48 opacity-10">
         <svg viewBox="0 0 200 200" fill="white">
           <circle cx="150" cy="50" r="80" />

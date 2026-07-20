@@ -72,7 +72,7 @@ export default function FinanceDashboard() {
     <div>
       <DashboardNav />
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-black text-slate-900 mb-1">财务健康</h1>
+        <h1 className="text-2xl font-black text-slate-100 mb-1">财务健康</h1>
         <p className="text-sm text-slate-400 mb-8">收入/成本/利润趋势 · 本量利分析 · 杜邦拆解</p>
 
         {/* KPI 概要 */}
@@ -83,9 +83,9 @@ export default function FinanceDashboard() {
             { label: "毛利率", value: records.length > 0 ? (records.reduce((s, r) => s + r.grossProfit, 0) / Math.max(1, records.reduce((s, r) => s + r.revenue, 0)) * 100) : 0, unit: "%" },
             { label: "记录数", value: records.length, unit: "月" },
           ].map((k) => (
-            <div key={k.label} className="p-4 rounded-2xl border border-slate-100 bg-white">
-              <div className="text-xs text-slate-400 mb-1">{k.label}</div>
-              <div className="text-xl font-black text-slate-900">
+            <div key={k.label} className="p-4 rounded-2xl border border-slate-800 bg-slate-900">
+              <div className="text-xs text-slate-500 mb-1">{k.label}</div>
+              <div className="text-xl font-black text-slate-100">
                 {k.unit === "%" ? `${k.value.toFixed(1)}%` : k.unit === "万元" ? `${(k.value / 10000).toFixed(1)}万` : k.value}
               </div>
             </div>
@@ -95,11 +95,11 @@ export default function FinanceDashboard() {
         {/* 图表 */}
         {chartData.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div className="p-5 rounded-2xl border border-slate-100 bg-white">
-              <h3 className="text-sm font-bold text-slate-700 mb-4">收入 / 成本 / 利润趋势</h3>
+            <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900">
+              <h3 className="text-sm font-bold text-slate-300 mb-4">收入 / 成本 / 利润趋势</h3>
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                   <XAxis dataKey="period" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
@@ -110,17 +110,17 @@ export default function FinanceDashboard() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="p-5 rounded-2xl border border-slate-100 bg-white">
-              <h3 className="text-sm font-bold text-slate-700 mb-4">预算 vs 实际</h3>
+            <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900">
+              <h3 className="text-sm font-bold text-slate-300 mb-4">预算 vs 实际</h3>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                   <XAxis dataKey="period" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="revenue" name="实际收入" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="budgetRevenue" name="预算收入" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="budgetRevenue" name="预算收入" fill="#475569" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -136,17 +136,17 @@ export default function FinanceDashboard() {
               { label: "经营杠杆系数", value: cvp.dol.toFixed(2) },
               { label: "边际贡献率", value: `${cvp.cmRatio.toFixed(1)}%` },
             ].map((item) => (
-              <div key={item.label} className="p-4 rounded-2xl border border-blue-100 bg-blue-50/50">
-                <div className="text-xs text-blue-600 mb-1">{item.label}</div>
-                <div className="text-xl font-black text-blue-800">{item.value}</div>
+              <div key={item.label} className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5">
+                <div className="text-xs text-blue-400 mb-1">{item.label}</div>
+                <div className="text-xl font-black text-blue-300">{item.value}</div>
               </div>
             ))}
           </div>
         )}
 
         {/* 录入表单 */}
-        <div className="p-5 rounded-2xl border border-slate-100 bg-white mb-8">
-          <h3 className="text-sm font-bold text-slate-700 mb-4">{editing ? "编辑记录" : "添加记录"}</h3>
+        <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900 mb-8">
+          <h3 className="text-sm font-bold text-slate-300 mb-4">{editing ? "编辑记录" : "添加记录"}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-4">
             {[
               { key: "period", label: "月份", type: "text", placeholder: "YYYY-MM" },
@@ -165,7 +165,7 @@ export default function FinanceDashboard() {
                   placeholder={f.placeholder}
                   value={(form as any)[f.key]}
                   onChange={(e) => setForm({ ...form, [f.key]: f.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value })}
-                  className="w-full mt-1 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:border-blue-400"
+                  className="w-full mt-1 px-2 py-1.5 text-sm border border-slate-700 bg-slate-800 text-slate-200 rounded-lg focus:outline-none focus:border-blue-500"
                 />
               </label>
             ))}
@@ -175,11 +175,11 @@ export default function FinanceDashboard() {
               {editing ? "更新" : "添加"}
             </button>
             {editing && (
-              <button onClick={() => { setForm(emptyRecord()); setEditing(false); }} className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+              <button onClick={() => { setForm(emptyRecord()); setEditing(false); }} className="px-4 py-2 text-sm font-medium text-slate-400 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
                 取消
               </button>
             )}
-            <label className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+            <label className="px-4 py-2 text-sm font-medium text-slate-400 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors cursor-pointer">
               CSV 导入
               <input type="file" accept=".csv" onChange={handleCSV} className="hidden" />
             </label>
@@ -188,19 +188,19 @@ export default function FinanceDashboard() {
 
         {/* 历史记录表 */}
         {records.length > 0 && (
-          <div className="overflow-x-auto rounded-2xl border border-slate-100">
+          <div className="overflow-x-auto rounded-2xl border border-slate-800">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50">
+              <thead className="bg-slate-800">
                 <tr>
                   {["月份", "收入", "成本", "固定成本", "变动成本", "毛利", "净利", "现金流", "预算收入", "操作"].map((h) => (
-                    <th key={h} className="text-left px-4 py-2 font-medium text-slate-500 whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left px-4 py-2 font-medium text-slate-400 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {records.map((r) => (
-                  <tr key={r.period} className="border-t border-slate-50 hover:bg-slate-50/50">
-                    <td className="px-4 py-2 font-medium">{r.period}</td>
+                  <tr key={r.period} className="border-t border-slate-800 hover:bg-slate-800/50">
+                    <td className="px-4 py-2 font-medium text-slate-200">{r.period}</td>
                     <td className="px-4 py-2">{(r.revenue / 10000).toFixed(1)}万</td>
                     <td className="px-4 py-2">{(r.cost / 10000).toFixed(1)}万</td>
                     <td className="px-4 py-2">{(r.fixedCost / 10000).toFixed(1)}万</td>
@@ -210,8 +210,8 @@ export default function FinanceDashboard() {
                     <td className="px-4 py-2">{(r.cashFlow / 10000).toFixed(1)}万</td>
                     <td className="px-4 py-2">{(r.budgetRevenue / 10000).toFixed(1)}万</td>
                     <td className="px-4 py-2">
-                      <button onClick={() => handleEdit(r)} className="text-blue-600 hover:underline mr-2">编辑</button>
-                      <button onClick={() => handleDelete(r.period)} className="text-red-500 hover:underline">删除</button>
+                      <button onClick={() => handleEdit(r)} className="text-blue-400 hover:underline mr-2">编辑</button>
+                      <button onClick={() => handleDelete(r.period)} className="text-red-400 hover:underline">删除</button>
                     </td>
                   </tr>
                 ))}

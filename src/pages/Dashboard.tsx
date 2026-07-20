@@ -134,7 +134,7 @@ export default function Dashboard() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-black text-slate-900">销售管理仪表盘</h1>
+            <h1 className="text-2xl font-black text-slate-100">销售管理仪表盘</h1>
             <p className="text-sm text-slate-400 mt-1">平衡计分卡 · 四维度综合概览</p>
           </div>
           <button
@@ -143,7 +143,7 @@ export default function Dashboard() {
               const msg = `作为销售管理顾问，基于以下BSC四维度KPI数据，给出3条策略建议：\n${ctx}\n${alerts.length > 0 ? `\n当前预警：${alerts.join("；")}` : ""}`;
               navigator.clipboard.writeText(msg).then(() => alert("分析提示已复制到剪贴板，请粘贴到 AI 对话中"));
             }}
-            className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors"
+            className="px-4 py-2 text-sm font-medium text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 rounded-xl transition-colors"
           >
             AI 策略建议
           </button>
@@ -158,12 +158,12 @@ export default function Dashboard() {
 
         {/* 预警 */}
         {alerts.length > 0 && (
-          <section className="mb-8 p-5 rounded-2xl border border-red-100 bg-red-50/50">
-            <h2 className="text-sm font-bold text-red-700 mb-2">预警（{alerts.length}项）</h2>
+          <section className="mb-8 p-5 rounded-2xl border border-red-500/20 bg-red-500/5">
+            <h2 className="text-sm font-bold text-red-400 mb-2">预警（{alerts.length}项）</h2>
             <ul className="space-y-1">
               {alerts.map((a, i) => (
-                <li key={i} className="text-sm text-red-600 flex items-start gap-2">
-                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
+                <li key={i} className="text-sm text-red-400 flex items-start gap-2">
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                   {a}
                 </li>
               ))}
@@ -177,20 +177,20 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {moduleEntries.map((m) => (
               m.soon ? (
-                <div key={m.to} className="p-5 rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 opacity-60">
+                <div key={m.to} className="p-5 rounded-2xl border border-dashed border-slate-700 bg-slate-800/30 opacity-60">
                   <div className={`w-10 h-10 rounded-xl ${m.color} mb-3`} />
                   <h3 className="font-bold text-slate-500 mb-1">{m.title}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">{m.desc}</p>
-                  <span className="inline-block mt-2 text-[10px] text-slate-300 bg-slate-100 px-2 py-0.5 rounded">即将上线</span>
+                  <p className="text-xs text-slate-500 leading-relaxed">{m.desc}</p>
+                  <span className="inline-block mt-2 text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded">即将上线</span>
                 </div>
               ) : (
                 <Link
                   key={m.to}
                   to={m.to}
-                  className="group p-5 rounded-2xl border border-slate-100 bg-white hover:border-blue-100 hover:shadow-md transition-all"
+                  className="group p-5 rounded-2xl border border-slate-800 bg-slate-900 hover:border-slate-700 hover:shadow-md transition-all"
                 >
                   <div className={`w-10 h-10 rounded-xl ${m.color} mb-3`} />
-                  <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1">{m.title}</h3>
+                  <h3 className="font-bold text-slate-100 group-hover:text-blue-400 transition-colors mb-1">{m.title}</h3>
                   <p className="text-xs text-slate-400 leading-relaxed">{m.desc}</p>
                 </Link>
               )

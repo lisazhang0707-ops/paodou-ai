@@ -193,6 +193,11 @@
   }
   .btn-site:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
 
+  .btn-finance { color: #2563eb; border-color: #bfdbfe; }
+  .btn-finance:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .btn-strategy { color: #16a34a; border-color: #bbf7d0; }
+  .btn-strategy:hover { background: #16a34a; color: #fff; border-color: #16a34a; }
+
   .no-results {
     text-align: center;
     padding: 48px 20px;
@@ -439,6 +444,7 @@
     <a href="#chain">产业链图谱</a>
     <a href="#resources">查询入口</a>
     <a href="#zhejiang">浙江上市公司</a>
+    <a href="../#/strategy">战略分析</a>
   </div>
 </nav>
 
@@ -620,6 +626,7 @@
     <strong>使用建议</strong>
     <p>产业链图谱基于 AI 主题 ETF 持仓 + 行业研报综合整理，覆盖上游基础设施、中游算力平台、下游应用三个层级。</p>
     <p>做分析优先用官方渠道：A股 → 巨潮资讯网 &nbsp;|&nbsp; 美股 → SEC EDGAR &nbsp;|&nbsp; 港股 → 披露易</p>
+    <p>点击公司卡片 📈 可进行财报深度分析（上传 PDF / 自动拉取 SEC）；🎯 可进行战略与投资全景分析（PESTEL · 五力 · VRIO · SWOT · BSC · 护城河 · 估值）。分析需配置 LLM API Key。</p>
     <p>如需获得最完整的最新名单，建议直接查阅对应 ETF/指数的官方持仓文件。</p>
   </div>
 
@@ -716,6 +723,8 @@
           if (c.url) {
             html += '<a class="btn-site" href="' + c.url + '" target="_blank" rel="noopener">官</a>';
           }
+          html += '<a class="btn-site btn-finance" href="financial-analyzer.html" title="财报分析">📈</a>';
+          html += '<a class="btn-site btn-strategy" href="../#/strategy?name=' + encodeURIComponent(c.name) + '&market=' + c.market + '" title="战略分析">🎯</a>';
           html += '</div>';
         });
 

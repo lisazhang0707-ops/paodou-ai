@@ -77,12 +77,12 @@ export default function ChatInput({ onSend, isLoading, onStop, disabled }: Props
   };
 
   return (
-    <div className="border-t border-slate-100 bg-white px-4 py-3">
+    <div className="border-t border-slate-800 bg-slate-900 px-4 py-3">
       {/* attached file indicator */}
       {(fileName || parsing || parseError) && (
         <div className="max-w-3xl mx-auto mb-2">
           {parsing && (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-700">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-sm text-blue-400">
               <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="32" />
               </svg>
@@ -90,13 +90,13 @@ export default function ChatInput({ onSend, isLoading, onStop, disabled }: Props
             </div>
           )}
           {parseError && (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-sm text-red-400">
               {parseError}
               <button onClick={removeFile} className="ml-1 underline text-red-500">移除</button>
             </div>
           )}
           {fileName && !parsing && !parseError && (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/30 text-sm text-green-400">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -120,7 +120,7 @@ export default function ChatInput({ onSend, isLoading, onStop, disabled }: Props
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || parsing}
-          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           title="上传文件（.pdf / .docx / .txt）"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -139,7 +139,7 @@ export default function ChatInput({ onSend, isLoading, onStop, disabled }: Props
               : "输入你的需求...（Enter 发送，可上传 .pdf/.docx 文件）"
           }
           disabled={disabled}
-          className="flex-1 resize-none border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all disabled:bg-slate-50 disabled:text-slate-400"
+          className="flex-1 resize-none border border-slate-700 bg-slate-800 text-slate-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:bg-slate-800 disabled:text-slate-500 placeholder:text-slate-500"
         />
         {isLoading ? (
           <button
@@ -155,7 +155,7 @@ export default function ChatInput({ onSend, isLoading, onStop, disabled }: Props
           <button
             onClick={doSend}
             disabled={disabled || parsing}
-            className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-gray-900 text-white hover:bg-gray-800 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
+            className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-white text-slate-900 hover:bg-slate-200 transition-colors disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed"
             title="发送"
           >
             <svg

@@ -19,7 +19,7 @@ function Blog() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
       <div className="mb-12">
-        <h1 className="text-3xl font-black text-slate-900 mb-3">文章</h1>
+        <h1 className="text-3xl font-black text-slate-100 mb-3">文章</h1>
         <p className="text-slate-400">销售 × AI 的实操案例、工具教程与学习笔记</p>
       </div>
 
@@ -32,20 +32,20 @@ function Blog() {
       ) : (
         <div className="space-y-8">
           {posts.map((post) => (
-            <article key={post.slug} className="group pb-8 border-b border-slate-100 last:border-0">
+            <article key={post.slug} className="group pb-8 border-b border-slate-800 last:border-0">
               <div className="flex gap-2 mb-3">
                 {post.tags.map((tag) => (
-                  <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-medium">
+                  <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-medium">
                     {tag}
                   </span>
                 ))}
               </div>
               <Link to={`/blog/${post.slug}`} className="block">
-                <h2 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                <h2 className="text-xl font-bold text-slate-100 mb-2 group-hover:text-blue-400 transition-colors">
                   {post.title}
                 </h2>
                 <p className="text-slate-400 mb-3 leading-relaxed">{post.summary}</p>
-                <time className="text-sm text-slate-300">{post.date}</time>
+                <time className="text-sm text-slate-500">{post.date}</time>
               </Link>
             </article>
           ))}
@@ -153,7 +153,7 @@ function BlogPost() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
-      <Link to="/blog" className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-600 text-sm mb-8 transition-colors">
+      <Link to="/blog" className="inline-flex items-center gap-1 text-slate-400 hover:text-slate-200 text-sm mb-8 transition-colors">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
@@ -182,10 +182,10 @@ function BlogPost() {
                 ),
                 blockquote: ({ children }) => {
                   const text = String(children)
-                  let variant = "border-blue-500 bg-blue-50/50"
-                  if (text.includes("⚠️")) variant = "border-amber-500 bg-amber-50/50"
-                  else if (text.includes("💡") || text.includes("📌")) variant = "border-blue-500 bg-blue-50/50"
-                  else if (text.includes("✅")) variant = "border-green-500 bg-green-50/50"
+                  let variant = "border-blue-500 bg-blue-500/5"
+                  if (text.includes("⚠️")) variant = "border-amber-500 bg-amber-500/5"
+                  else if (text.includes("💡") || text.includes("📌")) variant = "border-blue-500 bg-blue-500/5"
+                  else if (text.includes("✅")) variant = "border-green-500 bg-green-500/5"
                   return (
                     <blockquote className={`border-l-4 ${variant} rounded-r-xl p-4 my-5`}>
                       {children}
@@ -193,7 +193,7 @@ function BlogPost() {
                   )
                 },
                 a: ({ href, children }) => (
-                  <a href={href} target={href?.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  <a href={href} target={href?.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer" className="text-blue-400 hover:underline">
                     {children}
                   </a>
                 ),
@@ -233,7 +233,7 @@ function BlogPost() {
                     className={`toc-link block text-sm py-1.5 transition-colors ${
                       item.level === 1 ? "pl-0 font-medium" : item.level === 2 ? "pl-3" : "pl-6"
                     } ${
-                      activeId === item.slug ? "text-green-600 font-medium" : "text-slate-500 hover:text-slate-700"
+                      activeId === item.slug ? "text-blue-400 font-medium" : "text-slate-500 hover:text-slate-300"
                     }`}
                     onClick={(e) => {
                       e.preventDefault()

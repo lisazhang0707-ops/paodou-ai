@@ -15,10 +15,11 @@ import Agents from "./pages/Agents"
 import Dashboard from "./pages/Dashboard"
 import FinanceDashboard from "./pages/FinanceDashboard"
 import CustomerDashboard from "./pages/CustomerDashboard"
+import Strategy from "./pages/Strategy"
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-slate-950 flex flex-col">
       <Navbar />
       <main className="flex-1">
         <Routes>
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/finance" element={<FinanceDashboard />} />
           <Route path="/dashboard/customers" element={<CustomerDashboard />} />
+          <Route path="/strategy" element={<Strategy />} />
         </Routes>
       </main>
       <Footer />

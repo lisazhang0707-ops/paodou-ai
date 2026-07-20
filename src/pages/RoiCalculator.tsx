@@ -25,17 +25,17 @@ export default function RoiCalculator() {
   ]
 
   const metrics = [
-    { label: "CTR", value: `${ctr.toFixed(2)}%`, color: "text-blue-600" },
-    { label: "CPC", value: `¥${cpc.toFixed(2)}`, color: "text-blue-600" },
-    { label: "转化率", value: `${conversionRate.toFixed(2)}%`, color: "text-emerald-600" },
-    { label: "CPA", value: `¥${cpa.toFixed(2)}`, color: "text-emerald-600" },
-    { label: "总收入", value: `¥${totalRevenue.toLocaleString()}`, color: "text-slate-900" },
-    { label: "ROAS", value: `${roas.toFixed(2)}x`, color: profit >= 0 ? "text-slate-900" : "text-red-600" },
+    { label: "CTR", value: `${ctr.toFixed(2)}%`, color: "text-blue-400" },
+    { label: "CPC", value: `¥${cpc.toFixed(2)}`, color: "text-blue-400" },
+    { label: "转化率", value: `${conversionRate.toFixed(2)}%`, color: "text-emerald-400" },
+    { label: "CPA", value: `¥${cpa.toFixed(2)}`, color: "text-emerald-400" },
+    { label: "总收入", value: `¥${totalRevenue.toLocaleString()}`, color: "text-slate-100" },
+    { label: "ROAS", value: `${roas.toFixed(2)}x`, color: profit >= 0 ? "text-slate-100" : "text-red-400" },
   ]
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-black text-slate-900 mb-2">营销 ROI 计算器</h1>
+      <h1 className="text-3xl font-black text-slate-100 mb-2">营销 ROI 计算器</h1>
       <p className="text-slate-400 mb-10">拖动滑块调整参数，实时计算投放回报</p>
 
       <div className="grid md:grid-cols-2 gap-8">
@@ -43,8 +43,8 @@ export default function RoiCalculator() {
           {inputs.map(({ label, value, set, step }) => (
             <div key={label}>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-slate-500">{label}</span>
-                <span className="font-semibold text-slate-900">{value.toLocaleString()}</span>
+                <span className="text-slate-400">{label}</span>
+                <span className="font-semibold text-slate-100">{value.toLocaleString()}</span>
               </div>
               <input
                 type="range"
@@ -53,14 +53,14 @@ export default function RoiCalculator() {
                 step={step}
                 value={value}
                 onChange={(e) => set(Number(e.target.value))}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
             </div>
           ))}
         </div>
 
-        <div className="bg-slate-50 rounded-2xl p-6">
-          <h3 className="text-lg font-bold text-slate-900 mb-4">计算结果</h3>
+        <div className="bg-slate-800 rounded-2xl p-6">
+          <h3 className="text-lg font-bold text-slate-100 mb-4">计算结果</h3>
           <div className="grid grid-cols-2 gap-4">
             {metrics.map(({ label, value, color }) => (
               <div key={label}>
@@ -69,7 +69,7 @@ export default function RoiCalculator() {
               </div>
             ))}
           </div>
-          <div className={`mt-4 p-4 rounded-xl text-center font-bold text-lg ${profit >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
+          <div className={`mt-4 p-4 rounded-xl text-center font-bold text-lg ${profit >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
             {profit >= 0 ? `利润 ¥${profit.toLocaleString()}` : `亏损 ¥${Math.abs(profit).toLocaleString()}`}
           </div>
         </div>

@@ -38,7 +38,7 @@ export default function Tools() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
       <div className="mb-12">
-        <h1 className="text-3xl font-black text-slate-900 mb-3">工具</h1>
+        <h1 className="text-3xl font-black text-slate-100 mb-3">工具</h1>
         <p className="text-slate-400">免费在线工具，打开即用。更多工具持续更新中。</p>
       </div>
 
@@ -47,9 +47,9 @@ export default function Tools() {
           <Link
             key={tool.slug}
             to={tool.path}
-            className="group p-8 rounded-2xl border border-slate-100 bg-white hover:border-blue-100 hover:shadow-lg transition-all"
+            className="group p-8 rounded-2xl border border-slate-800 bg-slate-900 hover:border-slate-700 hover:shadow-lg transition-all"
           >
-            <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+            <h3 className="text-xl font-bold text-slate-100 mb-2 group-hover:text-blue-400 transition-colors">
               {tool.title}
             </h3>
             <p className="text-slate-400 leading-relaxed">{tool.desc}</p>
