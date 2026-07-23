@@ -4,6 +4,7 @@ const items = [
   { to: "/dashboard", label: "总览", short: "M0" },
   { to: "/dashboard/finance", label: "财务健康", short: "M1" },
   { to: "/dashboard/customers", label: "客户价值", short: "M2" },
+  { to: "/dashboard/ai-chain", label: "AI产业链", short: "M3" },
 ];
 
 export default function DashboardNav() {
@@ -30,7 +31,7 @@ export default function DashboardNav() {
             </Link>
           );
         })}
-        <span className="text-[11px] text-[#8a827c] ml-2 whitespace-nowrap hidden sm:inline">M3-M5 即将上线</span>
+        <span className="text-[11px] text-[#8a827c] ml-2 whitespace-nowrap hidden sm:inline">M4-M5 即将上线</span>
       </div>
     </div>
   );

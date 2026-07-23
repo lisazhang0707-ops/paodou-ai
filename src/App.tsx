@@ -14,6 +14,7 @@ import Collaborate from "./pages/Collaborate"
 import Agents from "./pages/Agents"
 import Dashboard from "./pages/Dashboard"
 import FinanceDashboard from "./pages/FinanceDashboard"
+import AIChainDashboard from "./pages/AIChainDashboard"
 import CustomerDashboard from "./pages/CustomerDashboard"
 import Strategy from "./pages/Strategy"
 
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/finance" element={<FinanceDashboard />} />
           <Route path="/dashboard/customers" element={<CustomerDashboard />} />
+          <Route path="/dashboard/ai-chain" element={<AIChainDashboard />} />
           <Route path="/strategy" element={<Strategy />} />
         </Routes>
       </main>
