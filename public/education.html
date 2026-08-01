@@ -368,8 +368,9 @@ function evaluateRules(){
 }
 
 // ===== RENDER FUNCTIONS =====
-function renderAll(){document.getElementById('mainContent').innerHTML=renderTab(currentTab);updateSaveUI();}
 let currentTab='overview';
+
+function renderAll(){document.getElementById('mainContent').innerHTML=renderTab(currentTab);updateSaveUI();}
 
 function switchTab(tab){
   currentTab=tab;
