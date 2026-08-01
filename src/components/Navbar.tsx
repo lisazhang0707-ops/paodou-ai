@@ -6,6 +6,7 @@ const links = [
   { to: "/tools", label: "工具" },
   { to: "/strategy", label: "战略分析" },
   { to: "/agents", label: "智能体" },
+  { to: "/growth", label: "成长" },
   { to: "/about", label: "关于" },
   { to: "/dashboard", label: "仪表盘" },
   { to: "/collaborate", label: "合作" },
