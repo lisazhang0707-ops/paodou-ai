@@ -9,6 +9,7 @@ const links = [
   { to: "/about", label: "关于" },
   { to: "/dashboard", label: "仪表盘" },
   { to: "/collaborate", label: "合作" },
+  { to: import.meta.env.BASE_URL + "education.html", label: "学习教育", external: true },
 ]
 
 export default function Navbar() {
@@ -20,20 +21,30 @@ export default function Navbar() {
         <Link to="/" className="text-xl font-black text-[#3d3835] tracking-tight">
           跑豆<span className="text-[#c2785e]">AI</span>
         </Link>
-        <div className="flex gap-1">
-          {links.map(({ to, label }) => (
-            <Link
-              key={to}
-              to={to}
-              className={`px-3 py-2 rounded-full text-sm font-medium transition-colors ${
-                pathname === to
-                  ? "bg-[#c2785e]/10 text-[#c2785e]"
-                  : "text-[#8a827c] hover:text-[#3d3835] hover:bg-[#f5f0ea]"
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
+        <div className="flex gap-1 flex-wrap justify-end">
+          {links.map(({ to, label, external }) =>
+            external ? (
+              <a
+                key={to}
+                href={to}
+                className="px-3 py-2 rounded-full text-sm font-medium transition-colors text-[#8a827c] hover:text-[#3d3835] hover:bg-[#f5f0ea]"
+              >
+                {label}
+              </a>
+            ) : (
+              <Link
+                key={to}
+                to={to}
+                className={`px-3 py-2 rounded-full text-sm font-medium transition-colors ${
+                  pathname === to
+                    ? "bg-[#c2785e]/10 text-[#c2785e]"
+                    : "text-[#8a827c] hover:text-[#3d3835] hover:bg-[#f5f0ea]"
+                }`}
+              >
+                {label}
+              </Link>
+            )
+          )}
         </div>
       </div>
     </nav>
