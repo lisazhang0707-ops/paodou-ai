@@ -5,7 +5,7 @@ const tools = [
   {
     slug: "roi-calculator",
     title: "营销 ROI 计算器",
-    desc: "输入投放金额、转化数据，自动计算 ROAS、CPA、LTV，对比多渠道效率",
+    desc: "输入投放金额、转化数据，自动计算 ROAS、CPA、毛利、净利润等核心指标",
     path: "/tools/roi-calculator",
   },
   {

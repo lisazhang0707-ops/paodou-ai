@@ -54,7 +54,7 @@ export default function ThresholdModel() {
               <input
                 type="range" min={min || 0} max={max || value * 3} step={step} value={value}
                 onChange={(e) => set(Number(e.target.value))}
-                className="w-full h-2 bg-[#f5f0ea] rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full h-2 bg-[#f5f0ea] rounded-lg appearance-none cursor-pointer accent-[#c2785e]"
               />
             </div>
           ))}

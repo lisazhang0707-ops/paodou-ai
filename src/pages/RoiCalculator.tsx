@@ -7,6 +7,7 @@ export default function RoiCalculator() {
   const [clicks, setClicks] = useState(15000)
   const [conversions, setConversions] = useState(300)
   const [avgRevenue, setAvgRevenue] = useState(2000)
+  const [marginRate, setMarginRate] = useState(60) // 毛利率 %
 
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0
   const cpc = clicks > 0 ? budget / clicks : 0
@@ -14,14 +15,17 @@ export default function RoiCalculator() {
   const cpa = conversions > 0 ? budget / conversions : 0
   const totalRevenue = conversions * avgRevenue
   const roas = budget > 0 ? totalRevenue / budget : 0
-  const profit = totalRevenue - budget
+  // 毛利 = 总收入 × 毛利率；净利润 = 毛利 − 投放预算
+  const grossProfit = totalRevenue * (marginRate / 100)
+  const profit = grossProfit - budget
 
   const inputs = [
-    { label: "投放预算 (¥)", value: budget, set: setBudget, step: 10000 },
-    { label: "曝光量", value: impressions, set: setImpressions, step: 10000 },
-    { label: "点击量", value: clicks, set: setClicks, step: 1000 },
-    { label: "转化数", value: conversions, set: setConversions, step: 10 },
-    { label: "客单价 (¥)", value: avgRevenue, set: setAvgRevenue, step: 100 },
+    { label: "投放预算 (¥)", value: budget, set: setBudget, step: 10000, display: budget.toLocaleString() },
+    { label: "曝光量", value: impressions, set: setImpressions, step: 10000, display: impressions.toLocaleString() },
+    { label: "点击量", value: clicks, set: setClicks, step: 1000, display: clicks.toLocaleString() },
+    { label: "转化数", value: conversions, set: setConversions, step: 10, display: conversions.toLocaleString() },
+    { label: "客单价 (¥)", value: avgRevenue, set: setAvgRevenue, step: 100, display: avgRevenue.toLocaleString() },
+    { label: "毛利率 (%)", value: marginRate, set: setMarginRate, step: 1, display: `${marginRate}%` },
   ]
 
   const metrics = [
@@ -30,7 +34,7 @@ export default function RoiCalculator() {
     { label: "转化率", value: `${conversionRate.toFixed(2)}%`, color: "text-emerald-600" },
     { label: "CPA", value: `¥${cpa.toFixed(2)}`, color: "text-emerald-600" },
     { label: "总收入", value: `¥${totalRevenue.toLocaleString()}`, color: "text-[#3d3835]" },
-    { label: "ROAS", value: `${roas.toFixed(2)}x`, color: profit >= 0 ? "text-[#3d3835]" : "text-red-500" },
+    { label: "ROAS", value: `${roas.toFixed(2)}x`, color: "text-[#3d3835]" },
   ]
 
   return (
@@ -40,20 +44,20 @@ export default function RoiCalculator() {
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-5">
-          {inputs.map(({ label, value, set, step }) => (
+          {inputs.map(({ label, value, set, step, display }) => (
             <div key={label}>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-[#8a827c]">{label}</span>
-                <span className="font-semibold text-[#3d3835]">{value.toLocaleString()}</span>
+                <span className="font-semibold text-[#3d3835]">{display}</span>
               </div>
               <input
                 type="range"
-                min={0}
-                max={value * 3 || step * 10}
+                min={label === "毛利率 (%)" ? 0 : 0}
+                max={label === "毛利率 (%)" ? 100 : value * 3 || step * 10}
                 step={step}
                 value={value}
                 onChange={(e) => set(Number(e.target.value))}
-                className="w-full h-2 bg-[#f5f0ea] rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full h-2 bg-[#f5f0ea] rounded-lg appearance-none cursor-pointer accent-[#c2785e]"
               />
             </div>
           ))}
@@ -69,8 +73,16 @@ export default function RoiCalculator() {
               </div>
             ))}
           </div>
-          <div className={`mt-4 p-4 rounded-xl text-center font-bold text-lg ${profit >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
-            {profit >= 0 ? `利润 ¥${profit.toLocaleString()}` : `亏损 ¥${Math.abs(profit).toLocaleString()}`}
+
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between text-sm text-[#8a827c] px-1">
+              <span>毛利 = 总收入 × 毛利率</span>
+              <span className="font-semibold text-[#6b6560]">¥{grossProfit.toLocaleString()}</span>
+            </div>
+            <div className={`p-4 rounded-xl text-center font-bold text-lg ${profit >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+              {profit >= 0 ? `净利润 ¥${profit.toLocaleString()}` : `净亏损 ¥${Math.abs(profit).toLocaleString()}`}
+            </div>
+            <p className="text-xs text-[#8a827c] text-center">净利润 = 毛利 − 投放预算</p>
           </div>
         </div>
       </div>
