@@ -255,9 +255,9 @@ function getDefaultState(){
     lastSaved:null
   };
 }
-let state=getDefaultState();
-let saveTimeout=null;
-let unsaved=false;
+var state=getDefaultState();
+var saveTimeout=null;
+var unsaved=false;
 
 function loadState(){
   try{
@@ -353,7 +353,7 @@ function evaluateRules(){
 }
 
 // ===== RENDER FUNCTIONS =====
-let currentTab='overview';
+var currentTab='overview';
 
 function renderAll(){document.getElementById('mainContent').innerHTML=renderTab(currentTab);updateSaveUI();}
 
