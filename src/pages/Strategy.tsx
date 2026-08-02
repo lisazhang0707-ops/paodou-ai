@@ -12,26 +12,68 @@ import { conductResearch, compileResearchContext } from "../utils/research";
 import { ReportChartBlock, type ChartType } from "../components/charts/ReportCharts";
 import { parseFile } from "../utils/parseFile";
 
-mermaid.initialize({ startOnLoad: false, theme: "base" });
+mermaid.initialize({ startOnLoad: false, theme: "base", suppressErrorRendering: true });
 
 // ---------------------------------------------------------------------------
 // Mermaid & Image rendering (from ChatMessage)
 // ---------------------------------------------------------------------------
 
 function MermaidBlock({ chart }: { chart: string }) {
-  const ref = { current: null as HTMLDivElement | null };
-  const id = `mermaid-${Math.random().toString(36).slice(2, 8)}`;
-  const elRef = (node: HTMLDivElement | null) => {
-    if (!node || ref.current === node) return;
-    ref.current = node;
-    mermaid
-      .render(id, chart)
-      .then(({ svg }) => { node.innerHTML = svg; })
-      .catch(() => { node.innerHTML = `<p class="text-red-500 text-xs">图表语法错误</p>`; });
-  };
+  const elRef = useRef<HTMLDivElement | null>(null);
+  const [state, setState] = useState<"loading" | "ok" | "error">("loading");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    const id = `mermaid-${Math.random().toString(36).slice(2, 8)}`;
+
+    async function render() {
+      // pre-validate syntax first — catches most AI-generated errors before render
+      try {
+        await mermaid.parse(chart, { suppressErrors: true });
+      } catch (parseErr) {
+        if (!cancelled) {
+          setErrorMsg(parseErr instanceof Error ? parseErr.message : "语法错误");
+          setState("error");
+        }
+        return;
+      }
+
+      try {
+        const { svg } = await mermaid.render(id, chart);
+        if (!cancelled && elRef.current) {
+          elRef.current.innerHTML = svg;
+          setState("ok");
+        }
+      } catch {
+        if (!cancelled) {
+          setErrorMsg("图表渲染失败");
+          setState("error");
+        }
+      }
+    }
+
+    render();
+    return () => { cancelled = true; };
+  }, [chart]);
+
+  if (state === "error") {
+    return (
+      <div className="my-4 p-4 bg-red-50 rounded-xl border border-red-200">
+        <details>
+          <summary className="text-xs text-red-500 cursor-pointer font-medium">图表语法错误（AI生成内容可能有误）</summary>
+          <pre className="mt-2 text-xs text-red-400 whitespace-pre-wrap max-h-32 overflow-auto">{errorMsg}</pre>
+          <pre className="mt-2 text-xs text-[#8a827c] whitespace-pre-wrap max-h-48 overflow-auto bg-[#f5f0ea] p-2 rounded">{chart}</pre>
+        </details>
+      </div>
+    );
+  }
+
   return (
     <div className="my-4 p-4 bg-[#f5f0ea] rounded-xl border border-[#e8e3dc] overflow-x-auto">
-      <div ref={elRef} className="flex justify-center" />
+      <div ref={elRef} className="flex justify-center">
+        {state === "loading" && <div className="w-5 h-5 border-2 border-[#c2785e]/20 border-t-[#c2785e] rounded-full animate-spin" />}
+      </div>
       <details className="mt-2">
         <summary className="text-xs text-[#8a827c] cursor-pointer">查看源码</summary>
         <pre className="mt-1 text-xs text-[#8a827c] whitespace-pre-wrap">{chart}</pre>
