@@ -18,6 +18,7 @@ import AIChainDashboard from "./pages/AIChainDashboard"
 import CustomerDashboard from "./pages/CustomerDashboard"
 import Strategy from "./pages/Strategy"
 import Growth from "./pages/Growth"
+import Projects from "./pages/Projects"
 
 export default function App() {
   return (
@@ -43,6 +44,7 @@ export default function App() {
           <Route path="/dashboard/ai-chain" element={<AIChainDashboard />} />
           <Route path="/strategy" element={<Strategy />} />
           <Route path="/growth" element={<Growth />} />
+          <Route path="/projects" element={<Projects />} />
         </Routes>
       </main>
       <Footer />
