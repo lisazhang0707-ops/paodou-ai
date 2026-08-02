@@ -32,10 +32,10 @@ export default function ThresholdModel() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-black text-slate-900 mb-2">阈值决策模型 — 线索筛选临界点</h1>
-      <p className="text-slate-400 mb-4">找到最优的线索评分门槛，平衡触达成本与转化收益</p>
-      <div className="mb-8 p-4 rounded-xl bg-slate-50 text-sm text-slate-400">
-        <span className="font-medium text-slate-600">模型来源：</span>《模型思维》第 19 章 — 基于阈值的模型。存在一个临界点，超过它系统行为会发生根本变化。在营销中，这对应"线索评分设为多少分时跟进效率最高"。
+      <h1 className="text-3xl font-black text-[#3d3835] mb-2">阈值决策模型 — 线索筛选临界点</h1>
+      <p className="text-[#8a827c] mb-4">找到最优的线索评分门槛，平衡触达成本与转化收益</p>
+      <div className="mb-8 p-4 rounded-xl bg-[#f5f0ea] text-sm text-[#8a827c]">
+        <span className="font-medium text-[#6b6560]">模型来源：</span>《模型思维》第 19 章 — 基于阈值的模型。存在一个临界点，超过它系统行为会发生根本变化。在营销中，这对应"线索评分设为多少分时跟进效率最高"。
       </div>
 
       <div className="grid md:grid-cols-2 gap-8 mb-10">
@@ -48,22 +48,22 @@ export default function ThresholdModel() {
           ].map(({ label, value, set, step, min, max }) => (
             <div key={label}>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-slate-500">{label}</span>
-                <span className="font-semibold text-slate-900">{typeof value === "number" && value % 1 !== 0 ? value.toFixed(1) : value.toLocaleString()}</span>
+                <span className="text-[#8a827c]">{label}</span>
+                <span className="font-semibold text-[#3d3835]">{typeof value === "number" && value % 1 !== 0 ? value.toFixed(1) : value.toLocaleString()}</span>
               </div>
               <input
                 type="range" min={min || 0} max={max || value * 3} step={step} value={value}
                 onChange={(e) => set(Number(e.target.value))}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full h-2 bg-[#f5f0ea] rounded-lg appearance-none cursor-pointer accent-[#c2785e]"
               />
             </div>
           ))}
         </div>
 
         <div>
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-4">
+          <div className="bg-white rounded-2xl border border-[#e8e3dc] p-6 mb-4">
             <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full">
-              <line x1="0" y1={chartHeight} x2={chartWidth} y2={chartHeight} stroke="#e2e8f0" strokeWidth="1" />
+              <line x1="0" y1={chartHeight} x2={chartWidth} y2={chartHeight} stroke="#334155" strokeWidth="1" />
               <path d={profitPath} fill="none" stroke="#2563eb" strokeWidth="2" />
               {(() => {
                 const bx = (bestIndex / 19) * chartWidth
@@ -79,12 +79,12 @@ export default function ThresholdModel() {
                 )
               })()}
               <text x="0" y="12" fontSize="10" fill="#94a3b8">利润</text>
-              <text x={chartWidth - 45} y="12" fontSize="10" fill="#64748b">阈值 →</text>
+              <text x={chartWidth - 45} y="12" fontSize="10" fill="#94a3b8">阈值 →</text>
             </svg>
           </div>
 
-          <div className="text-center p-4 rounded-xl bg-blue-50 mb-4">
-            <p className="text-sm text-blue-600 font-medium">
+          <div className="text-center p-4 rounded-xl bg-[#c2785e]/10 mb-4">
+            <p className="text-sm text-[#c2785e] font-medium">
               最优阈值：<span className="text-lg font-black">{best.threshold}%</span>
               <span className="ml-3">预期利润：</span>
               <span className="text-lg font-black">¥{best.profit.toLocaleString()}</span>
@@ -92,17 +92,17 @@ export default function ThresholdModel() {
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-center text-xs">
-            <div className="p-2 rounded-lg bg-slate-50">
-              <p className="font-bold text-slate-700">{best.deals}</p>
-              <p className="text-slate-400">成交数</p>
+            <div className="p-2 rounded-lg bg-[#f5f0ea]">
+              <p className="font-bold text-[#6b6560]">{best.deals}</p>
+              <p className="text-[#8a827c]">成交数</p>
             </div>
-            <div className="p-2 rounded-lg bg-slate-50">
-              <p className="font-bold text-slate-700">¥{(best.revenue).toLocaleString()}</p>
-              <p className="text-slate-400">总收入</p>
+            <div className="p-2 rounded-lg bg-[#f5f0ea]">
+              <p className="font-bold text-[#6b6560]">¥{(best.revenue).toLocaleString()}</p>
+              <p className="text-[#8a827c]">总收入</p>
             </div>
-            <div className="p-2 rounded-lg bg-slate-50">
-              <p className="font-bold text-slate-700">¥{(best.cost).toLocaleString()}</p>
-              <p className="text-slate-400">触达成本</p>
+            <div className="p-2 rounded-lg bg-[#f5f0ea]">
+              <p className="font-bold text-[#6b6560]">¥{(best.cost).toLocaleString()}</p>
+              <p className="text-[#8a827c]">触达成本</p>
             </div>
           </div>
         </div>

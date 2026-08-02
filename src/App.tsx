@@ -14,12 +14,14 @@ import Collaborate from "./pages/Collaborate"
 import Agents from "./pages/Agents"
 import Dashboard from "./pages/Dashboard"
 import FinanceDashboard from "./pages/FinanceDashboard"
+import AIChainDashboard from "./pages/AIChainDashboard"
 import CustomerDashboard from "./pages/CustomerDashboard"
+import Strategy from "./pages/Strategy"
 import Growth from "./pages/Growth"
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{background: "#faf7f2"}}>
       <Navbar />
       <main className="flex-1">
         <Routes>
@@ -38,6 +40,8 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/finance" element={<FinanceDashboard />} />
           <Route path="/dashboard/customers" element={<CustomerDashboard />} />
+          <Route path="/dashboard/ai-chain" element={<AIChainDashboard />} />
+          <Route path="/strategy" element={<Strategy />} />
           <Route path="/growth" element={<Growth />} />
         </Routes>
       </main>

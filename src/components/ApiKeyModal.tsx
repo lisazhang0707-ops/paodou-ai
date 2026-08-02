@@ -65,16 +65,16 @@ export default function ApiKeyModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-        <h3 className="text-lg font-bold text-slate-900 mb-2">
+      <div className="bg-white rounded-2xl shadow-xl border border-[#e8e3dc] max-w-md w-full p-6">
+        <h3 className="text-lg font-bold text-[#3d3835] mb-2">
           配置 {providerLabel ?? ""} API Key
         </h3>
-        <p className="text-sm text-slate-500 mb-4 leading-relaxed">
+        <p className="text-sm text-[#8a827c] mb-4 leading-relaxed">
           Key 仅保存在浏览器本地存储（localStorage），不会上传到任何服务器。
           各服务商的 Key 独立存储，切换服务商不会丢失。
         </p>
@@ -97,7 +97,7 @@ export default function ApiKeyModal({
             setValidation("");
           }}
           placeholder={apiKey ? "输入新 Key 替换" : "sk-..."}
-          className="w-full px-4 py-3 border border-slate-200 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-all"
+          className="w-full px-4 py-3 border border-[#e8e3dc] bg-[#f5f0ea] text-[#3d3835] rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#c2785e]/20 focus:border-[#c2785e] transition-all placeholder:text-[#b8b0a8]"
         />
 
         {validation && (
@@ -107,21 +107,21 @@ export default function ApiKeyModal({
         <div className="flex gap-3 mt-4">
           <button
             onClick={handleSave}
-            className="flex-1 px-6 py-2.5 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors text-sm"
+            className="flex-1 px-6 py-2.5 bg-[#c2785e] text-white rounded-full font-medium hover:bg-[#b0684e] transition-colors text-sm"
           >
             保存
           </button>
           {apiKey && (
             <button
               onClick={handleClear}
-              className="px-6 py-2.5 border border-slate-200 text-slate-600 rounded-full font-medium hover:bg-slate-50 transition-colors text-sm"
+              className="px-6 py-2.5 border border-[#e8e3dc] text-[#8a827c] rounded-full font-medium hover:bg-[#f5f0ea] transition-colors text-sm"
             >
               清除
             </button>
           )}
           <button
             onClick={onClose}
-            className="px-4 py-2.5 text-slate-400 hover:text-slate-600 transition-colors text-sm"
+            className="px-4 py-2.5 text-[#b8b0a8] hover:text-[#6b6560] transition-colors text-sm"
           >
             取消
           </button>

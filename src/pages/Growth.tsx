@@ -1,91 +1,149 @@
-import { Link } from "react-router-dom"
-
-const learningResources = [
+const courses = [
   {
+    id: "ai-for-everyone",
+    title: "AI For Everyone",
+    instructor: "吴恩达 (Andrew Ng)",
+    platform: "Coursera",
+    url: "https://www.coursera.org/learn/ai-for-everyone/lecture/SRwLN/week-1-introduction",
+    description:
+      "面向所有人的 AI 入门课。不写代码，讲清楚 AI 是什么、能做什么、不能做什么、如何在自己的工作中应用 AI。适合非技术背景的管理者和决策者。",
+    duration: "约 8 小时（4 周）",
+    level: "入门",
+    tags: ["AI基础", "非技术", "管理视角"],
+  },
+]
+
+const tools = [
+  {
+    id: "ai-learning-tracker",
     title: "AI 学习追踪器",
     desc: "系统化追踪 AI 学习进度，规划学习路径，记录关键节点",
-    url: "/paodou-ai/ai-learning-tracker.html",
-    external: true,
-    icon: (
-      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
-      </svg>
-    ),
+    url: import.meta.env.BASE_URL + "ai-learning-tracker.html",
+    icon: "📊",
   },
-  {
-    title: "回到首页",
-    desc: "跑豆AI — AI 驱动的销售与营销",
-    to: "/",
-    external: false,
-    icon: (
-      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-      </svg>
-    ),
-  },
+]
+
+const sections = [
+  { title: "学习工具", items: tools, type: "tools" as const },
+  { title: "吴恩达课程", items: courses, type: "courses" as const },
 ]
 
 export default function Growth() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
-      {/* Header */}
       <div className="mb-12">
-        <h1 className="text-3xl font-black text-slate-900 mb-3">个人成长</h1>
-        <p className="text-slate-500 text-lg">学习工具与资源，持续精进 AI 能力</p>
+        <h1 className="text-3xl font-black text-[#3d3835] mb-3">🌱 个人成长</h1>
+        <p className="text-[#8a827c] text-lg">
+          学习工具与精选课程，持续积累，日日精进。
+        </p>
       </div>
 
-      {/* Decorative divider */}
-      <div className="flex items-center gap-4 mb-12">
-        <div className="h-px flex-1 bg-slate-100" />
-        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-        <div className="h-px flex-1 bg-slate-100" />
-      </div>
+      {sections.map((section) => (
+        <div key={section.title} className="mb-16">
+          <h2 className="text-xl font-bold text-[#3d3835] mb-6 pb-3 border-b border-[#e8e3dc]">
+            {section.title}
+          </h2>
 
-      {/* Learning Resources */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        {learningResources.map((item) => {
-          const sharedClasses =
-            "group p-6 rounded-2xl border border-slate-100 bg-white hover:border-emerald-100 hover:shadow-lg hover:shadow-slate-100 transition-all text-left"
+          {section.type === "tools" && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              {section.items.map((item: any) => (
+                <a
+                  key={item.id}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block group"
+                >
+                  <div className="border border-[#e8e3dc] rounded-xl p-6 bg-white hover:shadow-md hover:border-[#c2785e]/30 transition-all duration-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl">{item.icon}</span>
+                      <h3 className="text-lg font-bold text-[#3d3835] group-hover:text-[#c2785e] transition-colors">
+                        {item.title}
+                      </h3>
+                      <svg className="w-4 h-4 text-[#c2785e] opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+                      </svg>
+                    </div>
+                    <p className="text-sm text-[#8a827c] leading-relaxed">{item.desc}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
 
-          const content = (
-            <>
-              <div className="w-12 h-12 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600 mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                {item.icon}
-              </div>
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
-                  {item.title}
-                </h3>
-                {item.external && (
-                  <svg className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
-                  </svg>
-                )}
-              </div>
-              <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
-            </>
-          )
+          {section.type === "courses" && (
+            <div className="grid gap-6">
+              {section.items.map((course: any) => (
+                <a
+                  key={course.id}
+                  href={course.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block group"
+                >
+                  <div className="border border-[#e8e3dc] rounded-xl p-6 bg-white hover:shadow-md hover:border-[#c2785e]/30 transition-all duration-200">
+                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-bold text-[#3d3835] group-hover:text-[#c2785e] transition-colors">
+                            {course.title}
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#f5f0ea] text-[#8a827c]">
+                            {course.level}
+                          </span>
+                        </div>
+                        <p className="text-sm text-[#8a827c] mb-1">
+                          {course.instructor} · {course.platform}
+                        </p>
+                        <p className="text-[#6b6560] text-sm leading-relaxed mt-2">
+                          {course.description}
+                        </p>
+                        <div className="flex items-center gap-3 mt-3 flex-wrap">
+                          <span className="text-xs text-[#8a827c]">⏱ {course.duration}</span>
+                          {course.tags.map((tag: string) => (
+                            <span
+                              key={tag}
+                              className="px-2 py-0.5 rounded-full text-xs bg-[#c2785e]/5 text-[#c2785e]"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-[#c2785e]/10 flex items-center justify-center group-hover:bg-[#c2785e]/20 transition-colors">
+                          <svg
+                            className="w-5 h-5 text-[#c2785e]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
 
-          if (item.external) {
-            return (
-              <a
-                key={item.url}
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={sharedClasses}
-              >
-                {content}
-              </a>
-            )
-          }
-
-          return (
-            <Link key={item.to} to={item.to!} className={sharedClasses}>
-              {content}
-            </Link>
-          )
-        })}
+      <div className="border-t border-[#e8e3dc] pt-12 mt-8">
+        <div className="border border-dashed border-[#e8e3dc] rounded-xl p-8 text-center">
+          <div className="text-3xl mb-3">📚</div>
+          <h3 className="text-lg font-bold text-[#3d3835] mb-2">更多课程陆续添加</h3>
+          <p className="text-[#8a827c] text-sm">
+            每次遇到好的课程、好的讲座、好的学习资源，就放进这个页面。让它越长越厚。
+          </p>
+        </div>
       </div>
     </div>
   )

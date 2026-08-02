@@ -27,11 +27,11 @@ function MermaidBlock({ chart }: { chart: string }) {
   }, [chart]);
 
   return (
-    <div className="my-4 p-4 bg-white rounded-xl border border-slate-200 overflow-x-auto">
+    <div className="my-4 p-4 bg-[#f5f0ea] rounded-xl border border-[#e8e3dc] overflow-x-auto">
       <div ref={ref} className="flex justify-center" />
       <details className="mt-2">
-        <summary className="text-xs text-slate-400 cursor-pointer">查看源码</summary>
-        <pre className="mt-1 text-xs text-slate-500 whitespace-pre-wrap">{chart}</pre>
+        <summary className="text-xs text-[#8a827c] cursor-pointer">查看源码</summary>
+        <pre className="mt-1 text-xs text-[#b8b0a8] whitespace-pre-wrap">{chart}</pre>
       </details>
     </div>
   );
@@ -51,7 +51,7 @@ function ImagePlaceholder({ query }: { query: string }) {
         className="w-full h-48 object-cover"
         loading="lazy"
       />
-      <p className="text-xs text-slate-400 text-center py-1 bg-slate-50">
+      <p className="text-xs text-[#8a827c] text-center py-1 bg-[#f5f0ea]">
         配图：{query}
       </p>
     </div>
@@ -60,13 +60,13 @@ function ImagePlaceholder({ query }: { query: string }) {
 
 const markdownComponents = {
   h2: ({ children }: { children?: React.ReactNode }) => (
-    <h2 className="text-lg font-bold text-slate-900 mt-4 mb-2">{children}</h2>
+    <h2 className="text-lg font-bold text-[#3d3835] mt-4 mb-2">{children}</h2>
   ),
   h3: ({ children }: { children?: React.ReactNode }) => (
-    <h3 className="text-base font-semibold text-slate-800 mt-3 mb-1">{children}</h3>
+    <h3 className="text-base font-semibold text-[#3d3835] mt-3 mb-1">{children}</h3>
   ),
   p: ({ children }: { children?: React.ReactNode }) => (
-    <p className="text-slate-600 leading-relaxed mb-2">{children}</p>
+    <p className="text-[#6b6560] leading-relaxed mb-2">{children}</p>
   ),
   ul: ({ children }: { children?: React.ReactNode }) => (
     <ul className="list-disc pl-5 space-y-1 mb-2">{children}</ul>
@@ -75,7 +75,7 @@ const markdownComponents = {
     <ol className="list-decimal pl-5 space-y-1 mb-2">{children}</ol>
   ),
   li: ({ children }: { children?: React.ReactNode }) => (
-    <li className="text-slate-600">{children}</li>
+    <li className="text-[#6b6560]">{children}</li>
   ),
   code: ({
     className,
@@ -91,18 +91,18 @@ const markdownComponents = {
     }
 
     return inline ? (
-      <code className="bg-slate-100 text-slate-800 px-1 py-0.5 rounded text-sm">{content}</code>
+      <code className="bg-[#f5f0ea] text-[#3d3835] px-1 py-0.5 rounded text-sm">{content}</code>
     ) : (
-      <pre className="bg-slate-100 p-3 rounded-xl overflow-x-auto text-sm">
+      <pre className="bg-[#f5f0ea] p-3 rounded-xl overflow-x-auto text-sm">
         <code>{content}</code>
       </pre>
     );
   },
   strong: ({ children }: { children?: React.ReactNode }) => (
-    <strong className="font-semibold text-slate-900">{children}</strong>
+    <strong className="font-semibold text-[#3d3835]">{children}</strong>
   ),
   em: ({ children }: { children?: React.ReactNode }) => (
-    <em className="italic text-slate-500">{children}</em>
+    <em className="italic text-[#8a827c]">{children}</em>
   ),
   // Custom handling for [IMAGE: xxx] in paragraphs
   img: ({ src, alt }: { src?: string; alt?: string }) => {
@@ -140,7 +140,7 @@ function ChatMessage({ role, content, isStreaming }: Props) {
 
   return (
     <div className="flex mb-4 group">
-      <div className="max-w-[85%] bg-slate-50 rounded-2xl rounded-bl-md px-4 py-3 relative">
+      <div className="max-w-[85%] bg-[#f5f0ea] rounded-2xl rounded-bl-md px-4 py-3 relative">
         {content ? (
           <div className="prose-sm">
             <ReactMarkdown components={markdownComponents}>
@@ -156,7 +156,7 @@ function ChatMessage({ role, content, isStreaming }: Props) {
         {content && !isStreaming && (
           <button
             onClick={handleCopy}
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-slate-400 hover:text-slate-600 bg-white border border-slate-200 rounded-md px-2 py-0.5"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-[#8a827c] hover:text-[#3d3835] bg-[#f5f0ea] border border-[#d6d0c8] rounded-md px-2 py-0.5"
           >
             复制
           </button>

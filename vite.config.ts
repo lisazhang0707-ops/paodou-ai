@@ -12,6 +12,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/tavily/, ""),
       },
+      "/api/jina": {
+        target: "https://r.jina.ai",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/jina/, ""),
+        headers: { Accept: "text/markdown" },
+      },
     },
   },
 })

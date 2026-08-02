@@ -154,19 +154,19 @@ export default function Agents() {
           {messages.length === 0 ? (
             <div className="max-w-2xl mx-auto px-6 py-12 text-center">
               <div className="text-5xl mb-4">{activeAgent.icon}</div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">
+              <h2 className="text-xl font-bold text-[#3d3835] mb-2">
                 {activeAgent.name}
               </h2>
-              <p className="text-slate-500 mb-8">{activeAgent.description}</p>
+              <p className="text-[#8a827c] mb-8">{activeAgent.description}</p>
 
               {!hasKey && (
-                <div className="mb-8 p-4 rounded-2xl bg-amber-50 border border-amber-200">
-                  <p className="text-sm text-amber-700 mb-3">
+                <div className="mb-8 p-4 rounded-2xl bg-amber-500/10 border border-amber-200">
+                  <p className="text-sm text-amber-600 mb-3">
                     请先配置 {provider.label} 的 API Key 以开始使用
                   </p>
                   <button
                     onClick={() => setShowApiKeyModal(true)}
-                    className="px-6 py-2 bg-amber-600 text-white rounded-full text-sm font-medium hover:bg-amber-700 transition-colors"
+                    className="px-6 py-2 bg-[#c2785e] text-white rounded-full text-sm font-medium hover:bg-[#b0684e] transition-colors"
                   >
                     配置 API Key
                   </button>
@@ -184,7 +184,7 @@ export default function Agents() {
               {/* stored docs — only for bid agent */}
               {activeAgentId === "bid-helper" && storedDocs.length > 0 && (
                 <div className="mb-8">
-                  <p className="text-xs text-slate-400 mb-3">
+                  <p className="text-xs text-[#8a827c] mb-3">
                     已解析文档（{storedDocs.length}份，存储于本地浏览器）
                   </p>
                   <div className="space-y-2">
@@ -197,8 +197,8 @@ export default function Agents() {
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                           <polyline points="14 2 14 8 20 8" />
                         </svg>
-                        <span className="text-slate-600 truncate flex-1">{doc.fileName}</span>
-                        <span className="text-slate-400 flex-shrink-0">
+                        <span className="text-[#8a827c] truncate flex-1">{doc.fileName}</span>
+                        <span className="text-[#8a827c] flex-shrink-0">
                           {(doc.charCount / 1000).toFixed(0)}k字
                         </span>
                       </div>
@@ -208,13 +208,13 @@ export default function Agents() {
               )}
 
               <div className="space-y-2">
-                <p className="text-xs text-slate-400 mb-3">或直接输入需求：</p>
+                <p className="text-xs text-[#8a827c] mb-3">或直接输入需求：</p>
                 {activeAgent.examples.map((ex, i) => (
                   <button
                     key={i}
                     onClick={() => handleSend(ex)}
                     disabled={!hasKey || isLoading || searching}
-                    className="block w-full text-left px-4 py-3 rounded-xl border border-slate-200 text-sm text-slate-600 hover:border-blue-200 hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="block w-full text-left px-4 py-3 rounded-xl border border-[#e8e3dc] text-sm text-[#8a827c] hover:border-blue-500/30 hover:bg-[#c2785e]/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {ex}
                   </button>
@@ -224,7 +224,7 @@ export default function Agents() {
           ) : (
             <div className="max-w-3xl mx-auto px-4 py-6">
               {error && (
-                <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-200 text-sm text-red-500">
                   {error}
                   <button
                     onClick={() => clearMessages()}

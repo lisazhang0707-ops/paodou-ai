@@ -7,6 +7,7 @@ export default function RoiCalculator() {
   const [clicks, setClicks] = useState(15000)
   const [conversions, setConversions] = useState(300)
   const [avgRevenue, setAvgRevenue] = useState(2000)
+  const [marginRate, setMarginRate] = useState(60) // 毛利率 %
 
   const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0
   const cpc = clicks > 0 ? budget / clicks : 0
@@ -14,63 +15,74 @@ export default function RoiCalculator() {
   const cpa = conversions > 0 ? budget / conversions : 0
   const totalRevenue = conversions * avgRevenue
   const roas = budget > 0 ? totalRevenue / budget : 0
-  const profit = totalRevenue - budget
+  // 毛利 = 总收入 × 毛利率；净利润 = 毛利 − 投放预算
+  const grossProfit = totalRevenue * (marginRate / 100)
+  const profit = grossProfit - budget
 
   const inputs = [
-    { label: "投放预算 (¥)", value: budget, set: setBudget, step: 10000 },
-    { label: "曝光量", value: impressions, set: setImpressions, step: 10000 },
-    { label: "点击量", value: clicks, set: setClicks, step: 1000 },
-    { label: "转化数", value: conversions, set: setConversions, step: 10 },
-    { label: "客单价 (¥)", value: avgRevenue, set: setAvgRevenue, step: 100 },
+    { label: "投放预算 (¥)", value: budget, set: setBudget, step: 10000, display: budget.toLocaleString() },
+    { label: "曝光量", value: impressions, set: setImpressions, step: 10000, display: impressions.toLocaleString() },
+    { label: "点击量", value: clicks, set: setClicks, step: 1000, display: clicks.toLocaleString() },
+    { label: "转化数", value: conversions, set: setConversions, step: 10, display: conversions.toLocaleString() },
+    { label: "客单价 (¥)", value: avgRevenue, set: setAvgRevenue, step: 100, display: avgRevenue.toLocaleString() },
+    { label: "毛利率 (%)", value: marginRate, set: setMarginRate, step: 1, display: `${marginRate}%` },
   ]
 
   const metrics = [
-    { label: "CTR", value: `${ctr.toFixed(2)}%`, color: "text-blue-600" },
-    { label: "CPC", value: `¥${cpc.toFixed(2)}`, color: "text-blue-600" },
+    { label: "CTR", value: `${ctr.toFixed(2)}%`, color: "text-[#c2785e]" },
+    { label: "CPC", value: `¥${cpc.toFixed(2)}`, color: "text-[#c2785e]" },
     { label: "转化率", value: `${conversionRate.toFixed(2)}%`, color: "text-emerald-600" },
     { label: "CPA", value: `¥${cpa.toFixed(2)}`, color: "text-emerald-600" },
-    { label: "总收入", value: `¥${totalRevenue.toLocaleString()}`, color: "text-slate-900" },
-    { label: "ROAS", value: `${roas.toFixed(2)}x`, color: profit >= 0 ? "text-slate-900" : "text-red-600" },
+    { label: "总收入", value: `¥${totalRevenue.toLocaleString()}`, color: "text-[#3d3835]" },
+    { label: "ROAS", value: `${roas.toFixed(2)}x`, color: "text-[#3d3835]" },
   ]
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-black text-slate-900 mb-2">营销 ROI 计算器</h1>
-      <p className="text-slate-400 mb-10">拖动滑块调整参数，实时计算投放回报</p>
+      <h1 className="text-3xl font-black text-[#3d3835] mb-2">营销 ROI 计算器</h1>
+      <p className="text-[#8a827c] mb-10">拖动滑块调整参数，实时计算投放回报</p>
 
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-5">
-          {inputs.map(({ label, value, set, step }) => (
+          {inputs.map(({ label, value, set, step, display }) => (
             <div key={label}>
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-slate-500">{label}</span>
-                <span className="font-semibold text-slate-900">{value.toLocaleString()}</span>
+                <span className="text-[#8a827c]">{label}</span>
+                <span className="font-semibold text-[#3d3835]">{display}</span>
               </div>
               <input
                 type="range"
-                min={0}
-                max={value * 3 || step * 10}
+                min={label === "毛利率 (%)" ? 0 : 0}
+                max={label === "毛利率 (%)" ? 100 : value * 3 || step * 10}
                 step={step}
                 value={value}
                 onChange={(e) => set(Number(e.target.value))}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full h-2 bg-[#f5f0ea] rounded-lg appearance-none cursor-pointer accent-[#c2785e]"
               />
             </div>
           ))}
         </div>
 
-        <div className="bg-slate-50 rounded-2xl p-6">
-          <h3 className="text-lg font-bold text-slate-900 mb-4">计算结果</h3>
+        <div className="bg-[#f5f0ea] rounded-2xl p-6">
+          <h3 className="text-lg font-bold text-[#3d3835] mb-4">计算结果</h3>
           <div className="grid grid-cols-2 gap-4">
             {metrics.map(({ label, value, color }) => (
               <div key={label}>
-                <span className="text-sm text-slate-400">{label}</span>
+                <span className="text-sm text-[#8a827c]">{label}</span>
                 <p className={`text-2xl font-bold ${color}`}>{value}</p>
               </div>
             ))}
           </div>
-          <div className={`mt-4 p-4 rounded-xl text-center font-bold text-lg ${profit >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>
-            {profit >= 0 ? `利润 ¥${profit.toLocaleString()}` : `亏损 ¥${Math.abs(profit).toLocaleString()}`}
+
+          <div className="mt-4 space-y-2">
+            <div className="flex justify-between text-sm text-[#8a827c] px-1">
+              <span>毛利 = 总收入 × 毛利率</span>
+              <span className="font-semibold text-[#6b6560]">¥{grossProfit.toLocaleString()}</span>
+            </div>
+            <div className={`p-4 rounded-xl text-center font-bold text-lg ${profit >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+              {profit >= 0 ? `净利润 ¥${profit.toLocaleString()}` : `净亏损 ¥${Math.abs(profit).toLocaleString()}`}
+            </div>
+            <p className="text-xs text-[#8a827c] text-center">净利润 = 毛利 − 投放预算</p>
           </div>
         </div>
       </div>

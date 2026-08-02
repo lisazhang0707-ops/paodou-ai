@@ -14,8 +14,8 @@ export default function About() {
         </div>
 
         <div>
-          <h1 className="text-3xl font-black text-slate-900 mb-6">Hi，我是 Lisa</h1>
-          <div className="space-y-4 text-slate-500 leading-relaxed text-lg">
+          <h1 className="text-3xl font-black text-[#3d3835] mb-6">Hi，我是 Lisa</h1>
+          <div className="space-y-4 text-[#6b6560] leading-relaxed text-lg">
             <p>
               资深销售与营销管理者，多年一线实战经验。相信 AI 不是替代人，而是让专业的人更高效。
             </p>
@@ -28,15 +28,15 @@ export default function About() {
 
       {/* Decorative divider */}
       <div className="flex items-center gap-4 mb-16">
-        <div className="h-px flex-1 bg-slate-100" />
+        <div className="h-px flex-1 bg-[#f5f0ea]" />
         <div className="w-2 h-2 rounded-full bg-blue-500" />
-        <div className="h-px flex-1 bg-slate-100" />
+        <div className="h-px flex-1 bg-[#f5f0ea]" />
       </div>
 
       <div className="grid md:grid-cols-2 gap-8 mb-16">
         <div>
-          <h2 className="text-lg font-bold text-slate-900 mb-3">关注领域</h2>
-          <ul className="space-y-2 text-slate-500">
+          <h2 className="text-lg font-bold text-[#3d3835] mb-3">关注领域</h2>
+          <ul className="space-y-2 text-[#8a827c]">
             <li>· AI 在销售流程中的落地应用</li>
             <li>· 营销 ROI 量化与归因分析</li>
             <li>· 客户数据挖掘与分层</li>
@@ -44,8 +44,8 @@ export default function About() {
           </ul>
         </div>
         <div>
-          <h2 className="text-lg font-bold text-slate-900 mb-3">找到我</h2>
-          <ul className="space-y-2 text-slate-500">
+          <h2 className="text-lg font-bold text-[#3d3835] mb-3">找到我</h2>
+          <ul className="space-y-2 text-[#8a827c]">
             <li>· 微信：扫码添加</li>
             <li>· 知乎：@跑豆AI</li>
             <li>· 小红书：@跑豆AI</li>

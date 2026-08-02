@@ -77,20 +77,20 @@ export default function FileDropZone({ onAnalyze, disabled }: Props) {
 
       {/* parsing state */}
       {parsing && (
-        <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-8 text-center">
-          <div className="animate-spin mx-auto mb-3 w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full" />
-          <p className="text-blue-700 font-medium">正在解析文件...</p>
-          <p className="text-blue-500 text-sm mt-1">大型PDF可能需要几秒钟</p>
+        <div className="rounded-2xl border-2 border-[#c2785e]/20 bg-[#c2785e]/10 p-8 text-center">
+          <div className="animate-spin mx-auto mb-3 w-10 h-10 border-4 border-[#c2785e]/20 border-t-[#c2785e] rounded-full" />
+          <p className="text-[#c2785e] font-medium">正在解析文件...</p>
+          <p className="text-[#c2785e]/70 text-sm mt-1">大型PDF可能需要几秒钟</p>
         </div>
       )}
 
       {/* error state */}
       {error && !parsing && (
         <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-6 text-center">
-          <p className="text-red-600 font-medium mb-2">{error}</p>
+          <p className="text-red-500 font-medium mb-2">{error}</p>
           <button
             onClick={handleReset}
-            className="text-sm text-red-500 underline hover:text-red-700"
+            className="text-sm text-red-500 underline hover:text-red-500"
           >
             重新上传
           </button>
@@ -108,7 +108,7 @@ export default function FileDropZone({ onAnalyze, disabled }: Props) {
               <line x1="16" y1="17" x2="8" y2="17" />
             </svg>
             <div className="flex-1 min-w-0">
-              <p className="text-green-800 font-medium text-sm truncate">{readyFile.name}</p>
+              <p className="text-green-700 font-medium text-sm truncate">{readyFile.name}</p>
               <p className="text-green-600 text-xs">
                 {(readyFile.content.length / 1000).toFixed(1)}k 字符已提取
               </p>
@@ -123,7 +123,7 @@ export default function FileDropZone({ onAnalyze, disabled }: Props) {
               </svg>
             </button>
           </div>
-          <p className="text-green-700 text-xs mb-4 line-clamp-3 opacity-75">
+          <p className="text-green-600/70 text-xs mb-4 line-clamp-3">
             {readyFile.content.slice(0, 300)}...
           </p>
           <button
@@ -145,26 +145,26 @@ export default function FileDropZone({ onAnalyze, disabled }: Props) {
           onClick={() => fileInputRef.current?.click()}
           className={`rounded-2xl border-2 border-dashed p-10 text-center cursor-pointer transition-all ${
             dragOver
-              ? "border-blue-400 bg-blue-50 scale-[1.02]"
-              : "border-slate-300 hover:border-blue-300 hover:bg-slate-50"
+              ? "border-[#c2785e] bg-[#c2785e]/10 scale-[1.02]"
+              : "border-[#e8e3dc] hover:border-[#c2785e] hover:bg-[#f5f0ea]"
           } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           <svg
             width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-            className={`mx-auto mb-3 ${dragOver ? "text-blue-500" : "text-slate-400"}`}
+            className={`mx-auto mb-3 ${dragOver ? "text-[#c2785e]" : "text-[#8a827c]"}`}
           >
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="17 8 12 3 7 8" />
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
-          <p className="text-slate-700 font-medium mb-1">
+          <p className="text-[#6b6560] font-medium mb-1">
             {dragOver ? "松开鼠标上传文件" : "上传甲方招标文件"}
           </p>
-          <p className="text-slate-400 text-sm">
+          <p className="text-[#8a827c] text-sm">
             拖拽文件到此处，或点击选择文件
           </p>
-          <p className="text-slate-300 text-xs mt-2">
+          <p className="text-[#b8b0a8] text-xs mt-2">
             支持 .pdf / .docx / .txt
           </p>
         </div>

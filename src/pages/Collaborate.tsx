@@ -1,8 +1,8 @@
 export default function Collaborate() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-black text-slate-900 mb-3">合作</h1>
-      <p className="text-slate-400 mb-12">为销售团队和营销人提供 AI 落地的咨询、培训与工具定制</p>
+      <h1 className="text-3xl font-black text-[#3d3835] mb-3">合作</h1>
+      <p className="text-[#8a827c] mb-12">为销售团队和营销人提供 AI 落地的咨询、培训与工具定制</p>
 
       <div className="space-y-6 mb-16">
         {[
@@ -22,12 +22,12 @@ export default function Collaborate() {
             price: "按需报价",
           },
         ].map((s) => (
-          <div key={s.title} className="p-6 rounded-2xl border border-slate-100 bg-white hover:border-blue-100 transition-colors">
+          <div key={s.title} className="p-6 rounded-2xl border border-[#e8e3dc] bg-white hover:border-[#d6d0c8] transition-colors">
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-xl font-bold text-slate-900">{s.title}</h3>
-              <span className="text-blue-600 font-semibold text-sm whitespace-nowrap ml-4">{s.price}</span>
+              <h3 className="text-xl font-bold text-[#3d3835]">{s.title}</h3>
+              <span className="text-[#c2785e] font-semibold text-sm whitespace-nowrap ml-4">{s.price}</span>
             </div>
-            <p className="text-slate-400 leading-relaxed">{s.desc}</p>
+            <p className="text-[#8a827c] leading-relaxed">{s.desc}</p>
           </div>
         ))}
       </div>
@@ -42,7 +42,7 @@ export default function Collaborate() {
         </div>
         <div className="relative">
           <h2 className="text-2xl font-bold mb-3">开始合作</h2>
-          <p className="text-slate-300 mb-6">扫码加 Lisa 微信，聊聊你的需求。没有套路，先聊清楚再决定。</p>
+          <p className="text-[#6b6560] mb-6">扫码加 Lisa 微信，聊聊你的需求。没有套路，先聊清楚再决定。</p>
           <div className="w-32 h-32 mx-auto bg-white/10 rounded-xl flex items-center justify-center text-white/40 text-sm">
             微信二维码
           </div>
