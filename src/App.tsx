@@ -15,6 +15,7 @@ import Agents from "./pages/Agents"
 import Dashboard from "./pages/Dashboard"
 import FinanceDashboard from "./pages/FinanceDashboard"
 import CustomerDashboard from "./pages/CustomerDashboard"
+import Growth from "./pages/Growth"
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/finance" element={<FinanceDashboard />} />
           <Route path="/dashboard/customers" element={<CustomerDashboard />} />
+          <Route path="/growth" element={<Growth />} />
         </Routes>
       </main>
       <Footer />
