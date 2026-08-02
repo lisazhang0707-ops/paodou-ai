@@ -347,6 +347,173 @@ export default function Strategy() {
         </p>
       </div>
 
+      {/* ======== Kaplan-Norton 框架体系 ======== */}
+      <section className="mb-10 no-print">
+        <h2 className="text-lg font-bold text-[#3d3835] mb-4 flex items-center gap-2">
+          <span className="w-1.5 h-5 bg-[#c2785e] rounded-full inline-block" />
+          Kaplan-Norton 战略管理体系
+        </h2>
+
+        {/* 三大支柱 */}
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          {[
+            {
+              id: "strategy-map",
+              title: "战略地图",
+              subtitle: "Strategy Map",
+              desc: '将战略转化为四维度因果链路，回答"我们如何创造价值"',
+              steps: ["确定股东价值差距（财务）", "明确客户价值主张（客户）", "选择关键内部流程（流程）", "确定战略就绪度（学习与成长）"],
+              archetypes: ["总成本最低", "产品领先", "全面客户解决方案", "系统锁定"],
+              color: "#c2785e",
+            },
+            {
+              id: "bsc",
+              title: "平衡计分卡",
+              subtitle: "Balanced Scorecard",
+              desc: "四维度 KPI 体系，滞后指标+领先指标双轮驱动",
+              perspectives: [
+                { name: "财务", kpis: "收入增长·生产率·资产利用" },
+                { name: "客户", kpis: "份额·获客·满意度·NPS" },
+                { name: "内部流程", kpis: "运营·客户管理·创新·合规" },
+                { name: "学习与成长", kpis: "人力资本·信息资本·组织资本" },
+              ],
+              color: "#6366f1",
+            },
+            {
+              id: "sfo",
+              title: "战略中心型组织",
+              subtitle: "Strategy-Focused Organization",
+              desc: "五大原则确保战略不只是一张纸，而是每个人的日常工作",
+              principles: [
+                "高层领导推动变革",
+                "将战略转化为可操作的术语",
+                "使组织围绕战略协同化",
+                "让战略成为每个人的日常工作",
+                "使战略成为持续性流程",
+              ],
+              color: "#10b981",
+            },
+          ].map((pillar) => (
+            <details key={pillar.id} className="group bg-white rounded-2xl border border-[#e8e3dc] hover:border-[#c2785e]/30 transition-all">
+              <summary className="p-5 cursor-pointer select-none marker:hidden flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-sm font-bold" style={{ background: pillar.color }}>
+                  {pillar.id === "strategy-map" ? "🗺️" : pillar.id === "bsc" ? "📊" : "🏛️"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-[#3d3835] text-sm">{pillar.title}</h3>
+                    <span className="text-xs text-[#b8b0a8]">{pillar.subtitle}</span>
+                  </div>
+                  <p className="text-xs text-[#8a827c] mt-1 leading-relaxed">{pillar.desc}</p>
+                </div>
+                <svg className="w-4 h-4 text-[#b8b0a8] mt-2 group-open:rotate-180 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+              </summary>
+
+              {/* Expanded content */}
+              <div className="px-5 pb-5 space-y-3 border-t border-[#f0ebe4] pt-4 mx-5">
+                {pillar.id === "strategy-map" && (
+                  <>
+                    <div>
+                      <p className="text-xs font-semibold text-[#6b6560] mb-2">四步构建法</p>
+                      <div className="space-y-1.5">
+                        {(pillar as any).steps.map((s: string, i: number) => (
+                          <div key={i} className="flex items-center gap-2 text-xs text-[#8a827c]">
+                            <span className="w-5 h-5 rounded-full bg-[#f5f0ea] flex items-center justify-center text-[10px] font-bold text-[#c2785e]">{i + 1}</span>
+                            {s}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-[#6b6560] mb-2">四种通用战略原型</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(pillar as any).archetypes.map((a: string) => (
+                          <span key={a} className="px-2 py-1 rounded-full text-[10px] bg-[#c2785e]/5 text-[#c2785e] font-medium">{a}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { setName(""); setType("company"); setDepth("L3"); }}
+                      className="w-full text-center text-xs text-[#c2785e] font-medium hover:underline"
+                    >
+                      用战略地图分析你的公司（L3深度）→
+                    </button>
+                  </>
+                )}
+
+                {pillar.id === "bsc" && (
+                  <>
+                    <div>
+                      <p className="text-xs font-semibold text-[#6b6560] mb-2">四维度与典型指标</p>
+                      <div className="space-y-2">
+                        {(pillar as any).perspectives.map((p: any) => (
+                          <div key={p.name} className="flex items-start gap-2 text-xs">
+                            <span className="font-semibold text-[#3d3835] min-w-[60px]">{p.name}</span>
+                            <span className="text-[#8a827c]">{p.kpis}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-[#faf7f2] rounded-xl p-3 text-xs text-[#8a827c] leading-relaxed">
+                      <span className="font-semibold text-[#6b6560]">指标设计原则</span>：每个战略目标配 1-2 个滞后指标（结果）+ 1-2 个领先指标（驱动因素）
+                    </div>
+                  </>
+                )}
+
+                {pillar.id === "sfo" && (
+                  <>
+                    <div>
+                      <p className="text-xs font-semibold text-[#6b6560] mb-2">五大原则</p>
+                      <div className="space-y-1.5">
+                        {(pillar as any).principles.map((p: string, i: number) => (
+                          <div key={i} className="flex items-center gap-2 text-xs text-[#8a827c]">
+                            <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-[10px] font-bold">{i + 1}</span>
+                            {p}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-[#faf7f2] rounded-xl p-3 text-xs text-[#8a827c] leading-relaxed">
+                      <span className="font-semibold text-[#6b6560]">双循环管理</span>：运营回顾会（周/月）+ 战略学习会（季度），战略不是一年一次的活动
+                    </div>
+                  </>
+                )}
+              </div>
+            </details>
+          ))}
+        </div>
+
+        {/* 分析工具箱 — 框架速览 */}
+        <h2 className="text-lg font-bold text-[#3d3835] mb-4 flex items-center gap-2">
+          <span className="w-1.5 h-5 bg-[#6366f1] rounded-full inline-block" />
+          分析工具箱
+        </h2>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {[
+            { label: "PESTEL", desc: "宏观环境六维度扫描", category: "外部环境" },
+            { label: "波特五力", desc: "行业竞争结构分析", category: "外部环境" },
+            { label: "VRIO", desc: "资源与能力审计", category: "内部能力" },
+            { label: "价值链", desc: "成本优势与差异化来源", category: "内部能力" },
+            { label: "SWOT/TOWS", desc: "内外交叉矩阵生成战略选项", category: "综合" },
+            { label: "BCG 矩阵", desc: "业务组合与资源配置", category: "综合" },
+            { label: "蓝海战略", desc: "ERRC 四步动作创造新市场", category: "战略选择" },
+            { label: "安索夫矩阵", desc: "增长方向选择：市场×产品", category: "战略选择" },
+          ].map((tool) => (
+            <div
+              key={tool.label}
+              className="bg-white rounded-xl border border-[#e8e3dc] p-4 hover:border-[#c2785e]/30 hover:-translate-y-0.5 transition-all"
+            >
+              <p className="text-xs text-[#b8b0a8] mb-0.5">{tool.category}</p>
+              <p className="font-bold text-[#3d3835] text-sm mb-1">{tool.label}</p>
+              <p className="text-xs text-[#8a827c] leading-relaxed">{tool.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Input Form */}
       <div className="bg-white rounded-2xl border border-[#e8e3dc] p-6 mb-8 no-print">
         <h2 className="text-lg font-bold text-[#3d3835] mb-4">分析参数</h2>
