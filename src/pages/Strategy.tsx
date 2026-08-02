@@ -10,6 +10,7 @@ import ApiKeyModal from "../components/ApiKeyModal";
 import { searchWeb, getTavilyKey, setTavilyKey } from "../utils/search";
 import { conductResearch, compileResearchContext } from "../utils/research";
 import { ReportChartBlock, type ChartType } from "../components/charts/ReportCharts";
+import { parseFile } from "../utils/parseFile";
 
 mermaid.initialize({ startOnLoad: false, theme: "base" });
 
@@ -198,7 +199,7 @@ export default function Strategy() {
     : provider.models;
 
   // ---- web search ----
-  const [searchEnabled, setSearchEnabled] = useState(false);
+  const [searchEnabled, setSearchEnabled] = useState(true); // default ON when no files
   const [tavilyKey, setTavilyKeyState] = useState(() => getTavilyKey());
   const [searching, setSearching] = useState(false);
   const [researchPhase, setResearchPhase] = useState<"idle" | "searching" | "deepReading" | "generating" | "done">("idle");
@@ -206,6 +207,32 @@ export default function Strategy() {
     setTavilyKeyState(key);
     setTavilyKey(key);
   };
+
+  // ---- file upload ----
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; content: string }[]>([]);
+  const [fileParsing, setFileParsing] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileAdd = useCallback(async (file: File) => {
+    setFileError(null);
+    setFileParsing(true);
+    try {
+      const result = await parseFile(file);
+      setUploadedFiles((prev) => [...prev, { name: result.fileName, content: result.text }]);
+      // when user uploads files, they may still want web search — but we let them decide
+    } catch (err) {
+      setFileError(err instanceof Error ? err.message : "文件解析失败");
+    } finally {
+      setFileParsing(false);
+    }
+  }, []);
+
+  const handleFileRemove = useCallback((index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const totalFileChars = uploadedFiles.reduce((sum, f) => sum + f.content.length, 0);
 
   // ---- system prompt ----
   const systemPrompt = useMemo(() => buildSystemPrompt(depth, type), [depth, type]);
@@ -245,6 +272,11 @@ export default function Strategy() {
     if (!name.trim() || isBusy) return;
     if (hasContent) clearMessages();
 
+    // build file context from uploaded files
+    const fileContext = uploadedFiles.length > 0
+      ? `\n\n[本地上传资料]\n\n${uploadedFiles.map((f) => `### ${f.name}\n\n${f.content.slice(0, 8000)}${f.content.length > 8000 ? "\n\n...(内容过长，已截断前8000字)" : ""}`).join("\n\n---\n\n")}\n\n---\n请基于以上本地资料，结合你的战略分析方法论，回答用户问题。\n\n`
+      : "";
+
     const doResearch = searchEnabled && tavilyKey;
     if (doResearch) {
       setResearchPhase("searching");
@@ -265,7 +297,7 @@ export default function Strategy() {
           depth, type,
           competitor: competitor.trim() || undefined,
           geographic,
-          researchContext: context || undefined,
+          researchContext: (context || "") + fileContext,
         }));
       } catch {
         sendMessage(buildUserPrompt({
@@ -274,10 +306,23 @@ export default function Strategy() {
           depth, type,
           competitor: competitor.trim() || undefined,
           geographic,
+          researchContext: fileContext || undefined,
         }));
       } finally {
         setResearchPhase("done");
       }
+    } else if (fileContext) {
+      // files only, no web search
+      setResearchPhase("generating");
+      sendMessage(buildUserPrompt({
+        name: name.trim(),
+        industry: industry.trim() || undefined,
+        depth, type,
+        competitor: competitor.trim() || undefined,
+        geographic,
+        researchContext: fileContext,
+      }));
+      setResearchPhase("done");
     } else {
       setResearchPhase("generating");
       sendMessage(buildUserPrompt({
@@ -289,7 +334,7 @@ export default function Strategy() {
       }));
       setResearchPhase("done");
     }
-  }, [name, industry, depth, type, competitor, geographic, searchEnabled, tavilyKey, isBusy, hasContent, clearMessages, sendMessage]);
+  }, [name, industry, depth, type, competitor, geographic, searchEnabled, tavilyKey, isBusy, hasContent, uploadedFiles, clearMessages, sendMessage]);
 
   // ---- follow-up question (keeps context, sends plain text) ----
   const [followUp, setFollowUp] = useState("");
@@ -646,6 +691,83 @@ export default function Strategy() {
             </>
           )}
         </div>
+
+        {/* File upload area */}
+        <div className="mt-5 pt-5 border-t border-[#f0ebe4]">
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-sm font-medium text-[#6b6560]">📎 上传本地资料（可选）</label>
+            <span className="text-xs text-[#b8b0a8]">PDF / DOCX / TXT</span>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx,.doc,.txt,.md"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileAdd(file);
+              if (fileInputRef.current) fileInputRef.current.value = "";
+            }}
+            className="hidden"
+          />
+
+          {/* uploaded file list */}
+          {uploadedFiles.length > 0 && (
+            <div className="space-y-2 mb-3">
+              {uploadedFiles.map((f, i) => (
+                <div key={i} className="flex items-center gap-3 bg-[#faf7f2] rounded-xl p-3 border border-[#e8e3dc]">
+                  <svg className="w-5 h-5 text-[#c2785e] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#3d3835] truncate">{f.name}</p>
+                    <p className="text-xs text-[#b8b0a8]">{(f.content.length / 1000).toFixed(1)}k 字符</p>
+                  </div>
+                  <button
+                    onClick={() => handleFileRemove(i)}
+                    className="text-[#b8b0a8] hover:text-red-500 transition-colors flex-shrink-0"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              <div className="text-xs text-[#8a827c] text-right">
+                合计 {totalFileChars > 1000 ? (totalFileChars / 1000).toFixed(1) + "k" : totalFileChars} 字符
+              </div>
+            </div>
+          )}
+
+          {/* parsing indicator */}
+          {fileParsing && (
+            <div className="flex items-center gap-2 text-sm text-[#c2785e] mb-3">
+              <div className="w-4 h-4 border-2 border-[#c2785e]/20 border-t-[#c2785e] rounded-full animate-spin" />
+              正在解析文件...
+            </div>
+          )}
+
+          {/* file error */}
+          {fileError && (
+            <div className="text-sm text-red-500 mb-3">{fileError}</div>
+          )}
+
+          {/* drop / browse zone */}
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-[#e8e3dc] rounded-xl p-6 text-center cursor-pointer hover:border-[#c2785e] hover:bg-[#faf7f2] transition-all"
+          >
+            <svg className="w-8 h-8 text-[#b8b0a8] mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+            </svg>
+            <p className="text-sm text-[#6b6560]">
+              {uploadedFiles.length > 0 ? "继续添加文件" : "点击上传或拖拽文件"}
+            </p>
+            <p className="text-xs text-[#b8b0a8] mt-1">
+              支持 PDF、DOCX、TXT，单文件建议不超过 20MB
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* API Config (collapsible) */}
@@ -716,9 +838,23 @@ export default function Strategy() {
             </div>
           </div>
 
-          {/* Web search toggle */}
+          {/* Data source mode indicator */}
           <div className="border-t border-[#e8e3dc] pt-3">
             <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-[#8a827c]">数据来源：</span>
+
+              {/* file status */}
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                uploadedFiles.length > 0
+                  ? "bg-emerald-50 text-emerald-600"
+                  : "bg-[#f5f0ea] text-[#b8b0a8]"
+              }`}>
+                📎 本地{uploadedFiles.length > 0 ? ` ${uploadedFiles.length}个文件` : "无"}
+              </span>
+
+              <span className="text-xs text-[#b8b0a8]">+</span>
+
+              {/* web search toggle */}
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -726,21 +862,27 @@ export default function Strategy() {
                   onChange={(e) => setSearchEnabled(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
                 />
-                <span className="text-sm text-[#6b6560]">联网搜索 (Tavily)</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  searchEnabled && tavilyKey
+                    ? "bg-blue-50 text-blue-600"
+                    : "bg-[#f5f0ea] text-[#b8b0a8]"
+                }`}>
+                  联网搜索{searchEnabled && tavilyKey ? " ✓" : ""}
+                </span>
               </label>
-              {searchEnabled && (
+
+              {searchEnabled && !tavilyKey && (
                 <input
                   type="password"
                   value={tavilyKey}
                   onChange={(e) => handleTavilyKeyChange(e.target.value)}
-                  placeholder={tavilyKey ? "Tavily Key 已配置" : "输入 Tavily API Key"}
+                  placeholder="输入 Tavily API Key → tavily.com 免费注册"
                   className="flex-1 min-w-[200px] px-3 py-1.5 border border-[#e8e3dc] bg-white text-[#3d3835] rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               )}
-              {searchEnabled && (
-                <span className={`text-xs ${tavilyKey ? "text-emerald-600" : "text-amber-600"}`}>
-                  {tavilyKey ? "已配置" : "需要 Key → tavily.com 免费注册"}
-                </span>
+
+              {uploadedFiles.length === 0 && !tavilyKey && searchEnabled && (
+                <span className="text-xs text-amber-600">需要 Key 才能联网，或上传本地文件</span>
               )}
             </div>
           </div>
