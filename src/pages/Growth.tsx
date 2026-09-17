@@ -13,7 +13,20 @@ const courses = [
   },
 ]
 
-const sections = [{ title: "吴恩达课程", courses }]
+const tools = [
+  {
+    id: "ai-learning-tracker",
+    title: "AI 学习追踪器",
+    desc: "系统化追踪 AI 学习进度，规划学习路径，记录关键节点",
+    url: import.meta.env.BASE_URL + "ai-learning-tracker.html",
+    icon: "📊",
+  },
+]
+
+const sections = [
+  { title: "学习工具", items: tools, type: "tools" as const },
+  { title: "吴恩达课程", items: courses, type: "courses" as const },
+]
 
 export default function Growth() {
   return (
@@ -21,7 +34,7 @@ export default function Growth() {
       <div className="mb-12">
         <h1 className="text-3xl font-black text-[#3d3835] mb-3">🌱 个人成长</h1>
         <p className="text-[#8a827c] text-lg">
-          值得反复学习的课程，持续积累，日日精进。
+          学习工具与精选课程，持续积累，日日精进。
         </p>
       </div>
 
@@ -30,66 +43,96 @@ export default function Growth() {
           <h2 className="text-xl font-bold text-[#3d3835] mb-6 pb-3 border-b border-[#e8e3dc]">
             {section.title}
           </h2>
-          <div className="grid gap-6">
-            {section.courses.map((course) => (
-              <a
-                key={course.id}
-                href={course.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block group"
-              >
-                <div className="border border-[#e8e3dc] rounded-xl p-6 bg-white hover:shadow-md hover:border-[#c2785e]/30 transition-all duration-200">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-bold text-[#3d3835] group-hover:text-[#c2785e] transition-colors">
-                          {course.title}
-                        </h3>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#f5f0ea] text-[#8a827c]">
-                          {course.level}
-                        </span>
-                      </div>
-                      <p className="text-sm text-[#8a827c] mb-1">
-                        {course.instructor} · {course.platform}
-                      </p>
-                      <p className="text-[#6b6560] text-sm leading-relaxed mt-2">
-                        {course.description}
-                      </p>
-                      <div className="flex items-center gap-3 mt-3 flex-wrap">
-                        <span className="text-xs text-[#8a827c]">⏱ {course.duration}</span>
-                        {course.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="px-2 py-0.5 rounded-full text-xs bg-[#c2785e]/5 text-[#c2785e]"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
+
+          {section.type === "tools" && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              {section.items.map((item: any) => (
+                <a
+                  key={item.id}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block group"
+                >
+                  <div className="border border-[#e8e3dc] rounded-xl p-6 bg-white hover:shadow-md hover:border-[#c2785e]/30 transition-all duration-200">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl">{item.icon}</span>
+                      <h3 className="text-lg font-bold text-[#3d3835] group-hover:text-[#c2785e] transition-colors">
+                        {item.title}
+                      </h3>
+                      <svg className="w-4 h-4 text-[#c2785e] opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+                      </svg>
                     </div>
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-full bg-[#c2785e]/10 flex items-center justify-center group-hover:bg-[#c2785e]/20 transition-colors">
-                        <svg
-                          className="w-5 h-5 text-[#c2785e]"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"
-                          />
-                        </svg>
+                    <p className="text-sm text-[#8a827c] leading-relaxed">{item.desc}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+
+          {section.type === "courses" && (
+            <div className="grid gap-6">
+              {section.items.map((course: any) => (
+                <a
+                  key={course.id}
+                  href={course.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block group"
+                >
+                  <div className="border border-[#e8e3dc] rounded-xl p-6 bg-white hover:shadow-md hover:border-[#c2785e]/30 transition-all duration-200">
+                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-bold text-[#3d3835] group-hover:text-[#c2785e] transition-colors">
+                            {course.title}
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#f5f0ea] text-[#8a827c]">
+                            {course.level}
+                          </span>
+                        </div>
+                        <p className="text-sm text-[#8a827c] mb-1">
+                          {course.instructor} · {course.platform}
+                        </p>
+                        <p className="text-[#6b6560] text-sm leading-relaxed mt-2">
+                          {course.description}
+                        </p>
+                        <div className="flex items-center gap-3 mt-3 flex-wrap">
+                          <span className="text-xs text-[#8a827c]">⏱ {course.duration}</span>
+                          {course.tags.map((tag: string) => (
+                            <span
+                              key={tag}
+                              className="px-2 py-0.5 rounded-full text-xs bg-[#c2785e]/5 text-[#c2785e]"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-[#c2785e]/10 flex items-center justify-center group-hover:bg-[#c2785e]/20 transition-colors">
+                          <svg
+                            className="w-5 h-5 text-[#c2785e]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z"
+                            />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </a>
-            ))}
-          </div>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       ))}
 

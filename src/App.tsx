@@ -19,6 +19,7 @@ import CustomerDashboard from "./pages/CustomerDashboard"
 import Strategy from "./pages/Strategy"
 import Growth from "./pages/Growth"
 import Leaders from "./pages/Leaders"
+import Projects from "./pages/Projects"
 
 export default function App() {
   return (
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/strategy" element={<Strategy />} />
           <Route path="/growth" element={<Growth />} />
           <Route path="/leaders" element={<Leaders />} />
+          <Route path="/projects" element={<Projects />} />
         </Routes>
       </main>
       <Footer />

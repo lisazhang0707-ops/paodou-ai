@@ -10,27 +10,70 @@ import ApiKeyModal from "../components/ApiKeyModal";
 import { searchWeb, getTavilyKey, setTavilyKey } from "../utils/search";
 import { conductResearch, compileResearchContext } from "../utils/research";
 import { ReportChartBlock, type ChartType } from "../components/charts/ReportCharts";
+import { parseFile } from "../utils/parseFile";
 
-mermaid.initialize({ startOnLoad: false, theme: "base" });
+mermaid.initialize({ startOnLoad: false, theme: "base", suppressErrorRendering: true });
 
 // ---------------------------------------------------------------------------
 // Mermaid & Image rendering (from ChatMessage)
 // ---------------------------------------------------------------------------
 
 function MermaidBlock({ chart }: { chart: string }) {
-  const ref = { current: null as HTMLDivElement | null };
-  const id = `mermaid-${Math.random().toString(36).slice(2, 8)}`;
-  const elRef = (node: HTMLDivElement | null) => {
-    if (!node || ref.current === node) return;
-    ref.current = node;
-    mermaid
-      .render(id, chart)
-      .then(({ svg }) => { node.innerHTML = svg; })
-      .catch(() => { node.innerHTML = `<p class="text-red-500 text-xs">图表语法错误</p>`; });
-  };
+  const elRef = useRef<HTMLDivElement | null>(null);
+  const [state, setState] = useState<"loading" | "ok" | "error">("loading");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    const id = `mermaid-${Math.random().toString(36).slice(2, 8)}`;
+
+    async function render() {
+      // pre-validate syntax first — catches most AI-generated errors before render
+      try {
+        await mermaid.parse(chart, { suppressErrors: true });
+      } catch (parseErr) {
+        if (!cancelled) {
+          setErrorMsg(parseErr instanceof Error ? parseErr.message : "语法错误");
+          setState("error");
+        }
+        return;
+      }
+
+      try {
+        const { svg } = await mermaid.render(id, chart);
+        if (!cancelled && elRef.current) {
+          elRef.current.innerHTML = svg;
+          setState("ok");
+        }
+      } catch {
+        if (!cancelled) {
+          setErrorMsg("图表渲染失败");
+          setState("error");
+        }
+      }
+    }
+
+    render();
+    return () => { cancelled = true; };
+  }, [chart]);
+
+  if (state === "error") {
+    return (
+      <div className="my-4 p-4 bg-red-50 rounded-xl border border-red-200">
+        <details>
+          <summary className="text-xs text-red-500 cursor-pointer font-medium">图表语法错误（AI生成内容可能有误）</summary>
+          <pre className="mt-2 text-xs text-red-400 whitespace-pre-wrap max-h-32 overflow-auto">{errorMsg}</pre>
+          <pre className="mt-2 text-xs text-[#8a827c] whitespace-pre-wrap max-h-48 overflow-auto bg-[#f5f0ea] p-2 rounded">{chart}</pre>
+        </details>
+      </div>
+    );
+  }
+
   return (
     <div className="my-4 p-4 bg-[#f5f0ea] rounded-xl border border-[#e8e3dc] overflow-x-auto">
-      <div ref={elRef} className="flex justify-center" />
+      <div ref={elRef} className="flex justify-center">
+        {state === "loading" && <div className="w-5 h-5 border-2 border-[#c2785e]/20 border-t-[#c2785e] rounded-full animate-spin" />}
+      </div>
       <details className="mt-2">
         <summary className="text-xs text-[#8a827c] cursor-pointer">查看源码</summary>
         <pre className="mt-1 text-xs text-[#8a827c] whitespace-pre-wrap">{chart}</pre>
@@ -198,7 +241,7 @@ export default function Strategy() {
     : provider.models;
 
   // ---- web search ----
-  const [searchEnabled, setSearchEnabled] = useState(false);
+  const [searchEnabled, setSearchEnabled] = useState(true); // default ON when no files
   const [tavilyKey, setTavilyKeyState] = useState(() => getTavilyKey());
   const [searching, setSearching] = useState(false);
   const [researchPhase, setResearchPhase] = useState<"idle" | "searching" | "deepReading" | "generating" | "done">("idle");
@@ -206,6 +249,32 @@ export default function Strategy() {
     setTavilyKeyState(key);
     setTavilyKey(key);
   };
+
+  // ---- file upload ----
+  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; content: string }[]>([]);
+  const [fileParsing, setFileParsing] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileAdd = useCallback(async (file: File) => {
+    setFileError(null);
+    setFileParsing(true);
+    try {
+      const result = await parseFile(file);
+      setUploadedFiles((prev) => [...prev, { name: result.fileName, content: result.text }]);
+      // when user uploads files, they may still want web search — but we let them decide
+    } catch (err) {
+      setFileError(err instanceof Error ? err.message : "文件解析失败");
+    } finally {
+      setFileParsing(false);
+    }
+  }, []);
+
+  const handleFileRemove = useCallback((index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const totalFileChars = uploadedFiles.reduce((sum, f) => sum + f.content.length, 0);
 
   // ---- system prompt ----
   const systemPrompt = useMemo(() => buildSystemPrompt(depth, type), [depth, type]);
@@ -245,6 +314,11 @@ export default function Strategy() {
     if (!name.trim() || isBusy) return;
     if (hasContent) clearMessages();
 
+    // build file context from uploaded files
+    const fileContext = uploadedFiles.length > 0
+      ? `\n\n[本地上传资料]\n\n${uploadedFiles.map((f) => `### ${f.name}\n\n${f.content.slice(0, 8000)}${f.content.length > 8000 ? "\n\n...(内容过长，已截断前8000字)" : ""}`).join("\n\n---\n\n")}\n\n---\n请基于以上本地资料，结合你的战略分析方法论，回答用户问题。\n\n`
+      : "";
+
     const doResearch = searchEnabled && tavilyKey;
     if (doResearch) {
       setResearchPhase("searching");
@@ -265,7 +339,7 @@ export default function Strategy() {
           depth, type,
           competitor: competitor.trim() || undefined,
           geographic,
-          researchContext: context || undefined,
+          researchContext: (context || "") + fileContext,
         }));
       } catch {
         sendMessage(buildUserPrompt({
@@ -274,10 +348,23 @@ export default function Strategy() {
           depth, type,
           competitor: competitor.trim() || undefined,
           geographic,
+          researchContext: fileContext || undefined,
         }));
       } finally {
         setResearchPhase("done");
       }
+    } else if (fileContext) {
+      // files only, no web search
+      setResearchPhase("generating");
+      sendMessage(buildUserPrompt({
+        name: name.trim(),
+        industry: industry.trim() || undefined,
+        depth, type,
+        competitor: competitor.trim() || undefined,
+        geographic,
+        researchContext: fileContext,
+      }));
+      setResearchPhase("done");
     } else {
       setResearchPhase("generating");
       sendMessage(buildUserPrompt({
@@ -289,7 +376,7 @@ export default function Strategy() {
       }));
       setResearchPhase("done");
     }
-  }, [name, industry, depth, type, competitor, geographic, searchEnabled, tavilyKey, isBusy, hasContent, clearMessages, sendMessage]);
+  }, [name, industry, depth, type, competitor, geographic, searchEnabled, tavilyKey, isBusy, hasContent, uploadedFiles, clearMessages, sendMessage]);
 
   // ---- follow-up question (keeps context, sends plain text) ----
   const [followUp, setFollowUp] = useState("");
@@ -346,6 +433,173 @@ export default function Strategy() {
           基于 Kaplan-Norton 战略管理系统，整合波特五力、VRIO、SWOT、PESTEL、BCG、蓝海战略等经典分析工具
         </p>
       </div>
+
+      {/* ======== Kaplan-Norton 框架体系 ======== */}
+      <section className="mb-10 no-print">
+        <h2 className="text-lg font-bold text-[#3d3835] mb-4 flex items-center gap-2">
+          <span className="w-1.5 h-5 bg-[#c2785e] rounded-full inline-block" />
+          Kaplan-Norton 战略管理体系
+        </h2>
+
+        {/* 三大支柱 */}
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          {[
+            {
+              id: "strategy-map",
+              title: "战略地图",
+              subtitle: "Strategy Map",
+              desc: '将战略转化为四维度因果链路，回答"我们如何创造价值"',
+              steps: ["确定股东价值差距（财务）", "明确客户价值主张（客户）", "选择关键内部流程（流程）", "确定战略就绪度（学习与成长）"],
+              archetypes: ["总成本最低", "产品领先", "全面客户解决方案", "系统锁定"],
+              color: "#c2785e",
+            },
+            {
+              id: "bsc",
+              title: "平衡计分卡",
+              subtitle: "Balanced Scorecard",
+              desc: "四维度 KPI 体系，滞后指标+领先指标双轮驱动",
+              perspectives: [
+                { name: "财务", kpis: "收入增长·生产率·资产利用" },
+                { name: "客户", kpis: "份额·获客·满意度·NPS" },
+                { name: "内部流程", kpis: "运营·客户管理·创新·合规" },
+                { name: "学习与成长", kpis: "人力资本·信息资本·组织资本" },
+              ],
+              color: "#6366f1",
+            },
+            {
+              id: "sfo",
+              title: "战略中心型组织",
+              subtitle: "Strategy-Focused Organization",
+              desc: "五大原则确保战略不只是一张纸，而是每个人的日常工作",
+              principles: [
+                "高层领导推动变革",
+                "将战略转化为可操作的术语",
+                "使组织围绕战略协同化",
+                "让战略成为每个人的日常工作",
+                "使战略成为持续性流程",
+              ],
+              color: "#10b981",
+            },
+          ].map((pillar) => (
+            <details key={pillar.id} className="group bg-white rounded-2xl border border-[#e8e3dc] hover:border-[#c2785e]/30 transition-all">
+              <summary className="p-5 cursor-pointer select-none marker:hidden flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-sm font-bold" style={{ background: pillar.color }}>
+                  {pillar.id === "strategy-map" ? "🗺️" : pillar.id === "bsc" ? "📊" : "🏛️"}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-[#3d3835] text-sm">{pillar.title}</h3>
+                    <span className="text-xs text-[#b8b0a8]">{pillar.subtitle}</span>
+                  </div>
+                  <p className="text-xs text-[#8a827c] mt-1 leading-relaxed">{pillar.desc}</p>
+                </div>
+                <svg className="w-4 h-4 text-[#b8b0a8] mt-2 group-open:rotate-180 transition-transform flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+              </summary>
+
+              {/* Expanded content */}
+              <div className="px-5 pb-5 space-y-3 border-t border-[#f0ebe4] pt-4 mx-5">
+                {pillar.id === "strategy-map" && (
+                  <>
+                    <div>
+                      <p className="text-xs font-semibold text-[#6b6560] mb-2">四步构建法</p>
+                      <div className="space-y-1.5">
+                        {(pillar as any).steps.map((s: string, i: number) => (
+                          <div key={i} className="flex items-center gap-2 text-xs text-[#8a827c]">
+                            <span className="w-5 h-5 rounded-full bg-[#f5f0ea] flex items-center justify-center text-[10px] font-bold text-[#c2785e]">{i + 1}</span>
+                            {s}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-[#6b6560] mb-2">四种通用战略原型</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(pillar as any).archetypes.map((a: string) => (
+                          <span key={a} className="px-2 py-1 rounded-full text-[10px] bg-[#c2785e]/5 text-[#c2785e] font-medium">{a}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { setName(""); setType("company"); setDepth("L3"); }}
+                      className="w-full text-center text-xs text-[#c2785e] font-medium hover:underline"
+                    >
+                      用战略地图分析你的公司（L3深度）→
+                    </button>
+                  </>
+                )}
+
+                {pillar.id === "bsc" && (
+                  <>
+                    <div>
+                      <p className="text-xs font-semibold text-[#6b6560] mb-2">四维度与典型指标</p>
+                      <div className="space-y-2">
+                        {(pillar as any).perspectives.map((p: any) => (
+                          <div key={p.name} className="flex items-start gap-2 text-xs">
+                            <span className="font-semibold text-[#3d3835] min-w-[60px]">{p.name}</span>
+                            <span className="text-[#8a827c]">{p.kpis}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-[#faf7f2] rounded-xl p-3 text-xs text-[#8a827c] leading-relaxed">
+                      <span className="font-semibold text-[#6b6560]">指标设计原则</span>：每个战略目标配 1-2 个滞后指标（结果）+ 1-2 个领先指标（驱动因素）
+                    </div>
+                  </>
+                )}
+
+                {pillar.id === "sfo" && (
+                  <>
+                    <div>
+                      <p className="text-xs font-semibold text-[#6b6560] mb-2">五大原则</p>
+                      <div className="space-y-1.5">
+                        {(pillar as any).principles.map((p: string, i: number) => (
+                          <div key={i} className="flex items-center gap-2 text-xs text-[#8a827c]">
+                            <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-[10px] font-bold">{i + 1}</span>
+                            {p}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-[#faf7f2] rounded-xl p-3 text-xs text-[#8a827c] leading-relaxed">
+                      <span className="font-semibold text-[#6b6560]">双循环管理</span>：运营回顾会（周/月）+ 战略学习会（季度），战略不是一年一次的活动
+                    </div>
+                  </>
+                )}
+              </div>
+            </details>
+          ))}
+        </div>
+
+        {/* 分析工具箱 — 框架速览 */}
+        <h2 className="text-lg font-bold text-[#3d3835] mb-4 flex items-center gap-2">
+          <span className="w-1.5 h-5 bg-[#6366f1] rounded-full inline-block" />
+          分析工具箱
+        </h2>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {[
+            { label: "PESTEL", desc: "宏观环境六维度扫描", category: "外部环境" },
+            { label: "波特五力", desc: "行业竞争结构分析", category: "外部环境" },
+            { label: "VRIO", desc: "资源与能力审计", category: "内部能力" },
+            { label: "价值链", desc: "成本优势与差异化来源", category: "内部能力" },
+            { label: "SWOT/TOWS", desc: "内外交叉矩阵生成战略选项", category: "综合" },
+            { label: "BCG 矩阵", desc: "业务组合与资源配置", category: "综合" },
+            { label: "蓝海战略", desc: "ERRC 四步动作创造新市场", category: "战略选择" },
+            { label: "安索夫矩阵", desc: "增长方向选择：市场×产品", category: "战略选择" },
+          ].map((tool) => (
+            <div
+              key={tool.label}
+              className="bg-white rounded-xl border border-[#e8e3dc] p-4 hover:border-[#c2785e]/30 hover:-translate-y-0.5 transition-all"
+            >
+              <p className="text-xs text-[#b8b0a8] mb-0.5">{tool.category}</p>
+              <p className="font-bold text-[#3d3835] text-sm mb-1">{tool.label}</p>
+              <p className="text-xs text-[#8a827c] leading-relaxed">{tool.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Input Form */}
       <div className="bg-white rounded-2xl border border-[#e8e3dc] p-6 mb-8 no-print">
@@ -479,6 +733,83 @@ export default function Strategy() {
             </>
           )}
         </div>
+
+        {/* File upload area */}
+        <div className="mt-5 pt-5 border-t border-[#f0ebe4]">
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-sm font-medium text-[#6b6560]">📎 上传本地资料（可选）</label>
+            <span className="text-xs text-[#b8b0a8]">PDF / DOCX / TXT</span>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx,.doc,.txt,.md"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileAdd(file);
+              if (fileInputRef.current) fileInputRef.current.value = "";
+            }}
+            className="hidden"
+          />
+
+          {/* uploaded file list */}
+          {uploadedFiles.length > 0 && (
+            <div className="space-y-2 mb-3">
+              {uploadedFiles.map((f, i) => (
+                <div key={i} className="flex items-center gap-3 bg-[#faf7f2] rounded-xl p-3 border border-[#e8e3dc]">
+                  <svg className="w-5 h-5 text-[#c2785e] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#3d3835] truncate">{f.name}</p>
+                    <p className="text-xs text-[#b8b0a8]">{(f.content.length / 1000).toFixed(1)}k 字符</p>
+                  </div>
+                  <button
+                    onClick={() => handleFileRemove(i)}
+                    className="text-[#b8b0a8] hover:text-red-500 transition-colors flex-shrink-0"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+              <div className="text-xs text-[#8a827c] text-right">
+                合计 {totalFileChars > 1000 ? (totalFileChars / 1000).toFixed(1) + "k" : totalFileChars} 字符
+              </div>
+            </div>
+          )}
+
+          {/* parsing indicator */}
+          {fileParsing && (
+            <div className="flex items-center gap-2 text-sm text-[#c2785e] mb-3">
+              <div className="w-4 h-4 border-2 border-[#c2785e]/20 border-t-[#c2785e] rounded-full animate-spin" />
+              正在解析文件...
+            </div>
+          )}
+
+          {/* file error */}
+          {fileError && (
+            <div className="text-sm text-red-500 mb-3">{fileError}</div>
+          )}
+
+          {/* drop / browse zone */}
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-[#e8e3dc] rounded-xl p-6 text-center cursor-pointer hover:border-[#c2785e] hover:bg-[#faf7f2] transition-all"
+          >
+            <svg className="w-8 h-8 text-[#b8b0a8] mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+            </svg>
+            <p className="text-sm text-[#6b6560]">
+              {uploadedFiles.length > 0 ? "继续添加文件" : "点击上传或拖拽文件"}
+            </p>
+            <p className="text-xs text-[#b8b0a8] mt-1">
+              支持 PDF、DOCX、TXT，单文件建议不超过 20MB
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* API Config (collapsible) */}
@@ -549,9 +880,23 @@ export default function Strategy() {
             </div>
           </div>
 
-          {/* Web search toggle */}
+          {/* Data source mode indicator */}
           <div className="border-t border-[#e8e3dc] pt-3">
             <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-[#8a827c]">数据来源：</span>
+
+              {/* file status */}
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                uploadedFiles.length > 0
+                  ? "bg-emerald-50 text-emerald-600"
+                  : "bg-[#f5f0ea] text-[#b8b0a8]"
+              }`}>
+                📎 本地{uploadedFiles.length > 0 ? ` ${uploadedFiles.length}个文件` : "无"}
+              </span>
+
+              <span className="text-xs text-[#b8b0a8]">+</span>
+
+              {/* web search toggle */}
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -559,21 +904,27 @@ export default function Strategy() {
                   onChange={(e) => setSearchEnabled(e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-200"
                 />
-                <span className="text-sm text-[#6b6560]">联网搜索 (Tavily)</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                  searchEnabled && tavilyKey
+                    ? "bg-blue-50 text-blue-600"
+                    : "bg-[#f5f0ea] text-[#b8b0a8]"
+                }`}>
+                  联网搜索{searchEnabled && tavilyKey ? " ✓" : ""}
+                </span>
               </label>
-              {searchEnabled && (
+
+              {searchEnabled && !tavilyKey && (
                 <input
                   type="password"
                   value={tavilyKey}
                   onChange={(e) => handleTavilyKeyChange(e.target.value)}
-                  placeholder={tavilyKey ? "Tavily Key 已配置" : "输入 Tavily API Key"}
+                  placeholder="输入 Tavily API Key → tavily.com 免费注册"
                   className="flex-1 min-w-[200px] px-3 py-1.5 border border-[#e8e3dc] bg-white text-[#3d3835] rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               )}
-              {searchEnabled && (
-                <span className={`text-xs ${tavilyKey ? "text-emerald-600" : "text-amber-600"}`}>
-                  {tavilyKey ? "已配置" : "需要 Key → tavily.com 免费注册"}
-                </span>
+
+              {uploadedFiles.length === 0 && !tavilyKey && searchEnabled && (
+                <span className="text-xs text-amber-600">需要 Key 才能联网，或上传本地文件</span>
               )}
             </div>
           </div>
