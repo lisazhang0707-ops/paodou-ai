@@ -7,6 +7,7 @@ const links = [
   { to: "/strategy", label: "战略分析" },
   { to: "/agents", label: "智能体" },
   { to: "/growth", label: "成长" },
+  { to: "/leaders", label: "关注大佬" },
   { to: "/about", label: "关于" },
   { to: "/dashboard", label: "仪表盘" },
   { to: "/collaborate", label: "合作" },

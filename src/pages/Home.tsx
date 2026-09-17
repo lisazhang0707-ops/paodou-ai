@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { leaderTiers } from "../data/aiLeaders"
 
 const modules = [
   {
@@ -255,6 +256,56 @@ export default function Home() {
           </div>
         </section>
       )}
+      {/* 关注大佬 · 精进学习 */}
+      <section className="px-6 lg:px-16 pb-24">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="h-px flex-1 bg-[#e8e3dc]" />
+            <h2 className="text-lg font-bold text-[#3d3835] whitespace-nowrap">关注大佬 · 精进学习</h2>
+            <div className="h-px flex-1 bg-[#e8e3dc]" />
+          </div>
+
+          <div className="rounded-3xl border border-[#e8e3dc] bg-white p-8">
+            <p className="text-sm text-[#8a827c] leading-relaxed mb-8">
+              2026 全球 AI 一线人物清单：15 位大佬分层关注——看谁、看什么、多久看一次。
+              X 上的一手信息，价值高于二手 AI 新闻。
+            </p>
+
+            {leaderTiers.map((tier) => (
+              <div key={tier.tier} className="flex items-start gap-4 mb-6 last:mb-0">
+                <span className="shrink-0 w-14 text-right text-xs font-bold text-[#c2785e] pt-1">
+                  {tier.tier}
+                </span>
+                <div className="flex-1">
+                  <div className="text-xs text-[#b8b0a8] mb-2">{tier.title}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {tier.leaders.map((p) => (
+                      <span
+                        key={p.nameEn}
+                        className="px-3 py-1 rounded-full bg-[#f5f0ea] text-[#6b6560] text-xs font-medium"
+                      >
+                        {p.nameZh}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <div className="mt-8 pt-6 border-t border-[#f0ebe4]">
+              <Link
+                to="/leaders"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-[#c2785e] text-white rounded-full font-medium hover:bg-[#b0684e] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#c2785e]/25 transition-all text-sm"
+              >
+                查看完整清单：平台建议 + 每天 15 分钟摄入流程
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
