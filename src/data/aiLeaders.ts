@@ -1,5 +1,14 @@
 // 2026 全球 AI 一线人物清单 —— 关注大佬，精进学习
 // 更新日期：2026-09-18
+// 头像来源：Wikimedia Commons（CC 授权照片）+ 个人公开 GitHub 头像；无授权照片者用首字头像兜底
+
+const BASE = import.meta.env.BASE_URL
+
+export interface LeaderAvatar {
+  src: string
+  credit: string
+  creditUrl?: string
+}
 
 export interface AiLeader {
   nameZh: string
@@ -8,6 +17,7 @@ export interface AiLeader {
   focus: string
   why: string
   links: { label: string; url: string }[]
+  avatar?: LeaderAvatar
 }
 
 export interface LeaderTier {
@@ -33,6 +43,11 @@ export const leaderTiers: LeaderTier[] = [
           { label: "X", url: "https://x.com/karpathy" },
           { label: "YouTube", url: "https://www.youtube.com/@AndrejKarpathy" },
         ],
+        avatar: {
+          src: `${BASE}leaders/karpathy.png`,
+          credit: "Gladwin Analytics · CC BY 3.0",
+          creditUrl: "https://commons.wikimedia.org/wiki/File:Andrej_Karpathy,_OpenAI.png",
+        },
       },
       {
         nameZh: "Sam Altman",
@@ -41,6 +56,11 @@ export const leaderTiers: LeaderTier[] = [
         focus: "AI 产业、模型、Agent、未来趋势",
         why: "AI 产业与产品方向的一手信号源，发布节奏和信息密度都很高",
         links: [{ label: "X", url: "https://x.com/sama" }],
+        avatar: {
+          src: `${BASE}leaders/altman.jpg`,
+          credit: "首相官邸ホームページ / Office of the Prime Minister of Japan · CC BY 4.0",
+          creditUrl: "https://commons.wikimedia.org/wiki/File:Meeting_with_Masayoshi_Son_and_Sam_Altman_(February_3,_2025)_(3x4_cropped_on_Altman).jpg",
+        },
       },
       {
         nameZh: "Dario Amodei",
@@ -52,6 +72,11 @@ export const leaderTiers: LeaderTier[] = [
           { label: "X", url: "https://x.com/DarioAmodei" },
           { label: "个人网站", url: "https://darioamodei.com" },
         ],
+        avatar: {
+          src: `${BASE}leaders/amodei.jpg`,
+          credit: "TechCrunch · CC BY 2.0",
+          creditUrl: "https://commons.wikimedia.org/wiki/File:Dario_Amodei_at_TechCrunch_Disrupt_2023_01_(cropped).jpg",
+        },
       },
       {
         nameZh: "Demis Hassabis",
@@ -60,6 +85,11 @@ export const leaderTiers: LeaderTier[] = [
         focus: "Gemini、AGI、Agent、AI for Science",
         why: "经常直接发布 Gemini、Genie、AI for Science 等一手进展",
         links: [{ label: "X", url: "https://x.com/demishassabis" }],
+        avatar: {
+          src: `${BASE}leaders/hassabis.jpg`,
+          credit: "John Sears · CC BY-SA 4.0",
+          creditUrl: "https://commons.wikimedia.org/wiki/File:Demis_Hassabis,_2024_Nobel_Prize_Laureate_in_Chemistry_7_(cropped).jpg",
+        },
       },
       {
         nameZh: "Aravind Srinivas",
@@ -68,6 +98,11 @@ export const leaderTiers: LeaderTier[] = [
         focus: "AI Search、Agent、Computer",
         why: "Perplexity 正从搜索 → 答案引擎 → Agent → Computer 演进，是观察「AI 如何吃掉入口」的最佳样本",
         links: [{ label: "X", url: "https://x.com/AravSrinivas" }],
+        avatar: {
+          src: `${BASE}leaders/srinivas.jpg`,
+          credit: "TechCrunch · CC BY 2.0",
+          creditUrl: "https://commons.wikimedia.org/wiki/File:Aravind_Srinivas_2024.jpg",
+        },
       },
       {
         nameZh: "Yann LeCun",
@@ -76,6 +111,11 @@ export const leaderTiers: LeaderTier[] = [
         focus: "World Model、JEPA、AGI",
         why: "经常挑战主流 LLM 路线，提出另一套 AGI / World Model 理解，适合建立独立判断能力",
         links: [{ label: "X", url: "https://x.com/ylecun" }],
+        avatar: {
+          src: `${BASE}leaders/lecun.jpg`,
+          credit: "Jérémy Barande · CC BY-SA 2.0",
+          creditUrl: "https://commons.wikimedia.org/wiki/File:Laura_Chaubard_&_Yann_Le_Cun_-_2024_(53814052697)_(cropped).jpg",
+        },
       },
     ],
   },
@@ -91,6 +131,11 @@ export const leaderTiers: LeaderTier[] = [
         focus: "AI 基础设施、模型、工程",
         why: "研究 AI Agent 背后基础设施如何支撑的最佳人选",
         links: [{ label: "X", url: "https://x.com/JeffDean" }],
+        avatar: {
+          src: `${BASE}leaders/jeff-dean.jpg`,
+          credit: "Cmichel67 · CC BY-SA 4.0",
+          creditUrl: "https://commons.wikimedia.org/wiki/File:Jeff_Dean_in_2025_x.jpg",
+        },
       },
       {
         nameZh: "Sebastian Raschka",
@@ -99,6 +144,11 @@ export const leaderTiers: LeaderTier[] = [
         focus: "LLM 架构、模型工程",
         why: "把最新 LLM 架构（Qwen、Kimi、Mamba 等）拆解成易懂的文章和图示，技术学习性价比极高",
         links: [{ label: "X", url: "https://x.com/rasbt" }],
+        avatar: {
+          src: `${BASE}leaders/raschka.jpg`,
+          credit: "个人 GitHub 头像",
+          creditUrl: "https://github.com/rasbt",
+        },
       },
       {
         nameZh: "Jim Fan",
@@ -107,6 +157,11 @@ export const leaderTiers: LeaderTier[] = [
         focus: "Agent、机器人、Embodied AI",
         why: "2026 主线是 World Model 与 Physical Turing Test（ENPIRE、RoboTTT），机器人是下一个 AI 战场",
         links: [{ label: "X", url: "https://x.com/DrJimFan" }],
+        avatar: {
+          src: `${BASE}leaders/jim-fan.jpg`,
+          credit: "个人 GitHub 头像",
+          creditUrl: "https://github.com/DrJimFan",
+        },
       },
       {
         nameZh: "李飞飞 Fei-Fei Li",
@@ -115,6 +170,11 @@ export const leaderTiers: LeaderTier[] = [
         focus: "Spatial Intelligence、Computer Vision",
         why: "空间智能是 LLM 之后被讨论最多的下一波方向，她是一手定义者",
         links: [{ label: "X", url: "https://x.com/drfeifei" }],
+        avatar: {
+          src: `${BASE}leaders/feifei-li.jpg`,
+          credit: "ITU Pictures · CC BY 2.0",
+          creditUrl: "https://commons.wikimedia.org/wiki/File:Fei-Fei_Li_at_AI_for_Good_2017.jpg",
+        },
       },
       {
         nameZh: "Yoshua Bengio",
@@ -123,6 +183,11 @@ export const leaderTiers: LeaderTier[] = [
         focus: "深度学习、AI 安全",
         why: "深度学习三巨头之一，近年重点转向 AI 安全与风险治理，提供研究圈的另一视角",
         links: [{ label: "X", url: "https://x.com/Yoshua_Bengio" }],
+        avatar: {
+          src: `${BASE}leaders/bengio.jpg`,
+          credit: "Xuthoria · CC BY-SA 4.0",
+          creditUrl: "https://commons.wikimedia.org/wiki/File:ICLR_2025_-_Yoshua_Bengio_02.jpg",
+        },
       },
     ],
   },
@@ -165,6 +230,11 @@ export const leaderTiers: LeaderTier[] = [
         focus: "AI 基础设施、自主 AI 团队",
         why: "2026 年 7 月官宣新创业 Intent Lab，做「把意图变成生产软件」的自主 AI 团队，是华人里少数持续在 X 高频发声的一线技术人",
         links: [{ label: "X", url: "https://x.com/jiayq" }],
+        avatar: {
+          src: `${BASE}leaders/jia-yangqing.jpg`,
+          credit: "个人 GitHub 头像",
+          creditUrl: "https://github.com/Yangqing",
+        },
       },
     ],
   },

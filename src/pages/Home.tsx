@@ -230,8 +230,15 @@ export default function Home() {
                     {tier.leaders.map((p) => (
                       <span
                         key={p.nameEn}
-                        className="px-3 py-1 rounded-full bg-[#f5f0ea] text-[#6b6560] text-xs font-medium"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#f5f0ea] text-[#6b6560] text-xs font-medium"
                       >
+                        {p.avatar ? (
+                          <img src={p.avatar.src} alt="" loading="lazy" className="w-5 h-5 rounded-full object-cover" />
+                        ) : (
+                          <span className="w-5 h-5 rounded-full bg-[#c2785e]/15 text-[#c2785e] flex items-center justify-center text-[10px] font-bold">
+                            {p.nameZh.charAt(0)}
+                          </span>
+                        )}
                         {p.nameZh}
                       </span>
                     ))}

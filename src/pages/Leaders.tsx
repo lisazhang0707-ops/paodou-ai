@@ -35,11 +35,23 @@ export default function Leaders() {
                 key={p.nameEn}
                 className="flex flex-col p-6 rounded-3xl border border-[#e8e3dc] bg-white hover:border-[#c2785e]/25 hover:-translate-y-1 hover:shadow-lg hover:shadow-stone-200/60 transition-all"
               >
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <h3 className="font-bold text-[#3d3835] text-lg leading-tight">{p.nameZh}</h3>
-                  <span className="text-xs text-[#c2785e] font-medium whitespace-nowrap pt-1">
-                    {p.nameEn}
-                  </span>
+                <div className="flex items-center gap-3 mb-3">
+                  {p.avatar ? (
+                    <img
+                      src={p.avatar.src}
+                      alt={p.nameZh}
+                      loading="lazy"
+                      className="w-12 h-12 rounded-full object-cover shrink-0 border-2 border-[#f0ebe4]"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-[#c2785e]/10 text-[#c2785e] flex items-center justify-center font-bold text-lg shrink-0 border-2 border-[#c2785e]/20">
+                      {p.nameZh.charAt(0)}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-[#3d3835] text-lg leading-tight truncate">{p.nameZh}</h3>
+                    <span className="text-xs text-[#c2785e] font-medium">{p.nameEn}</span>
+                  </div>
                 </div>
                 <p className="text-xs text-[#8a827c] mb-1">{p.role}</p>
                 <p className="text-xs text-[#b8b0a8] mb-4">关注：{p.focus}</p>
@@ -122,6 +134,32 @@ export default function Leaders() {
           看信息是为了建立判断，不是为了收集信息。每天 15 分钟看完，周末挑一条最有价值的
           深挖成文章或实操，沉淀进<a href="#/blog" className="text-[#c2785e] hover:underline">跑豆 AI 知识库</a>。
         </p>
+      </div>
+
+      {/* 头像来源署名 */}
+      <div className="mt-8">
+        <p className="text-xs text-[#b8b0a8] mb-2 font-medium">头像来源（CC 授权照片 + 个人公开头像）</p>
+        <div className="flex flex-wrap gap-x-5 gap-y-1">
+          {(() => {
+            const seen = new Set<string>()
+            const credits: { credit: string; creditUrl?: string }[] = []
+            for (const tier of leaderTiers)
+              for (const p of tier.leaders)
+                if (p.avatar && !seen.has(p.avatar.src)) {
+                  seen.add(p.avatar.src)
+                  credits.push({ credit: `${p.nameZh}：${p.avatar.credit}`, creditUrl: p.avatar.creditUrl })
+                }
+            return credits.map((c) =>
+              c.creditUrl ? (
+                <a key={c.credit} href={c.creditUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-[#b8b0a8] hover:text-[#c2785e] transition-colors">
+                  {c.credit}
+                </a>
+              ) : (
+                <span key={c.credit} className="text-[10px] text-[#b8b0a8]">{c.credit}</span>
+              )
+            )
+          })()}
+        </div>
       </div>
     </div>
   )
