@@ -1,4 +1,4 @@
-import { leaderTiers, platformGuide, dailyRoutine } from "../data/aiLeaders"
+import { leaderTiers, platformGuide, pickedItems, dailyRoutine } from "../data/aiLeaders"
 
 export default function Leaders() {
   return (
@@ -100,6 +100,46 @@ export default function Leaders() {
               <p className="text-sm text-[#6b6560] leading-relaxed mb-3">{p.desc}</p>
               <p className="text-xs text-[#b8b0a8]">{p.sample}</p>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 精选内容清单 */}
+      <div className="mb-16">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="h-px flex-1 bg-[#e8e3dc]" />
+          <h2 className="text-xl font-bold text-[#3d3835] whitespace-nowrap">🎯 精选内容：值得看的视频与文章</h2>
+          <div className="h-px flex-1 bg-[#e8e3dc]" />
+        </div>
+        <p className="text-sm text-[#8a827c] text-center mb-8">
+          每条链接都已核验可用。「学到」一栏告诉你看完带走什么
+        </p>
+
+        <div className="grid lg:grid-cols-2 gap-4">
+          {pickedItems.map((item) => (
+            <a
+              key={item.url}
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-start gap-4 p-5 rounded-2xl border border-[#e8e3dc] bg-white hover:border-[#c2785e]/25 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-stone-200/60 transition-all"
+            >
+              <span className="shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#f5f0ea] text-[#8a827c] group-hover:bg-[#c2785e]/10 group-hover:text-[#c2785e] transition-colors mt-0.5">
+                {item.platform}
+              </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-bold text-[#3d3835] text-sm leading-tight group-hover:text-[#c2785e] transition-colors">
+                    {item.title}
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#c2785e]/10 text-[#c2785e] whitespace-nowrap">
+                    学到：{item.learn}
+                  </span>
+                </div>
+                <p className="text-xs text-[#b8b0a8] mt-1">{item.author}</p>
+                <p className="text-sm text-[#6b6560] leading-relaxed mt-1.5">{item.why}</p>
+              </div>
+            </a>
           ))}
         </div>
       </div>

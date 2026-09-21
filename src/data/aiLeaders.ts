@@ -261,6 +261,107 @@ export const platformGuide = [
   },
 ]
 
+export interface PickedItem {
+  platform: string
+  title: string
+  url: string
+  author: string
+  why: string
+  learn: string
+}
+
+// 精选内容：全部链接已核实可用（2026-09-22）
+export const pickedItems: PickedItem[] = [
+  {
+    platform: "YouTube",
+    title: "Deep Dive into LLMs like ChatGPT",
+    url: "https://www.youtube.com/watch?v=7xTGNNLPyMI",
+    author: "Andrej Karpathy · 3.5 小时",
+    why: "面向非技术人的 LLM 全流程拆解：预训练、后训练、RL 每一步现场演示，看完对「模型为什么这样回答」有直觉",
+    learn: "搞懂大模型内部原理",
+  },
+  {
+    platform: "YouTube",
+    title: "How I use LLMs",
+    url: "https://www.youtube.com/watch?v=EWvNQjAaOHw",
+    author: "Andrej Karpathy · 2 小时",
+    why: "他本人的 LLM 日常工作流：什么任务配什么模型、多模型交叉验证、工具怎么组合，比任何教程都实用",
+    learn: "复刻 Karpathy 工作流",
+  },
+  {
+    platform: "YouTube",
+    title: "Yann LeCun: Limits of LLMs, AGI & the Future（Lex Fridman #416）",
+    url: "https://www.youtube.com/watch?v=5t1vTLU7s40",
+    author: "Yann LeCun · 2 小时 47 分",
+    why: "完整听完「LLM 不够、世界模型才是出路」的论证，训练你对主流路线的独立判断",
+    learn: "听懂 AGI 另一条路线",
+  },
+  {
+    platform: "文章",
+    title: "Machines of Loving Grace",
+    url: "https://darioamodei.com/machines-of-loving-grace",
+    author: "Dario Amodei · Anthropic CEO",
+    why: "Anthropic CEO 对 AGI 时间表、经济与风险的完整推演，判断 AI 行业的基准长文",
+    learn: "看懂 AGI 时间表风险",
+  },
+  {
+    platform: "文章",
+    title: "Components of a Coding Agent",
+    url: "https://magazine.sebastianraschka.com/p/components-of-a-coding-agent",
+    author: "Sebastian Raschka · Ahead of AI",
+    why: "拆开 Coding Agent 的构造：工具、记忆、仓库上下文怎么协作，解释你天天用的 Claude Code 为什么强",
+    learn: "搞懂 Coding Agent 原理",
+  },
+  {
+    platform: "文章",
+    title: "DeepSeek-R1 技术报告",
+    url: "https://github.com/deepseek-ai/DeepSeek-R1",
+    author: "DeepSeek · Nature 封面论文",
+    why: "纯 RL 训出推理能力的开山之作，看懂「推理模型」到底是怎么炼成的",
+    learn: "看懂推理模型炼成法",
+  },
+  {
+    platform: "文章",
+    title: "世界建模：第二代预训练范式",
+    url: "https://36kr.com/p/3670067910337161",
+    author: "Jim Fan · 36氪中文版",
+    why: "为什么「预测下一个物理状态」是 LLM 之后的范式，机器人赛道的入场导读",
+    learn: "掌握下一代 AI 范式",
+  },
+  {
+    platform: "中文",
+    title: "DeepSeek 官方新闻",
+    url: "https://api-docs.deepseek.com/news/",
+    author: "DeepSeek 官方",
+    why: "模型发布、版本更新的唯一一手渠道，不被自媒体二手消息带偏",
+    learn: "跟住一手产品发布",
+  },
+  {
+    platform: "中文",
+    title: "Qwen 官方博客",
+    url: "https://qwenlm.github.io/blog/",
+    author: "阿里云 Qwen 团队",
+    why: "国产开源模型的技术博客标杆：论文、benchmark、代码全部开源，追国产模型就看这里",
+    learn: "追国产开源模型进展",
+  },
+  {
+    platform: "中文",
+    title: "机器之心",
+    url: "https://www.jiqizhixin.com/",
+    author: "机器之心",
+    why: "中文圈论文解读最快最全，看不懂英文论文时的替代入口",
+    learn: "跟住中文论文解读",
+  },
+  {
+    platform: "中文",
+    title: "智谱 & Kimi 官方",
+    url: "https://www.zhipuai.cn/",
+    author: "智谱 AI / 月之暗面（moonshot.cn）",
+    why: "GLM 与 Kimi 的官方动态：开源模型、Agent 产品发布的第一现场",
+    learn: "追国产大模型动态",
+  },
+]
+
 export const dailyRoutine = [
   {
     time: "10 分钟",
